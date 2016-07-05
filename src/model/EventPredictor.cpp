@@ -39,7 +39,7 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	std::string name = context.getProperty<std::string>(PROP_FMU_NAME);
 
 	// Load The model descrition, the handler function won't be used directly.
-	struct BareFMUModelExchange * modExBare = ModelManager::getModelManager().getModel(path, name);
+	struct BareFMUModelExchange * modExBare = ModelManager::getModelManager().getModel(path, name, fmiTrue);
 	
 	if(NULL == modExBare){
 		boost::format err("Can't load the ModelExchange FMU \"%1%\" in URL \"%2%\"");

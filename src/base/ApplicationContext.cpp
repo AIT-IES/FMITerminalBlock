@@ -104,15 +104,17 @@ ApplicationContext::addSensitiveDefaultProperties(const ModelDescription * descr
 {
 	assert(description != NULL);
 
-	if(!hasProperty(PROP_START_TIME))
+	if(!hasProperty(PROP_START_TIME) && description->hasDefaultExperiment())
 	{
+		fmiReal startTime, stopTime, tolerance, stepSize;
+		description->getDefaultExperiment(startTime, stopTime, tolerance, stepSize);
 		// Set start time
-		std::string startTime = description->getDefaultExperiment()
-			.get<std::string>("startTime", "0.0");
-		config_.put(PROP_START_TIME, startTime);
+		config_.put(PROP_START_TIME, std::to_string(startTime));
 		BOOST_LOG_TRIVIAL(debug) << "Set start time property " << PROP_START_TIME 
 			<< " to the model's defualt value: " << startTime;
+		// TODO: Set default stop time.
 	}
+
 
 }
 
