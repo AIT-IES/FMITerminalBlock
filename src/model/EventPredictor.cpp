@@ -208,7 +208,7 @@ EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIType type)
 	assert((int) type >= 0);
 	assert((int) type < 5);
 
-	const std::vector<const std::string> &names = mapping->getOutputVariableNames(type);
+	const std::vector<std::string> &names = mapping->getOutputVariableNames(type);
 	if(!names.empty())
 	{
 		std::string * nameBuffer = new std::string[names.size()];

@@ -35,7 +35,7 @@ CompactASN1Publisher::CompactASN1Publisher(): outputVariables_(), outputTypes_()
 }
 
 void CompactASN1Publisher::init(const boost::property_tree::ptree &config, 
-				const std::vector<const Base::ChannelMapping::PortID> &ports)
+				const std::vector<Base::ChannelMapping::PortID> &ports)
 {
 
 	initOutputVariables(ports);
@@ -112,7 +112,7 @@ CompactASN1Publisher::toString(const std::vector<uint8_t> & buffer)
 
 void 
 CompactASN1Publisher::initOutputVariables(
-	const std::vector<const Base::ChannelMapping::PortID> & ports)
+	const std::vector<Base::ChannelMapping::PortID> & ports)
 {
 	outputVariables_.clear();
 
@@ -143,7 +143,7 @@ CompactASN1Publisher::initOutputVariables(
 
 void 
 CompactASN1Publisher::initOutputTypes(
-				const std::vector<const Base::ChannelMapping::PortID> & ports, 
+				const std::vector<Base::ChannelMapping::PortID> & ports, 
 				const boost::property_tree::ptree &config)
 {
 	boost::format encodeTypeKey(PROP_ENCODE_TYPE);

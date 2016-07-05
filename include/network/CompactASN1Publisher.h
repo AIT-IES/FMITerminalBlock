@@ -61,7 +61,7 @@ namespace FMITerminalBlock
 			 * @copydoc Publisher::init()
 			 */
 			virtual void init(const boost::property_tree::ptree &config, 
-				const std::vector<const Base::ChannelMapping::PortID> &ports);
+				const std::vector<Base::ChannelMapping::PortID> &ports);
 
 			/**
 			 * @brief Updates the outputVariables_ based on the given Event
@@ -127,7 +127,7 @@ namespace FMITerminalBlock
 			 * port configuration.
 			 */
 			void initOutputVariables(
-				const std::vector<const Base::ChannelMapping::PortID> & ports);
+				const std::vector<Base::ChannelMapping::PortID> & ports);
 
 			/**
 			 * @brief Initializes the outputType_ vector based on the given 
@@ -140,7 +140,7 @@ namespace FMITerminalBlock
 			 * the encoding type parameters.
 			 */
 			void initOutputTypes(
-				const std::vector<const Base::ChannelMapping::PortID> & ports, 
+				const std::vector<Base::ChannelMapping::PortID> & ports, 
 				const boost::property_tree::ptree &config);
 
 			/**

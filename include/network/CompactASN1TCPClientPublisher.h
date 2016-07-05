@@ -48,7 +48,7 @@ namespace FMITerminalBlock
 			 * @copydoc Publisher::init()
 			 */
 			virtual void init(const boost::property_tree::ptree &config, 
-				const std::vector<const Base::ChannelMapping::PortID> &ports);
+				const std::vector<Base::ChannelMapping::PortID> &ports);
 
 			/**
 			 * @brief Updates the output data and sends the message

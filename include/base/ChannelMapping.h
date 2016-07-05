@@ -60,7 +60,7 @@ namespace FMITerminalBlock
 			 * @brief C'tor initializing an empty ChannelMapping object
 			 */
 			ChannelMapping():
-				outputVariableNames_(5, std::vector<const std::string>()),
+				outputVariableNames_(5, std::vector<std::string>()),
 				outputChannels_() {};
 
 			/**
@@ -81,7 +81,7 @@ namespace FMITerminalBlock
 			 * @param type The FMIType to query
 			 * @return A vector which contains every output channel name by its ID
 			 */
-			const std::vector<const std::string> & getOutputVariableNames(
+			const std::vector<std::string> & getOutputVariableNames(
 					FMIType type) const;
 
 			/**
@@ -98,7 +98,7 @@ namespace FMITerminalBlock
 			 * destroyed.
 			 * @return A vector which contains a channel's associated output ports
 			 */
-			const std::vector<const PortID> & getOutputPorts(int channelID) const;
+			const std::vector<PortID> & getOutputPorts(int channelID) const;
 
 			/**
 			 * @brief Returns a string which describes the channel mapping
@@ -109,10 +109,10 @@ namespace FMITerminalBlock
 		private:
 
 			/** @brief The vector of available output variables per FMIType */
-			std::vector<std::vector<const std::string>> outputVariableNames_;
+			std::vector<std::vector<std::string>> outputVariableNames_;
 
 			/** @brief Vector storing configured variables for each output port */
-			std::vector<std::vector<const PortID>> outputChannels_;
+			std::vector<std::vector<PortID>> outputChannels_;
 
 			/**
 			 * @brief Adds the given channel configuration to the given lists
@@ -125,8 +125,8 @@ namespace FMITerminalBlock
 			 * @param channelList The list of channels
 			 */
 			static void addChannels(const boost::property_tree::ptree &prop, 
-				std::vector<std::vector<const std::string>> &nameList, 
-				std::vector<std::vector<const PortID>> &channelList);
+				std::vector<std::vector<std::string>> &nameList, 
+				std::vector<std::vector<PortID>> &channelList);
 
 			/**
 			 * @brief Adds the port configuration to the given lists
@@ -139,8 +139,8 @@ namespace FMITerminalBlock
 			 * @param variablelList The list of previously added ports
 			 */			
 			static void addVariables(const boost::property_tree::ptree &channelProp, 
-				std::vector<std::vector<const std::string>> &nameList, 
-				std::vector<const PortID> &variableList);
+				std::vector<std::vector<std::string>> &nameList, 
+				std::vector<PortID> &variableList);
 
 			/**
 			 * @brief Queries the ChannelMapping::PortID of the given name
@@ -149,7 +149,7 @@ namespace FMITerminalBlock
 			 * @return The name's PortID or <fmiTypeUnknown, -1>
 			 */
 			static PortID getID(
-				const std::vector<std::vector<const std::string>> &nameList,
+				const std::vector<std::vector<std::string>> &nameList,
 				const std::string &name, FMIType type);
 
 		};

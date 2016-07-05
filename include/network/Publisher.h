@@ -48,7 +48,7 @@ namespace FMITerminalBlock
 			 * publisher.
 			 */
 			virtual void init(const boost::property_tree::ptree &config, 
-				const std::vector<const Base::ChannelMapping::PortID> &ports) = 0;
+				const std::vector<Base::ChannelMapping::PortID> &ports) = 0;
 
 		};
 
