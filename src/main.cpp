@@ -11,6 +11,8 @@
  * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
  */
 
+#include "base/environment-helper.h"
+
 #include <assert.h>
 #include <stdexcept>
 #include <string>

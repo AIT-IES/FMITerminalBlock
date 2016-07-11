@@ -8,6 +8,7 @@
  * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
  */
 
+#include "base/environment-helper.h"
 #include "network/CompactASN1TCPClientPublisher.h"
 #include "base/BaseExceptions.h"
 
