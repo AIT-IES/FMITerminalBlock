@@ -16,6 +16,9 @@
  */
 
 #define BOOST_TEST_MODULE testASN1
+
+#include "base/environment-helper.h"
+
 #include <boost/test/unit_test.hpp>
 
 #include <assert.h>
@@ -49,7 +52,7 @@ struct ASN1Fixture
 	/** @brief The configuration property tree */
 	boost::property_tree::ptree config;
 	/** @brief The vector of configured ports */
-	std::vector<const Base::ChannelMapping::PortID> ports;
+	std::vector<Base::ChannelMapping::PortID> ports;
 
 	/** @brief IO Service used to test the network connection */
 	boost::asio::io_service ioService;
