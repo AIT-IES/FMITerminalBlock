@@ -49,14 +49,17 @@ else () # linux-specific
 endif ()
 
 # Boost dependencies
+option( Boost_USE_STATIC_LIBS "Specifies whether boost should be linked statically" ON)
 find_package( Boost 1.56.0 COMPONENTS thread system filesystem date_time regex log log_setup REQUIRED )
 
-# Workaround for boost namespace mangling. See 
-# http://www.boost.org/doc/libs/1_55_0/libs/log/doc/html/log/rationale/namespace_mangling.html
-# for more details
-option(BOOST_LOG_DYN_LINK "Specify whether boost log was compiled for dynamic linking" ON)
-if( BOOST_LOG_DYN_LINK )
-	add_definitions( -DBOOST_LOG_DYN_LINK )
+if( NOT Boost_USE_STATIC_LIBS )
+	# Workaround for boost namespace mangling. See 
+	# http://www.boost.org/doc/libs/1_55_0/libs/log/doc/html/log/rationale/namespace_mangling.html
+	# for more details
+	option(BOOST_LOG_DYN_LINK "Specify whether boost log was compiled for dynamic linking" ON)
+	if( BOOST_LOG_DYN_LINK )
+		add_definitions( -DBOOST_LOG_DYN_LINK )
+	endif()
 endif()
 
 # Get and check FMI++ dependencies
