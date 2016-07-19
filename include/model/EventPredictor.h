@@ -18,8 +18,9 @@
 #include "timing/Event.h"
 #include "timing/EventListener.h"
 
-#include <import/base/include/ModelDescription.h>
+// Fixes an include dependency flaw/featue(?) of ModelDescription.h
 #include <common/fmi_v1.0/fmiModelTypes.h>
+#include <import/base/include/ModelDescription.h>
 #include <vector>
 
 namespace FMITerminalBlock

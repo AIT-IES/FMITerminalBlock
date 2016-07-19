@@ -15,6 +15,8 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/format.hpp>
+// Fixes an include dependency flaw/featue(?) of ModelDescription.h
+#include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
 #include <string>
 
