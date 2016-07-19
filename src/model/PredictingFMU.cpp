@@ -20,9 +20,10 @@ using namespace FMITerminalBlock::Model;
 
 PredictingFMU::PredictingFMU(const std::string& fmuPath, 
 														 const std::string& modelName,
+														 const fmiBoolean loggingOn,
 														 const fmiReal timeDiffResolution, 
 														 const IntegratorType type): 
-	IncrementalFMU(fmuPath, modelName, timeDiffResolution, type), 
+	IncrementalFMU(fmuPath, modelName, loggingOn, timeDiffResolution, type),
 	timeDiffResolution_(timeDiffResolution)
 
 {
@@ -31,10 +32,11 @@ PredictingFMU::PredictingFMU(const std::string& fmuPath,
 
 PredictingFMU::PredictingFMU(const std::string& xmlPath, 
 														 const std::string& dllPath, 
-														 const std::string& modelName, 
+														 const std::string& modelName,
+														 const fmiBoolean loggingOn,
 														 const fmiReal timeDiffResolution, 
 														 const IntegratorType type):
-	IncrementalFMU(xmlPath, dllPath, modelName, timeDiffResolution, type),
+	IncrementalFMU(xmlPath, dllPath, modelName, loggingOn, timeDiffResolution, type),
 	timeDiffResolution_(timeDiffResolution)
 {
 }

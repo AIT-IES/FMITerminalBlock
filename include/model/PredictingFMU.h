@@ -34,8 +34,10 @@ namespace FMITerminalBlock
 			 * @param fmuPath The URI of the folder which contains the extracted
 			 * content of the FMU to include
 			 * @param modelName The FMU's name as defined in the model description
+			 * @param loggingOn Flag which enables FMI++ logging
 			 */
 			PredictingFMU(const std::string& fmuPath, const std::string& modelName, 
+				const fmiBoolean loggingOn = fmiFalse, 
 				const fmiReal timeDiffResolution = 1e-4, 
 				const IntegratorType type = IntegratorType::dp);
 
@@ -44,9 +46,11 @@ namespace FMITerminalBlock
 			 * @param xmlPath The URI of the model description file
 			 * @param dllPath The URI to the model DLL or shared object
 			 * @param modelName The FMU's name as defined in the model description
+			 * @param loggingOn Flag which enables FMI++ logging
 			 */
 			PredictingFMU(const std::string& xmlPath, const std::string& dllPath, 
-				const std::string& modelName, const fmiReal timeDiffResolution = 1e-4, 
+				const std::string& modelName, const fmiBoolean loggingOn = fmiFalse, 
+				const fmiReal timeDiffResolution = 1e-4,
 				const IntegratorType type = IntegratorType::dp);
 
 			/** @brief Frees allocated resources */
