@@ -258,6 +258,8 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_variables )
 		mapping->getOutputVariableNames(fmiTypeReal).begin(), 
 		mapping->getOutputVariableNames(fmiTypeReal).end(), 
 		varNames.begin(), varNames.end());
+	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeReal).size(),
+		mapping->getOutputVariableNames(fmiTypeReal).size());
 
 	varNames.clear();
 	varNames.push_back("y");
@@ -265,13 +267,17 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_variables )
 		mapping->getOutputVariableNames(fmiTypeInteger).begin(), 
 		mapping->getOutputVariableNames(fmiTypeInteger).end(), 
 		varNames.begin(), varNames.end());
-	
+	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeInteger).size(),
+		mapping->getOutputVariableNames(fmiTypeInteger).size());
+
 	varNames.clear();
 	varNames.push_back("z");
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		mapping->getOutputVariableNames(fmiTypeBoolean).begin(), 
 		mapping->getOutputVariableNames(fmiTypeBoolean).end(), 
 		varNames.begin(), varNames.end());
+	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeBoolean).size(),
+		mapping->getOutputVariableNames(fmiTypeBoolean).size());
 
 	varNames.clear();
 	varNames.push_back("w");
@@ -279,6 +285,8 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_variables )
 		mapping->getOutputVariableNames(fmiTypeString).begin(), 
 		mapping->getOutputVariableNames(fmiTypeString).end(), 
 		varNames.begin(), varNames.end());
+	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeString).size(),
+		mapping->getOutputVariableNames(fmiTypeString).size());
 
 }
 

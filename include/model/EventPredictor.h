@@ -168,11 +168,12 @@ namespace FMITerminalBlock
 			ModelDescription * description_;
 
 			/**
-			 * @brief Stores the number of registered outputs
-			 * @details The index corresponds to the integer value to the fmiType
-			 * enumeration
+			 * @brief Stores the ID of each registered output.
+			 * @details The first index corresponds to the integer type of the
+			 * type id and the second index corresponds to the index in the 
+			 * output array.
 			 */
-			std::vector<unsigned> outputSize_;
+			std::vector<std::vector<Base::ChannelMapping::PortID>> outputIDs_;
 
 			/** 
 			 * @brief The output values associated with the currently emitted event

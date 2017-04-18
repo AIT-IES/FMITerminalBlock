@@ -30,7 +30,7 @@ add_executable( testASN1 src/testASN1.cpp
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} 
 	${FMITerminalBlock_NETWORK_SOURCE} )
-target_link_libraries( testASN1 ${Boost_LIBRARIES} fmippim )
+target_link_libraries( testASN1 PUBLIC ${Boost_LIBRARIES} fmippim )
 
 add_executable( testEventPredictor src/testEventPredictor.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 

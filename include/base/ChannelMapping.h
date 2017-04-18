@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file ChannelMapping.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_BASE_CHANNEL_MAPPING
@@ -29,8 +29,9 @@ namespace FMITerminalBlock
 		 * mapping object. The identifier is called ChannelMapping::PortID or simply
 		 * port. It mustn't be confused with FMI's variable identifier which is
 		 * listed in the model description. The FMI identifier is not directly
-		 * exposed by FMI++ which handles the FMI communication. The assigned
-		 * identifier will enumerate every variable beginning at zero.</p>
+		 * exposed by FMI++ which handles the FMI communication. Every PortID is 
+		 * uniquely assigned along all input and output ports but may not have a
+		 * consecutive number.</p>
 		 * <p> Ports are grouped into output channels. An output channel
 		 * holds every variable identifier (port) which is transmit in one protocol
 		 * entity. For instance, a single ASN.1-based channel may encapsulate
@@ -46,8 +47,8 @@ namespace FMITerminalBlock
 			/**
 			 * @brief Defines a port identifier type
 			 * @details The FMIType specifies the type of the port and the integer
-			 * stores a type-unique identifier. The identifier will be densely
-			 * assigned by channel mapping and will start at zero.
+			 * stores a type-unique identifier. The identifier may not be densely
+			 * assigned by channel mapping and may not start at zero.
 			 */
 			typedef std::pair<FMIType, int> PortID;
 
@@ -75,14 +76,27 @@ namespace FMITerminalBlock
 			
 			/**
 			 * @brief Returns a vector which contains every output channel name
-			 * @details The index of each name corresponds to the name's identifier.
-			 * The reference will be valid until the ChannelMapping object gets
-			 * destroyed. Every model variable name returned will have the given type
+			 * @details The index of each name corresponds to the index in the 
+			 * VariableID vector. The reference will be valid until the ChannelMapping
+			 * object gets destroyed. Every model variable name returned will have the
+			 * given type
 			 * @param type The FMIType to query
-			 * @return A vector which contains every output channel name by its ID
+			 * @return A vector which contains every output port name
 			 */
 			const std::vector<std::string> & getOutputVariableNames(
 					FMIType type) const;
+
+			/**
+			 * @brief Returns a vector which contains every assigned port id
+			 * @details The function returns a vector of assigned port IDs which is 
+			 * filtered by a particular type. The index in the vector corresponds to 
+			 * the index of the variable name vector. It is guaranteed that the 
+			 * returned PortID stores exactly the same type as the given parameter. The 
+			 * reference remains valid until the channel mapping object is destroyed.
+			 * @param type The FMIType to query
+			 * @return A vector which contains every output port ID of a particular type
+			 */
+			const std::vector<PortID> & getOutputVariableIDs(FMIType type) const;
 
 			/**
 			 * @brief Returns the number of configured output channels
@@ -110,6 +124,8 @@ namespace FMITerminalBlock
 
 			/** @brief The vector of available output variables per FMIType */
 			std::vector<std::vector<std::string>> outputVariableNames_;
+			/** @brief The vector of assigned PortIDs per FMIType */
+			std::vector<std::vector<PortID>> outputVariableIDs_;
 
 			/** @brief Vector storing configured variables for each output port */
 			std::vector<std::vector<PortID>> outputChannels_;
@@ -122,10 +138,12 @@ namespace FMITerminalBlock
 			 * Base::SystemConfigurationException will be thrown.
 			 * @param prop The properties containing the channel configuration
 			 * @param nameList The list of previously added port names
+			 * @param idList The list of previously added channel IDs
 			 * @param channelList The list of channels
 			 */
 			static void addChannels(const boost::property_tree::ptree &prop, 
-				std::vector<std::vector<std::string>> &nameList, 
+				std::vector<std::vector<std::string>> &nameList,
+				std::vector<std::vector<PortID>> &idList,
 				std::vector<std::vector<PortID>> &channelList);
 
 			/**
@@ -136,10 +154,12 @@ namespace FMITerminalBlock
 			 * a Base::SystemConfigurationException will be thrown.
 			 * @param channelProp The properties which contain the port configuration
 			 * @param nameList The list of previously added channel names
+			 * @param idList The list of previously added channel IDs
 			 * @param variablelList The list of previously added ports
 			 */			
 			static void addVariables(const boost::property_tree::ptree &channelProp, 
-				std::vector<std::vector<std::string>> &nameList, 
+				std::vector<std::vector<std::string>> &nameList,
+				std::vector<std::vector<PortID>> &idList,
 				std::vector<PortID> &variableList);
 
 			/**
@@ -150,6 +170,7 @@ namespace FMITerminalBlock
 			 */
 			static PortID getID(
 				const std::vector<std::vector<std::string>> &nameList,
+				const std::vector<std::vector<PortID>> &idList,
 				const std::string &name, FMIType type);
 
 		};

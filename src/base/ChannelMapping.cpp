@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file ChannelMapping.cpp
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #include "base/ChannelMapping.h"
@@ -21,14 +21,15 @@ const std::string ChannelMapping::PROP_OUT = "out";
 const std::string ChannelMapping::PROP_TYPE = "type";
 
 ChannelMapping::ChannelMapping(const boost::property_tree::ptree &prop):
-	outputVariableNames_(5, std::vector<std::string>()), outputChannels_()
+	outputVariableNames_(5, std::vector<std::string>()), 
+	outputVariableIDs_(5, std::vector<PortID>()), outputChannels_()
 {
 
 	boost::optional<const boost::property_tree::ptree&> node = 
 		prop.get_child_optional(PROP_OUT);
 	if( (bool) node )
 	{
-		addChannels(node.get(), outputVariableNames_, outputChannels_);
+		addChannels(node.get(), outputVariableNames_, outputVariableIDs_, outputChannels_);
 	}
 
 }
@@ -37,7 +38,20 @@ const std::vector<std::string> &
 ChannelMapping::getOutputVariableNames(FMIType type) const
 {
 	assert(type < ((int)outputVariableNames_.size()));
+	assert(outputVariableNames_.size() == outputVariableIDs_.size());
+	assert(outputVariableNames_[(int)type].size() == 
+		outputVariableIDs_[(int)type].size());
 	return outputVariableNames_[(int) type];
+}
+
+const std::vector<ChannelMapping::PortID> &
+ChannelMapping::getOutputVariableIDs(FMIType type) const
+{
+	assert(type < ((int)outputVariableIDs_.size()));
+	assert(outputVariableNames_.size() == outputVariableIDs_.size());
+	assert(outputVariableNames_[(int)type].size() ==
+		outputVariableIDs_[(int)type].size());
+	return outputVariableIDs_[(int)type];
 }
 
 int 
@@ -56,21 +70,28 @@ ChannelMapping::getOutputPorts(int channelID) const
 
 std::string ChannelMapping::toString() const
 {
+	assert(outputVariableIDs_.size() == outputVariableNames_.size());
+
 	std::string ret("ChannelMapping: ");
 
 	// names
 	boost::format name("out-name(%1%) = {%2%}, ");
 	for(unsigned i = 0; i < outputVariableNames_.size(); i++)
 	{
+		assert(outputVariableIDs_[i].size() == outputVariableNames_[i].size());
+
 		name.clear();
 		name % i;
 
 		std::string nList;
+		boost::format nListEntry("\"%1%\" (%2%,%3%)");
 		for(unsigned j = 0; j < outputVariableNames_[i].size();j++)
 		{
-			nList += "\"";
-			nList += outputVariableNames_[i][j];
-			nList += "\"";
+			nListEntry.clear();
+			nListEntry % outputVariableNames_[i][j] 
+			           % outputVariableIDs_[i][j].first 
+			           % outputVariableIDs_[i][j].second;
+			nList += nListEntry.str();
 			if(j < (outputVariableNames_[i].size() - 1))
 			{
 				nList += ", ";
@@ -103,7 +124,8 @@ std::string ChannelMapping::toString() const
 }
 
 void ChannelMapping::addChannels(const boost::property_tree::ptree &prop, 
-				std::vector<std::vector<std::string>> &nameList, 
+				std::vector<std::vector<std::string>> &nameList,
+				std::vector<std::vector<PortID>> &idList,
 				std::vector<std::vector<ChannelMapping::PortID>> &channelList)
 {
 
@@ -118,7 +140,7 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop,
 
 		// Add associated variables
 		std::vector<ChannelMapping::PortID> variables;
-		addVariables(channelProp.get(), nameList, variables);
+		addVariables(channelProp.get(), nameList, idList, variables);
 		channelList.push_back(variables);
 
 		// Try next configuration directive
@@ -130,10 +152,12 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop,
 }
 
 void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp, 
-				std::vector<std::vector<std::string>> &nameList, 
+				std::vector<std::vector<std::string>> &nameList,
+				std::vector<std::vector<PortID>> &idList,
 				std::vector<ChannelMapping::PortID> &variableList)
 {
 	assert(nameList.size() >= 5);
+	assert(idList.size() == nameList.size());
 
 	boost::format varFormat("%1%");
 	int variableNr = 0;
@@ -156,10 +180,12 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 				PROP_TYPE, variableProp.get().get<std::string>(PROP_TYPE, "4"));
 		}
 
-		ChannelMapping::PortID variableID = getID(nameList, name, type);
+		ChannelMapping::PortID variableID = getID(nameList, idList, name, type);
 		if(variableID.second < 0){
-			variableID = ChannelMapping::PortID(type, nameList[(int) type].size());
+			// Obfuscate variable ID to check hidden dependencies
+			variableID = ChannelMapping::PortID(type, 3*nameList[(int) type].size());
 			nameList[(int) type].push_back(name);
+			idList[(int) type].push_back(variableID);
 		}
 
 		variableList.push_back(variableID);
@@ -171,16 +197,20 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 	}
 }
 
-ChannelMapping::PortID ChannelMapping::getID(const std::vector<std::vector<std::string>> &nameList, 
+ChannelMapping::PortID ChannelMapping::getID(
+				const std::vector<std::vector<std::string>> &nameList, 
+				const std::vector<std::vector<PortID>> &idList,
 				const std::string &name, FMIType type)
 {
 	assert(nameList.size() >= 5);
+	assert(nameList.size() == idList.size());
+	assert(nameList[(int)type].size() == idList[(int)type].size());
 	assert(((int)type) < 5);
 
 	for(unsigned i = 0; i < nameList[(int) type].size();i++)
 	{
 		if(name.compare(nameList[(int) type][i]) == 0)
-			return PortID(type,i);
+			return idList[(int)type][i];
 	}
 	return PortID(fmiTypeUnknown, -1);
 }

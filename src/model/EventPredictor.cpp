@@ -32,13 +32,15 @@ const std::string EventPredictor::PROP_FMU_NAME = "fmu.name";
 const std::string EventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
 
 EventPredictor::EventPredictor(Base::ApplicationContext &context):
-	context_(context), solver_(NULL), description_(NULL), outputSize_(5,0), 
-	lastPredictedEventTime_(0.0), currentTime_(0.0),	outputEventVariables_(), outputEventVariablesPopulated_(false)
+	context_(context), solver_(NULL), description_(NULL), 
+	outputIDs_(5,std::vector<Base::ChannelMapping::PortID>()), 
+	lastPredictedEventTime_(0.0), currentTime_(0.0), outputEventVariables_(), 
+	outputEventVariablesPopulated_(false)
 {
 	std::string path = context.getProperty<std::string>(PROP_FMU_PATH);
 	std::string name = context.getProperty<std::string>(PROP_FMU_NAME);
 
-	// Load The model descrition, the handler function won't be used directly.
+	// Load The model description, the handler function won't be used directly.
 	struct BareFMUModelExchange * modExBare = ModelManager::getModelManager().getModel(path, name, fmiTrue);
 	
 	if(NULL == modExBare){
@@ -61,7 +63,7 @@ EventPredictor::~EventPredictor()
 void 
 EventPredictor::init()
 {
-	// Fetch parameter. Set sensitive defualt values, if needed
+	// Fetch parameter. Set sensitive default values, if needed
 	std::string instanceName = context_.getProperty<std::string>(
 		PROP_FMU_INSTANCE_NAME, context_.getProperty<std::string>(PROP_FMU_NAME));
 	fmiTime start = context_.getPositiveDoubleProperty(
@@ -202,18 +204,19 @@ EventPredictor::defineOutputs(const Base::ChannelMapping *mapping)
 void 
 EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIType type)
 {
-	assert(outputSize_.size() >= 5);
+	assert(outputIDs_.size() >= 5);
 	assert(solver_ != NULL);
 	assert(mapping != NULL);
 	assert((int) type >= 0);
 	assert((int) type < 5);
 
 	const std::vector<std::string> &names = mapping->getOutputVariableNames(type);
+	outputIDs_[type] = mapping->getOutputVariableIDs(type);
+
 	if(!names.empty())
 	{
 		std::string * nameBuffer = new std::string[names.size()];
 		std::copy(names.begin(), names.end(), nameBuffer);
-		outputSize_[type] = names.size();
 		switch(type)
 		{
 		case fmiTypeReal:
@@ -240,42 +243,42 @@ void
 EventPredictor::fetchOutputs(std::vector<Timing::Event::Variable> &values, fmiTime time)
 {
 	assert(solver_ != NULL);
-	assert(outputSize_.size() >= 5);
+	assert(outputIDs_.size() >= 5);
 
 	Timing::Event::Variable element;
 
 	const fmiReal * real = solver_->getRealOutputs();
-	assert(outputSize_[(int) fmiTypeReal] == 0 || real != NULL);
-	for(unsigned i = 0; i < outputSize_[(int) fmiTypeReal]; i++)
+	assert(outputIDs_[(int) fmiTypeReal].size() == 0 || real != NULL);
+	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeReal].size(); i++)
 	{
-		element.first = std::make_pair(fmiTypeReal, (int) i);
+		element.first = outputIDs_[(int)fmiTypeReal][i];
 		element.second = real[i];
 		values.push_back(element);
 	}
 
 	const fmiInteger * integer = solver_->getIntegerOutputs();
-	assert(outputSize_[(int) fmiTypeInteger] == 0 || integer != NULL);
-	for(unsigned i = 0; i < outputSize_[(int) fmiTypeInteger]; i++)
+	assert(outputIDs_[(int) fmiTypeInteger].size() == 0 || integer != NULL);
+	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeInteger].size(); i++)
 	{
-		element.first = std::make_pair(fmiTypeInteger, (int) i);
+		element.first = outputIDs_[(int)fmiTypeInteger][i];
 		element.second = integer[i];
 		values.push_back(element);
 	}
 
 	const fmiBoolean * boolean = solver_->getBooleanOutputs();
-	assert(outputSize_[(int) fmiTypeBoolean] == 0 || boolean != NULL);
-	for(unsigned i = 0; i < outputSize_[(int) fmiTypeBoolean]; i++)
+	assert(outputIDs_[(int) fmiTypeBoolean].size() == 0 || boolean != NULL);
+	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeBoolean].size(); i++)
 	{
-		element.first = std::make_pair(fmiTypeBoolean, (int) i);
+		element.first = outputIDs_[(int)fmiTypeBoolean][i];
 		element.second = boolean[i];
 		values.push_back(element);
 	}
 	
 	const std::string * str = solver_->getStringOutputs();
-	assert(outputSize_[(int) fmiTypeString] == 0 || str != NULL);
-	for(unsigned i = 0; i < outputSize_[(int) fmiTypeString]; i++)
+	assert(outputIDs_[(int) fmiTypeString].size() == 0 || str != NULL);
+	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeString].size(); i++)
 	{
-		element.first = std::make_pair(fmiTypeString, (int) i);
+		element.first = outputIDs_[(int)fmiTypeString][i];
 		element.second = str[i];
 		values.push_back(element);
 	}
