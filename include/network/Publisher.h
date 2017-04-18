@@ -12,7 +12,7 @@
 #define _FMITERMINALBLOCK_NETWORK_PUBLISHER
 
 #include "timing/EventListener.h"
-#include "base/ChannelMapping.h"
+#include "base/PortID.h"
 
 #include <boost/property_tree/ptree.hpp>
 
@@ -48,7 +48,7 @@ namespace FMITerminalBlock
 			 * publisher.
 			 */
 			virtual void init(const boost::property_tree::ptree &config, 
-				const std::vector<Base::ChannelMapping::PortID> &ports) = 0;
+				const std::vector<Base::PortID> &ports) = 0;
 
 		};
 

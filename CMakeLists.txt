@@ -89,6 +89,7 @@ add_source_file(NETWORK src/network/CompactASN1TCPClientPublisher.cpp )
 
 add_source_file(BASE src/base/ApplicationContext.cpp )
 add_source_file(BASE src/base/ChannelMapping.cpp )
+add_source_file(BASE src/base/PortIDDrawer.cpp )
 
 add_source_file(MODEL src/model/EventPredictor.cpp )
 add_source_file(MODEL src/model/LazyEvent.cpp )

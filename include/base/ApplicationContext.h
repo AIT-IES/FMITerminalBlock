@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file ApplicationContext.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_BASE_APPLICATION_CONTEXT
@@ -15,7 +15,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/format.hpp>
-// Fixes an include dependency flaw/featue(?) of ModelDescription.h
+// Fixes an include dependency flaw/feature(?) of ModelDescription.h
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
 #include <string>
@@ -214,13 +214,20 @@ namespace FMITerminalBlock
 			static const int ERR_MSG_SIZE = 256;
 
 			/**
-			 * @brief The global configuration which stored the aplication's
+			 * @brief The global configuration which stored the application's
 			 * parameters
 			 * @details The tree has to be populated by loading the program's 
 			 * configuration sources such as CMD arguments or sensitive default
 			 * values.
 			 */
 			boost::property_tree::ptree config_;
+
+			/**
+			 * @brief The globally unique source of PortIDs.
+			 * @details The object is used to create unique PortIDs across multiple
+			 * channel mapping objects.
+			 */
+			PortIDDrawer portIDSource_;
 
 			/**
 			 * @brief Pointer to the channel mapping configuration

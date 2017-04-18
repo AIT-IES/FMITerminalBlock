@@ -14,6 +14,7 @@
 
 #include "base/ApplicationContext.h"
 #include "base/BaseExceptions.h"
+#include "base/PortIDDrawer.h"
 
 #include <string>
 #include <stdexcept>
@@ -320,4 +321,17 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_channel )
 	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[2].first, fmiTypeReal);
 	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[2].second, 0);
 
+}
+
+BOOST_AUTO_TEST_CASE(test_Port_id_drawer)
+{
+	PortIDDrawer idStore;
+
+	for (int i = 0; i < 5; i++) {
+		PortID id1 = idStore.getNextPortID((FMIType) i);
+		PortID id2 = idStore.getNextPortID((FMIType) i);
+
+		BOOST_CHECK_EQUAL(id1.first, id2.first);
+		BOOST_CHECK_NE(id1.second, id2.second);
+	}
 }

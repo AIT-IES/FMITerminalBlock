@@ -43,7 +43,7 @@ namespace FMITerminalBlock
 		public:
 
 			/**
-			 * @brief The property name which specifies the chanels encoding
+			 * @brief The property name which specifies the channels encoding
 			 * @details It will be a boost::format string which requires the channel
 			 * and port number
 			 */
@@ -61,7 +61,7 @@ namespace FMITerminalBlock
 			 * @copydoc Publisher::init()
 			 */
 			virtual void init(const boost::property_tree::ptree &config, 
-				const std::vector<Base::ChannelMapping::PortID> &ports);
+				const std::vector<Base::PortID> &ports);
 
 			/**
 			 * @brief Updates the outputVariables_ based on the given Event
@@ -127,7 +127,7 @@ namespace FMITerminalBlock
 			 * port configuration.
 			 */
 			void initOutputVariables(
-				const std::vector<Base::ChannelMapping::PortID> & ports);
+				const std::vector<Base::PortID> & ports);
 
 			/**
 			 * @brief Initializes the outputType_ vector based on the given 
@@ -140,7 +140,7 @@ namespace FMITerminalBlock
 			 * the encoding type parameters.
 			 */
 			void initOutputTypes(
-				const std::vector<Base::ChannelMapping::PortID> & ports, 
+				const std::vector<Base::PortID> & ports, 
 				const boost::property_tree::ptree &config);
 
 			/**

@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file EventPredictor.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_MODEL_EVENT_PREDICTOR
@@ -18,7 +18,7 @@
 #include "timing/Event.h"
 #include "timing/EventListener.h"
 
-// Fixes an include dependency flaw/featue(?) of ModelDescription.h
+// Fixes an include dependency flaw/feature(?) of ModelDescription.h
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
 #include <vector>
@@ -173,7 +173,7 @@ namespace FMITerminalBlock
 			 * type id and the second index corresponds to the index in the 
 			 * output array.
 			 */
-			std::vector<std::vector<Base::ChannelMapping::PortID>> outputIDs_;
+			std::vector<std::vector<Base::PortID>> outputIDs_;
 
 			/** 
 			 * @brief The output values associated with the currently emitted event

@@ -11,6 +11,9 @@
 #ifndef _FMITERMINALBLOCK_BASE_CHANNEL_MAPPING
 #define _FMITERMINALBLOCK_BASE_CHANNEL_MAPPING
 
+#include "base/PortID.h"
+#include "base/PortIDDrawer.h"
+
 #include <common/FMIType.h>
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
@@ -26,7 +29,7 @@ namespace FMITerminalBlock
 		 * channels.
 		 * @details <p> Every model variable has a name listed in the model
 		 * description and a type-unique identifier which is assigned by the channel
-		 * mapping object. The identifier is called ChannelMapping::PortID or simply
+		 * mapping object. The identifier is called PortID or simply
 		 * port. It mustn't be confused with FMI's variable identifier which is
 		 * listed in the model description. The FMI identifier is not directly
 		 * exposed by FMI++ which handles the FMI communication. Every PortID is 
@@ -44,14 +47,6 @@ namespace FMITerminalBlock
 		{
 		public:
 
-			/**
-			 * @brief Defines a port identifier type
-			 * @details The FMIType specifies the type of the port and the integer
-			 * stores a type-unique identifier. The identifier may not be densely
-			 * assigned by channel mapping and may not start at zero.
-			 */
-			typedef std::pair<FMIType, int> PortID;
-
 			/** @brief The key of the output channel property */
 			static const std::string PROP_OUT;
 			/** @brief The key of the channel type property */
@@ -59,10 +54,13 @@ namespace FMITerminalBlock
 
 			/**
 			 * @brief C'tor initializing an empty ChannelMapping object
+			 * @param portIDSource A reference to the global PortIDDrawer 
+			 * object. The reference must be valid until the object is 
+			 * destroyed.
 			 */
-			ChannelMapping():
+			ChannelMapping(PortIDDrawer &portIDSource):
 				outputVariableNames_(5, std::vector<std::string>()),
-				outputChannels_() {};
+				outputChannels_(), portIDSource_(portIDSource) {};
 
 			/**
 			 * @brief C'tor generating the channel mapping based on the current 
@@ -71,8 +69,12 @@ namespace FMITerminalBlock
 			 * Base::SystemConfigurationException will be thrown.
 			 * @param prop The property subtree which contains the channel
 			 * configuration
+			 * @param portIDSource A reference to the global PortIDDrawer
+			 * object. The reference must be valid until the object is
+			 * destroyed.
 			 */
-			ChannelMapping(const boost::property_tree::ptree &prop);
+			ChannelMapping(PortIDDrawer &portIDSource, 
+				const boost::property_tree::ptree &prop);
 			
 			/**
 			 * @brief Returns a vector which contains every output channel name
@@ -122,6 +124,9 @@ namespace FMITerminalBlock
 
 		private:
 
+			/** @brief reference to the global PortID source */
+			PortIDDrawer &portIDSource_;
+
 			/** @brief The vector of available output variables per FMIType */
 			std::vector<std::vector<std::string>> outputVariableNames_;
 			/** @brief The vector of assigned PortIDs per FMIType */
@@ -141,7 +146,8 @@ namespace FMITerminalBlock
 			 * @param idList The list of previously added channel IDs
 			 * @param channelList The list of channels
 			 */
-			static void addChannels(const boost::property_tree::ptree &prop, 
+			// TODO: Refactor signature
+			void addChannels(const boost::property_tree::ptree &prop, 
 				std::vector<std::vector<std::string>> &nameList,
 				std::vector<std::vector<PortID>> &idList,
 				std::vector<std::vector<PortID>> &channelList);
@@ -157,7 +163,8 @@ namespace FMITerminalBlock
 			 * @param idList The list of previously added channel IDs
 			 * @param variablelList The list of previously added ports
 			 */			
-			static void addVariables(const boost::property_tree::ptree &channelProp, 
+			 // TODO: Refactor signature
+			void addVariables(const boost::property_tree::ptree &channelProp,
 				std::vector<std::vector<std::string>> &nameList,
 				std::vector<std::vector<PortID>> &idList,
 				std::vector<PortID> &variableList);

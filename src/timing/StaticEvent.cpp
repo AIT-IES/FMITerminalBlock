@@ -10,6 +10,8 @@
 
 #include "timing/StaticEvent.h"
 
+#include <assert.h>
+
 using namespace FMITerminalBlock::Timing;
 
 StaticEvent::StaticEvent(fmiTime time, const std::vector<Variable> &var): 

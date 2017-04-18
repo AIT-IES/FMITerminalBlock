@@ -20,9 +20,11 @@ using namespace FMITerminalBlock::Base;
 const std::string ChannelMapping::PROP_OUT = "out";
 const std::string ChannelMapping::PROP_TYPE = "type";
 
-ChannelMapping::ChannelMapping(const boost::property_tree::ptree &prop):
-	outputVariableNames_(5, std::vector<std::string>()), 
-	outputVariableIDs_(5, std::vector<PortID>()), outputChannels_()
+ChannelMapping::ChannelMapping(PortIDDrawer &portIDSource,
+	const boost::property_tree::ptree &prop) :
+	outputVariableNames_(5, std::vector<std::string>()),
+	outputVariableIDs_(5, std::vector<PortID>()), outputChannels_(),
+	portIDSource_(portIDSource)
 {
 
 	boost::optional<const boost::property_tree::ptree&> node = 
@@ -44,7 +46,7 @@ ChannelMapping::getOutputVariableNames(FMIType type) const
 	return outputVariableNames_[(int) type];
 }
 
-const std::vector<ChannelMapping::PortID> &
+const std::vector<PortID> &
 ChannelMapping::getOutputVariableIDs(FMIType type) const
 {
 	assert(type < ((int)outputVariableIDs_.size()));
@@ -60,7 +62,7 @@ ChannelMapping::getNumberOfOutputChannels() const
 	return outputChannels_.size();
 }
 
-const std::vector<ChannelMapping::PortID> & 
+const std::vector<PortID> & 
 ChannelMapping::getOutputPorts(int channelID) const
 {
 	assert(channelID >= 0);
@@ -126,7 +128,7 @@ std::string ChannelMapping::toString() const
 void ChannelMapping::addChannels(const boost::property_tree::ptree &prop, 
 				std::vector<std::vector<std::string>> &nameList,
 				std::vector<std::vector<PortID>> &idList,
-				std::vector<std::vector<ChannelMapping::PortID>> &channelList)
+				std::vector<std::vector<PortID>> &channelList)
 {
 
 	boost::format chnFormat("%1%");
@@ -139,7 +141,7 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop,
 	{
 
 		// Add associated variables
-		std::vector<ChannelMapping::PortID> variables;
+		std::vector<PortID> variables;
 		addVariables(channelProp.get(), nameList, idList, variables);
 		channelList.push_back(variables);
 
@@ -154,7 +156,7 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop,
 void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp, 
 				std::vector<std::vector<std::string>> &nameList,
 				std::vector<std::vector<PortID>> &idList,
-				std::vector<ChannelMapping::PortID> &variableList)
+				std::vector<PortID> &variableList)
 {
 	assert(nameList.size() >= 5);
 	assert(idList.size() == nameList.size());
@@ -180,10 +182,9 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 				PROP_TYPE, variableProp.get().get<std::string>(PROP_TYPE, "4"));
 		}
 
-		ChannelMapping::PortID variableID = getID(nameList, idList, name, type);
+		PortID variableID = getID(nameList, idList, name, type);
 		if(variableID.second < 0){
-			// Obfuscate variable ID to check hidden dependencies
-			variableID = ChannelMapping::PortID(type, 3*nameList[(int) type].size());
+			variableID = portIDSource_.getNextPortID(type);
 			nameList[(int) type].push_back(name);
 			idList[(int) type].push_back(variableID);
 		}
@@ -197,7 +198,7 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 	}
 }
 
-ChannelMapping::PortID ChannelMapping::getID(
+PortID ChannelMapping::getID(
 				const std::vector<std::vector<std::string>> &nameList, 
 				const std::vector<std::vector<PortID>> &idList,
 				const std::string &name, FMIType type)

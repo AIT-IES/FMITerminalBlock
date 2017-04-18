@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file EventPredictor.cpp
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #include "model/EventPredictor.h"
@@ -33,7 +33,7 @@ const std::string EventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
 
 EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	context_(context), solver_(NULL), description_(NULL), 
-	outputIDs_(5,std::vector<Base::ChannelMapping::PortID>()), 
+	outputIDs_(5,std::vector<Base::PortID>()), 
 	lastPredictedEventTime_(0.0), currentTime_(0.0), outputEventVariables_(), 
 	outputEventVariablesPopulated_(false)
 {

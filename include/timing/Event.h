@@ -11,7 +11,7 @@
 #ifndef _FMITERMINALBLOCK_TIMING_EVENT
 #define _FMITERMINALBLOCK_TIMING_EVENT
 
-#include "base/ChannelMapping.h"
+#include "base/PortID.h"
 
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <boost/any.hpp>
@@ -40,7 +40,7 @@ namespace FMITerminalBlock
 			 * @details The first parameter identifies the variable and the second 
 			 * parameter stores its value
 			 */
-			typedef std::pair<Base::ChannelMapping::PortID, boost::any> Variable;
+			typedef std::pair<Base::PortID, boost::any> Variable;
 
 			/**
 			 * @brief C'tor initializing an empty event with the given time-stamp

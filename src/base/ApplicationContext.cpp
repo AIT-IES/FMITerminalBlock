@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file ApplicationContext.cpp
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #include "base/ApplicationContext.h"
@@ -29,7 +29,7 @@ const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAhead
 const std::string ApplicationContext::PROP_INTEGRATOR_STEP_SIZE = "app.integratorStepSize";
 
 ApplicationContext::ApplicationContext(void):
-	config_(), channelMap_(NULL)
+	config_(), channelMap_(NULL), portIDSource_()
 {
 }
 
@@ -87,7 +87,7 @@ ApplicationContext::addCommandlineOption(std::string &opt, int i)
 	
 	if(hasProperty(key))
 	{
-		boost::format err("The program option nr. %1% (\"%2%\") has arleady been set with value \"%3%\"");
+		boost::format err("The program option nr. %1% (\"%2%\") has already been set with value \"%3%\"");
 		err % i % opt % config_.get<std::string>(key);
 		throw std::invalid_argument(err.str());
 	}
@@ -111,7 +111,7 @@ ApplicationContext::addSensitiveDefaultProperties(const ModelDescription * descr
 		// Set start time
 		config_.put(PROP_START_TIME, std::to_string(startTime));
 		BOOST_LOG_TRIVIAL(debug) << "Set start time property " << PROP_START_TIME 
-			<< " to the model's defualt value: " << startTime;
+			<< " to the model's default value: " << startTime;
 		// TODO: Set default stop time.
 	}
 
@@ -162,7 +162,7 @@ ApplicationContext::getRealPositiveDoubleProperty(const std::string &path, doubl
 	
 	if(!(ret > 0.0))
 	{ // Also checks NaN
-		throw Base::SystemConfigurationException("Real positve value expected",
+		throw Base::SystemConfigurationException("Real positive value expected",
 			path,	getProperty<std::string>(path));
 	}
 
@@ -209,7 +209,7 @@ const ChannelMapping * ApplicationContext::getChannelMapping()
 {
 	if(channelMap_ == NULL)
 	{
-		channelMap_ = new ChannelMapping(config_);
+		channelMap_ = new ChannelMapping(portIDSource_, config_);
 		BOOST_LOG_TRIVIAL(debug) << "Just created " << channelMap_->toString();
 	}
 	return channelMap_;

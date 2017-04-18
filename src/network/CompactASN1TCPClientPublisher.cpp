@@ -36,7 +36,7 @@ CompactASN1TCPClientPublisher::~CompactASN1TCPClientPublisher()
 
 void 
 CompactASN1TCPClientPublisher::init(const boost::property_tree::ptree &config,
-	const std::vector<Base::ChannelMapping::PortID> &ports)
+	const std::vector<Base::PortID> &ports)
 {
 	CompactASN1Publisher::init(config, ports);
 	
