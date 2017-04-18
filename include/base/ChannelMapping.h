@@ -25,7 +25,7 @@ namespace FMITerminalBlock
 	{
 
 		/**
-		 * @brief Encapsulates the correlation of model variables and output
+		 * @brief Encapsulates the correlation of model variables and in-/output
 		 * channels.
 		 * @details <p> Every model variable has a name listed in the model
 		 * description and a type-unique identifier which is assigned by the channel
@@ -36,19 +36,17 @@ namespace FMITerminalBlock
 		 * uniquely assigned along all input and output ports but may not have a
 		 * consecutive number.</p>
 		 * <p> Ports are grouped into output channels. An output channel
-		 * holds every variable identifier (port) which is transmit in one protocol
-		 * entity. For instance, a single ASN.1-based channel may encapsulate
-		 * several model variables into one network packet. Each channel is
-		 * identified by a unique integer ID. In future versions the channel
-		 * mapping object may be extended to feature input ports and input channels
-		 * as well.</p>
+		 * holds every variable identifier (port) which is transmit or received in 
+		 * one protocol entity. For instance, a single ASN.1-based channel may 
+		 * encapsulate several model variables into one network packet. Each channel 
+		 * is identified by a unique integer ID. The ChannelMapping object does not 
+		 * specify the direction of the data-flow. Hence, it may be used for input 
+		 * and output channels alike.</p>
 		 */
 		class ChannelMapping
 		{
 		public:
 
-			/** @brief The key of the output channel property */
-			static const std::string PROP_OUT;
 			/** @brief The key of the channel type property */
 			static const std::string PROP_TYPE;
 
@@ -59,8 +57,8 @@ namespace FMITerminalBlock
 			 * destroyed.
 			 */
 			ChannelMapping(PortIDDrawer &portIDSource):
-				outputVariableNames_(5, std::vector<std::string>()),
-				outputChannels_(), portIDSource_(portIDSource) {};
+				variableNames_(5, std::vector<std::string>()),
+				channels_(), portIDSource_(portIDSource) {};
 
 			/**
 			 * @brief C'tor generating the channel mapping based on the current 
@@ -77,7 +75,7 @@ namespace FMITerminalBlock
 				const boost::property_tree::ptree &prop);
 			
 			/**
-			 * @brief Returns a vector which contains every output channel name
+			 * @brief Returns a vector which contains every variable name
 			 * @details The index of each name corresponds to the index in the 
 			 * VariableID vector. The reference will be valid until the ChannelMapping
 			 * object gets destroyed. Every model variable name returned will have the
@@ -85,28 +83,30 @@ namespace FMITerminalBlock
 			 * @param type The FMIType to query
 			 * @return A vector which contains every output port name
 			 */
-			const std::vector<std::string> & getOutputVariableNames(
+			const std::vector<std::string> & getVariableNames(
 					FMIType type) const;
 
 			/**
-			 * @brief Returns a vector which contains every assigned port id
+			 * @brief Returns a vector which contains every assigned PortID
 			 * @details The function returns a vector of assigned port IDs which is 
 			 * filtered by a particular type. The index in the vector corresponds to 
 			 * the index of the variable name vector. It is guaranteed that the 
 			 * returned PortID stores exactly the same type as the given parameter. The 
 			 * reference remains valid until the channel mapping object is destroyed.
 			 * @param type The FMIType to query
-			 * @return A vector which contains every output port ID of a particular type
+			 * @return A vector which contains every PortID of a particular type which 
+			 * is managed by the ChannelMapping 
 			 */
-			const std::vector<PortID> & getOutputVariableIDs(FMIType type) const;
+			const std::vector<PortID> & getVariableIDs(FMIType type) const;
 
 			/**
-			 * @brief Returns the number of configured output channels
+			 * @brief Returns the number of configured channels
 			 * @details Configured channel IDs will range from zero to the return
 			 * value minus one.
-			 * @return The number of configured output channels
+			 * @return The number of configured channels which are managed by 
+			 * the ChannelMapping object
 			 */
-			int getNumberOfOutputChannels(void) const;
+			int getNumberOfChannels(void) const;
 
 			/**
 			 * @brief Returns a vector which contains a channel's associated ports.
@@ -114,7 +114,7 @@ namespace FMITerminalBlock
 			 * destroyed.
 			 * @return A vector which contains a channel's associated output ports
 			 */
-			const std::vector<PortID> & getOutputPorts(int channelID) const;
+			const std::vector<PortID> & getPorts(int channelID) const;
 
 			/**
 			 * @brief Returns a string which describes the channel mapping
@@ -127,58 +127,43 @@ namespace FMITerminalBlock
 			/** @brief reference to the global PortID source */
 			PortIDDrawer &portIDSource_;
 
-			/** @brief The vector of available output variables per FMIType */
-			std::vector<std::vector<std::string>> outputVariableNames_;
+			/** @brief The vector of available variables per FMIType */
+			std::vector<std::vector<std::string>> variableNames_;
 			/** @brief The vector of assigned PortIDs per FMIType */
-			std::vector<std::vector<PortID>> outputVariableIDs_;
+			std::vector<std::vector<PortID>> variableIDs_;
 
 			/** @brief Vector storing configured variables for each output port */
-			std::vector<std::vector<PortID>> outputChannels_;
+			std::vector<std::vector<PortID>> channels_;
 
 			/**
-			 * @brief Adds the given channel configuration to the given lists
-			 * @details Every new name will be added to the list of known names and 
+			 * @brief Adds the given channel configuration
+			 * @details Every new name will be added to the list of variable names and 
 			 * every configured channel will be added to the list of channels.
 			 * On detecting an invalid configuration, a
 			 * Base::SystemConfigurationException will be thrown.
 			 * @param prop The properties containing the channel configuration
-			 * @param nameList The list of previously added port names
-			 * @param idList The list of previously added channel IDs
-			 * @param channelList The list of channels
 			 */
-			// TODO: Refactor signature
-			void addChannels(const boost::property_tree::ptree &prop, 
-				std::vector<std::vector<std::string>> &nameList,
-				std::vector<std::vector<PortID>> &idList,
-				std::vector<std::vector<PortID>> &channelList);
+			void addChannels(const boost::property_tree::ptree &prop);
 
 			/**
-			 * @brief Adds the port configuration to the given lists
+			 * @brief Adds the port configuration to the list of variables and channels
 			 * @details Every new variable name will be added to the list of known
 			 * names and every configured port will be added to the list of (a
 			 * channel's) variable identifier. On detecting an invalid configuration,
 			 * a Base::SystemConfigurationException will be thrown.
 			 * @param channelProp The properties which contain the port configuration
-			 * @param nameList The list of previously added channel names
-			 * @param idList The list of previously added channel IDs
-			 * @param variablelList The list of previously added ports
+			 * @param variablelList The list of previously added ports of the channel
 			 */			
-			 // TODO: Refactor signature
 			void addVariables(const boost::property_tree::ptree &channelProp,
-				std::vector<std::vector<std::string>> &nameList,
-				std::vector<std::vector<PortID>> &idList,
 				std::vector<PortID> &variableList);
 
 			/**
 			 * @brief Queries the ChannelMapping::PortID of the given name
-			 * @details If the list does not contain the given name, <FMUunknown, -1>
-			 * will be returned
+			 * @details If the variable list does not contain the given name, 
+			 * <FMUunknown, -1> will be returned
 			 * @return The name's PortID or <fmiTypeUnknown, -1>
 			 */
-			static PortID getID(
-				const std::vector<std::vector<std::string>> &nameList,
-				const std::vector<std::vector<PortID>> &idList,
-				const std::string &name, FMIType type);
+			PortID getID(const std::string &name, FMIType type);
 
 		};
 

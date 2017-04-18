@@ -108,7 +108,7 @@ EventPredictor::init()
 	outputEventVariables_.clear();
 	outputEventVariablesPopulated_ = false;
 
-	defineOutputs(context_.getChannelMapping());
+	defineOutputs(context_.getOutputChannelMapping());
 
 	// initialize FMU
 	int err = solver_->init(instanceName, NULL, NULL, 0, start, lookAheadHorizon,
@@ -195,7 +195,7 @@ EventPredictor::defineOutputs(const Base::ChannelMapping *mapping)
 	defineOutput(mapping, fmiTypeBoolean);
 	defineOutput(mapping, fmiTypeString);
 
-	if(!mapping->getOutputVariableNames(fmiTypeUnknown).empty())
+	if(!mapping->getVariableNames(fmiTypeUnknown).empty())
 	{
 		throw Base::SystemConfigurationException("Model variable of unknown type registered");
 	}
@@ -210,8 +210,8 @@ EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIType type)
 	assert((int) type >= 0);
 	assert((int) type < 5);
 
-	const std::vector<std::string> &names = mapping->getOutputVariableNames(type);
-	outputIDs_[type] = mapping->getOutputVariableIDs(type);
+	const std::vector<std::string> &names = mapping->getVariableNames(type);
+	outputIDs_[type] = mapping->getVariableIDs(type);
 
 	if(!names.empty())
 	{

@@ -27,18 +27,19 @@ const std::string ApplicationContext::PROP_START_TIME = "app.startTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_TIME = "app.lookAheadTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAheadStepSize";
 const std::string ApplicationContext::PROP_INTEGRATOR_STEP_SIZE = "app.integratorStepSize";
+const std::string ApplicationContext::PROP_OUT = "out";
 
 ApplicationContext::ApplicationContext(void):
-	config_(), channelMap_(NULL), portIDSource_()
+	config_(), outputChannelMap_(NULL), portIDSource_()
 {
 }
 
 
 ApplicationContext::~ApplicationContext(void)
 {
-	if(channelMap_ != NULL)
+	if(outputChannelMap_ != NULL)
 	{
-		delete channelMap_;
+		delete outputChannelMap_;
 	}
 }
 
@@ -205,12 +206,27 @@ ApplicationContext::hasProperty(const char * key) const
 	return hasProperty(kStr);
 }
 
-const ChannelMapping * ApplicationContext::getChannelMapping()
+const ChannelMapping * ApplicationContext::getOutputChannelMapping()
 {
-	if(channelMap_ == NULL)
+	if(outputChannelMap_ == NULL)
 	{
-		channelMap_ = new ChannelMapping(portIDSource_, config_);
-		BOOST_LOG_TRIVIAL(debug) << "Just created " << channelMap_->toString();
+		outputChannelMap_ = newChannelMapping(PROP_OUT);
+		BOOST_LOG_TRIVIAL(debug) << "Just created output " << outputChannelMap_->toString();
 	}
-	return channelMap_;
+	return outputChannelMap_;
+}
+
+ChannelMapping * ApplicationContext::newChannelMapping(const std::string &propertyPrefix)
+{
+	ChannelMapping *channelMap;
+
+	if (hasProperty(propertyPrefix)) {
+		channelMap = new ChannelMapping(portIDSource_, getPropertyTree(propertyPrefix));
+	}
+	else
+	{
+		channelMap = new ChannelMapping(portIDSource_);
+	}
+
+	return channelMap;
 }

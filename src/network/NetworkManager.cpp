@@ -19,7 +19,7 @@
 
 using namespace FMITerminalBlock::Network;
 
-const std::string NetworkManager::PROP_OUT_CHN = Base::ChannelMapping::PROP_OUT + ".%1%";
+const std::string NetworkManager::PROP_OUT_CHN = Base::ApplicationContext::PROP_OUT + ".%1%";
 const std::string NetworkManager::PROP_OUT_PROTOCOL = NetworkManager::PROP_OUT_CHN + ".protocol";
 
 
@@ -27,12 +27,12 @@ NetworkManager::NetworkManager(Base::ApplicationContext &context,
 				Timing::EventDispatcher &dispatcher):
 	publisher_()
 {
-	const Base::ChannelMapping  * channels = context.getChannelMapping();
+	const Base::ChannelMapping  * channels = context.getOutputChannelMapping();
 	assert(channels != NULL);
 	boost::format outName(PROP_OUT_PROTOCOL);
 	boost::format outTreeName(PROP_OUT_CHN);
 
-	for(int i = 0; i < channels->getNumberOfOutputChannels(); i++)
+	for(int i = 0; i < channels->getNumberOfChannels(); i++)
 	{
 		outName.clear();
 		outName % i;
@@ -47,7 +47,7 @@ NetworkManager::NetworkManager(Base::ApplicationContext &context,
 		outTreeName.clear();
 		outTreeName % i;
 		pub->init(context.getPropertyTree(outTreeName.str()),
-			context.getChannelMapping()->getOutputPorts(i));
+			context.getOutputChannelMapping()->getPorts(i));
 	}
 
 	for(std::list<Publisher *>::iterator itr = publisher_.begin(); itr != publisher_.end(); ++itr)

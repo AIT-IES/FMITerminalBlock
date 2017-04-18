@@ -249,45 +249,45 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_variables )
 	ApplicationContext context;
 	context.addCommandlineProperties(11,argv);
 	
-	const ChannelMapping * mapping = context.getChannelMapping();
+	const ChannelMapping * mapping = context.getOutputChannelMapping();
 	BOOST_REQUIRE(mapping != NULL);
 
 	// Test output variables
 	std::vector<std::string> varNames;
 	varNames.push_back("x");
 	BOOST_CHECK_EQUAL_COLLECTIONS(
-		mapping->getOutputVariableNames(fmiTypeReal).begin(), 
-		mapping->getOutputVariableNames(fmiTypeReal).end(), 
+		mapping->getVariableNames(fmiTypeReal).begin(), 
+		mapping->getVariableNames(fmiTypeReal).end(), 
 		varNames.begin(), varNames.end());
-	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeReal).size(),
-		mapping->getOutputVariableNames(fmiTypeReal).size());
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeReal).size(),
+		mapping->getVariableNames(fmiTypeReal).size());
 
 	varNames.clear();
 	varNames.push_back("y");
 	BOOST_CHECK_EQUAL_COLLECTIONS(
-		mapping->getOutputVariableNames(fmiTypeInteger).begin(), 
-		mapping->getOutputVariableNames(fmiTypeInteger).end(), 
+		mapping->getVariableNames(fmiTypeInteger).begin(), 
+		mapping->getVariableNames(fmiTypeInteger).end(), 
 		varNames.begin(), varNames.end());
-	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeInteger).size(),
-		mapping->getOutputVariableNames(fmiTypeInteger).size());
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeInteger).size(),
+		mapping->getVariableNames(fmiTypeInteger).size());
 
 	varNames.clear();
 	varNames.push_back("z");
 	BOOST_CHECK_EQUAL_COLLECTIONS(
-		mapping->getOutputVariableNames(fmiTypeBoolean).begin(), 
-		mapping->getOutputVariableNames(fmiTypeBoolean).end(), 
+		mapping->getVariableNames(fmiTypeBoolean).begin(), 
+		mapping->getVariableNames(fmiTypeBoolean).end(), 
 		varNames.begin(), varNames.end());
-	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeBoolean).size(),
-		mapping->getOutputVariableNames(fmiTypeBoolean).size());
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeBoolean).size(),
+		mapping->getVariableNames(fmiTypeBoolean).size());
 
 	varNames.clear();
 	varNames.push_back("w");
 	BOOST_CHECK_EQUAL_COLLECTIONS(
-		mapping->getOutputVariableNames(fmiTypeString).begin(), 
-		mapping->getOutputVariableNames(fmiTypeString).end(), 
+		mapping->getVariableNames(fmiTypeString).begin(), 
+		mapping->getVariableNames(fmiTypeString).end(), 
 		varNames.begin(), varNames.end());
-	BOOST_CHECK_EQUAL(mapping->getOutputVariableIDs(fmiTypeString).size(),
-		mapping->getOutputVariableNames(fmiTypeString).size());
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeString).size(),
+		mapping->getVariableNames(fmiTypeString).size());
 
 }
 
@@ -301,25 +301,25 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_channel )
 	ApplicationContext context;
 	context.addCommandlineProperties(11,argv);
 	
-	const ChannelMapping * mapping = context.getChannelMapping();
+	const ChannelMapping * mapping = context.getOutputChannelMapping();
 	BOOST_REQUIRE(mapping != NULL);
 
 	// Test output channels
-	BOOST_CHECK_EQUAL(mapping->getNumberOfOutputChannels(), 2);
+	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
 	
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(0).size(), 2);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(0)[0].first, fmiTypeReal);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(0)[0].second, 0);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(0)[1].first, fmiTypeInteger);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(0)[1].second, 0);
+	BOOST_CHECK_EQUAL(mapping->getPorts(0).size(), 2);
+	BOOST_CHECK_EQUAL(mapping->getPorts(0)[0].first, fmiTypeReal);
+	BOOST_CHECK_EQUAL(mapping->getPorts(0)[0].second, 0);
+	BOOST_CHECK_EQUAL(mapping->getPorts(0)[1].first, fmiTypeInteger);
+	BOOST_CHECK_EQUAL(mapping->getPorts(0)[1].second, 0);
 
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1).size(), 3);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[0].first, fmiTypeBoolean);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[0].second, 0);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[1].first, fmiTypeString);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[1].second, 0);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[2].first, fmiTypeReal);
-	BOOST_CHECK_EQUAL(mapping->getOutputPorts(1)[2].second, 0);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1).size(), 3);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1)[0].first, fmiTypeBoolean);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1)[0].second, 0);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1)[1].first, fmiTypeString);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1)[1].second, 0);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1)[2].first, fmiTypeReal);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1)[2].second, 0);
 
 }
 

@@ -59,6 +59,9 @@ namespace FMITerminalBlock
 			/** @brief The key of the integrator step-size property */
 			static const std::string PROP_INTEGRATOR_STEP_SIZE;
 
+			/** @brief The key of the output channel property */
+			static const std::string PROP_OUT;
+
 			/**
 			 * @brief Default C'tor initializing an empty application context object
 			 */
@@ -200,13 +203,14 @@ namespace FMITerminalBlock
 			bool hasProperty(const std::string &key) const;
 
 			/**
-			 * @brief Returns a pointer to the global Base::ChannelMapping object
+			 * @brief Returns a pointer to the global output Base::ChannelMapping object
 			 * @details The first invocation of the function will create the object. 
-			 * Subsequent configuration changes may not be reflected by the channel
-			 * mapping object. The function may throw a SystemConfigurationException
-			 * if some properties are missing. In this case no object is generated.
+			 * Subsequent configuration changes may not be reflected by the output 
+			 * channel mapping object. The function may throw a 
+			 * SystemConfigurationException if some properties are missing. In this 
+			 * case no object is generated.
 			 */
-			const ChannelMapping * getChannelMapping(void);
+			const ChannelMapping * getOutputChannelMapping(void);
 
 		private:
 
@@ -230,11 +234,11 @@ namespace FMITerminalBlock
 			PortIDDrawer portIDSource_;
 
 			/**
-			 * @brief Pointer to the channel mapping configuration
+			 * @brief Pointer to the output channel mapping configuration
 			 * @details The object will be created by the first query using
-			 * getChannelMapping().
+			 * getOutputChannelMapping().
 			 */
-			ChannelMapping * channelMap_;
+			ChannelMapping * outputChannelMap_;
 
 			/**
 			 * @brief Extracts the key-value pair and adds it to the global
@@ -246,6 +250,17 @@ namespace FMITerminalBlock
 			 * @param i The option's index used to generate meaningful error messages
 			 */
 			void addCommandlineOption(std::string &opt, int i);
+
+			/**
+			 * @brief Returns a newly created channel mapping object.
+			 * @details The object must be deleted outside the function. If 
+			 * the ChannelMapping cannot be created, a 
+			 * Base::SystemConfigurationException will be thrown.
+			 * @param propertyPrefix The prefix of the channels inside the property 
+			 * tree. The sting is not stored and may be freed after the function 
+			 * returns.
+			 */
+			ChannelMapping * newChannelMapping(const std::string &propertyPrefix);
 
 		};
 
