@@ -13,14 +13,14 @@
 #include "network/CompactASN1TCPClientPublisher.h"
 #include "base/ChannelMapping.h"
 #include "base/BaseExceptions.h"
+#include "base/TransmissionChannel.h"
 
 #include <assert.h>
 #include <boost/format.hpp>
 
 using namespace FMITerminalBlock::Network;
 
-const std::string NetworkManager::PROP_OUT_CHN = Base::ApplicationContext::PROP_OUT + ".%1%";
-const std::string NetworkManager::PROP_OUT_PROTOCOL = NetworkManager::PROP_OUT_CHN + ".protocol";
+const std::string NetworkManager::PROP_PROTOCOL = "protocol";
 
 
 NetworkManager::NetworkManager(Base::ApplicationContext &context, 
@@ -29,24 +29,29 @@ NetworkManager::NetworkManager(Base::ApplicationContext &context,
 {
 	const Base::ChannelMapping  * channels = context.getOutputChannelMapping();
 	assert(channels != NULL);
-	boost::format outName(PROP_OUT_PROTOCOL);
-	boost::format outTreeName(PROP_OUT_CHN);
 
 	for(int i = 0; i < channels->getNumberOfChannels(); i++)
 	{
-		outName.clear();
-		outName % i;
+		const Base::TransmissionChannel &channel = channels->getTransmissionChannel(i);
+
 		// instantiate a publisher for each output channel
-		Publisher * pub = instantiatePublisher(context.getProperty<std::string>(outName.str()));
+		boost::optional<std::string> protocol;
+		protocol = channel.getChannelConfig().get_optional<std::string>(PROP_PROTOCOL);
+		if (!protocol)
+		{
+			throw Base::SystemConfigurationException("A channel's protocol identifier"
+				" is not set");
+		}
+
+		Publisher * pub = instantiatePublisher(protocol.get());
 		if(pub == NULL)
 		{
-			throw Base::SystemConfigurationException("Unknown Protocol", outName.str(),
-				context.getProperty<std::string>(outName.str()));
+			throw Base::SystemConfigurationException("Unknown Protocol", PROP_PROTOCOL,
+				protocol.get());
 		}
 		publisher_.push_back(pub);
-		outTreeName.clear();
-		outTreeName % i;
-		pub->init(context.getPropertyTree(outTreeName.str()),
+
+		pub->init(channel.getChannelConfig(),
 			context.getOutputChannelMapping()->getPorts(i));
 	}
 

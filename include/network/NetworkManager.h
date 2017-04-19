@@ -35,15 +35,9 @@ namespace FMITerminalBlock
 		public:
 
 			/**
-			 * @brief The output protocol property's name given as boost::format
-			 * template
+			 * @brief The output protocol property's name
 			 */
-			static const std::string PROP_OUT_PROTOCOL;
-			/**
-			 * @brief The output channel property's name given as boost::format
-			 * template
-			 */
-			static const std::string PROP_OUT_CHN;
+			static const std::string PROP_PROTOCOL;
 
 			/**
 			 * @brief Instantiates the network stack and the object's members
