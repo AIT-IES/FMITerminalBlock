@@ -1,0 +1,237 @@
+/* ------------------------------------------------------------------- *
+* Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
+* All rights reserved. See file FMITerminalBlock_LICENSE for details. *
+* ------------------------------------------------------------------- */
+
+/**
+* @file testApplicationContext.cpp
+* @brief Tests the ChannelMapping classes
+* @author Michael Spiegel, michael.spiegel@ait.ac.at
+*/
+
+#define BOOST_TEST_MODULE testChannelMapping
+#include <boost/test/unit_test.hpp>
+
+#include "base/ChannelMapping.h"
+#include "base/BaseExceptions.h"
+
+#include <memory>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/log/trivial.hpp>
+
+using namespace FMITerminalBlock;
+using namespace FMITerminalBlock::Base;
+using namespace boost::property_tree;
+
+/**
+ * @brief Simple fixture which stores common data
+ */
+struct BasicChannelMappingFixture {
+
+	/** 
+	 * @brief  The property tree object which may be used to initialize a 
+	 * ChannelMapping Object
+	 */
+	ptree configRoot_;
+	/** @brief Central source of unique type IDs */
+	PortIDDrawer idSource_;
+};
+
+/**
+ * @brief The fixture sets some default properties
+ */
+struct InitializedChannelMappingFixture: public BasicChannelMappingFixture {
+	InitializedChannelMappingFixture() {
+		// Channel 0
+		configRoot_.put("0.addr", "An address");
+		configRoot_.put("0.0.type", (int) fmiTypeReal);
+		configRoot_.put("0.0", "a");
+
+		configRoot_.put("0.1.type", (int) fmiTypeInteger);
+		configRoot_.put("0.1", "b");
+
+		configRoot_.put("0.2.type", (int) fmiTypeBoolean);
+		configRoot_.put("0.2", "c");
+
+		configRoot_.put("0.3.type", (int) fmiTypeString);
+		configRoot_.put("0.3", "d");
+
+		// Channel 1
+		configRoot_.put("1.lunch", "At Noon");
+		configRoot_.put("1.0.type", (int)fmiTypeReal);
+		configRoot_.put("1.0", "a");
+	};
+};
+
+/**
+ * @brief Tests the exception handling if an FMI type attribute is missing
+ */
+BOOST_FIXTURE_TEST_CASE(testMissingType, BasicChannelMappingFixture)
+{
+	configRoot_.put("0.0.type", (int) fmiTypeReal);
+	configRoot_.put("0.0", "a"); // OK
+	configRoot_.put("0.1", "b"); // Type missing
+
+
+	std::unique_ptr<ChannelMapping> mapping =
+		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+	
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 1);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown)[0], "b");
+
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown).size(), 1);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown)[0], PortID(fmiTypeUnknown, 0));
+}
+
+/**
+* @brief Tests the exception handling if an FMI type attribute is missing
+*/
+BOOST_FIXTURE_TEST_CASE(testMissingVariableName, BasicChannelMappingFixture)
+{
+	configRoot_.put("0.0", "a");
+	configRoot_.put("0.0.type", (int) fmiTypeReal); // OK
+	configRoot_.put("0.1.type", (int) fmiTypeReal); // Type name
+
+	BOOST_CHECK_THROW(new ChannelMapping(idSource_, configRoot_), SystemConfigurationException);
+}
+
+/** @brief Creates a channel without a variable */
+BOOST_FIXTURE_TEST_CASE(testNoVariables, BasicChannelMappingFixture)
+{
+
+	configRoot_.put("0.0", "a"); // OK
+	configRoot_.put("0.0.type", (int) fmiTypeReal);
+
+	configRoot_.put("1.addr", "addr"); // OK, but no variables
+
+	std::unique_ptr<ChannelMapping> mapping = 
+		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+	
+	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
+	BOOST_CHECK_EQUAL(mapping->getPorts(0).size(), 1);
+	BOOST_CHECK_EQUAL(mapping->getPorts(1).size(), 0);
+}
+
+/** @brief Invokes a ChannelMapping object with an empty property tree */
+BOOST_FIXTURE_TEST_CASE(testEmptyConfig, BasicChannelMappingFixture)
+{
+	std::unique_ptr<ChannelMapping> mapping =
+		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+
+	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeReal).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeInteger).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeBoolean).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeString).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown).size(), 0);
+
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeReal).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeInteger).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeBoolean).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeString).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 0);
+}
+
+/** @brief Creates an empty ChannelMapping Object and tests it */
+BOOST_FIXTURE_TEST_CASE(testEmptyMappingCtor, BasicChannelMappingFixture)
+{
+	std::unique_ptr<ChannelMapping> mapping =
+		std::make_unique<ChannelMapping>(idSource_);
+
+	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeReal).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeInteger).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeBoolean).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeString).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown).size(), 0);
+
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeReal).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeInteger).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeBoolean).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeString).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 0);
+}
+
+
+/**
+ * @brief Checks the variable list of the mapping object
+ * @details Constructs a one element reference list and compares all entries.
+ */
+void checkVariableVector(std::shared_ptr<ChannelMapping> mapping, FMIType type, std::string varName)
+{
+
+	std::vector<PortID> varIDs;
+	std::vector<std::string> varNames;
+	varIDs.push_back(PortID(type, 0));
+	varNames.push_back(varName);
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(mapping->getVariableIDs(type).begin(),
+		mapping->getVariableIDs(type).end(), varIDs.begin(), varIDs.end());
+	BOOST_CHECK_EQUAL_COLLECTIONS(mapping->getVariableNames(type).begin(),
+			mapping->getVariableNames(type).end(), varNames.begin(), varNames.end());
+
+}
+
+/** @brief Tests a standard population of the list elements */
+BOOST_FIXTURE_TEST_CASE(testVariableList, InitializedChannelMappingFixture)
+{
+	std::shared_ptr<ChannelMapping> mapping =
+		std::make_shared<ChannelMapping>(idSource_, configRoot_);
+
+	checkVariableVector(mapping, fmiTypeReal, "a");
+	checkVariableVector(mapping, fmiTypeInteger, "b");
+	checkVariableVector(mapping, fmiTypeBoolean, "c");
+	checkVariableVector(mapping, fmiTypeString, "d");
+
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown).size(), 0);
+}
+
+/** @brief Debugging aid to present PortIDs */
+std::ostream& operator<< (std::ostream& stream, const PortID& portID)
+{
+	stream << "(";
+
+	switch (portID.first) {
+	case fmiTypeReal:
+		stream << "fmiTypeReal"; break;
+	case fmiTypeInteger:
+		stream << "fmiTypeInteger"; break;
+	case fmiTypeBoolean:
+		stream << "fmiTypeBoolean"; break;
+	case fmiTypeString:
+		stream << "fmiTypeString"; break;
+	default:
+		stream << "fmiTypeUnknown";
+	}
+
+	stream << ", " << portID.second << ")";
+	return stream;
+}
+
+/** @brief Tests a standard channel mapping */
+BOOST_FIXTURE_TEST_CASE(testChannelStructure, InitializedChannelMappingFixture)
+{
+
+	std::unique_ptr<ChannelMapping> mapping =
+		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+
+	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
+
+	std::vector<PortID> portReference;
+	portReference.push_back(PortID(fmiTypeReal, 0));
+	portReference.push_back(PortID(fmiTypeInteger, 0));
+	portReference.push_back(PortID(fmiTypeBoolean, 0));
+	portReference.push_back(PortID(fmiTypeString, 0));
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(mapping->getPorts(0).begin(), 
+		mapping->getPorts(0).end(), portReference.begin(), 
+		portReference.end());
+
+	portReference.clear();
+	portReference.push_back(PortID(fmiTypeReal, 0));
+	BOOST_CHECK_EQUAL_COLLECTIONS(mapping->getPorts(1).begin(),
+		mapping->getPorts(1).end(), portReference.begin(),
+		portReference.end());
+}
+

@@ -58,6 +58,7 @@ namespace FMITerminalBlock
 			 */
 			ChannelMapping(PortIDDrawer &portIDSource):
 				variableNames_(5, std::vector<std::string>()),
+				variableIDs_(5, std::vector<PortID>()),
 				channels_(), portIDSource_(portIDSource) {};
 
 			/**
@@ -70,6 +71,7 @@ namespace FMITerminalBlock
 			 * @param portIDSource A reference to the global PortIDDrawer
 			 * object. The reference must be valid until the object is
 			 * destroyed.
+			 * @throws Base::SystemConfigurationException if an invalid configuration is found
 			 */
 			ChannelMapping(PortIDDrawer &portIDSource, 
 				const boost::property_tree::ptree &prop);

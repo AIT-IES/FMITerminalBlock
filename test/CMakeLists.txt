@@ -48,3 +48,6 @@ add_executable( testApplicationContext src/testApplicationContext.cpp
 	${FMITerminalBlock_BASE_SOURCE} )
 target_link_libraries( testApplicationContext ${Boost_LIBRARIES} fmippim )
 
+add_executable( testChannelMapping src/testChannelMapping.cpp 
+	${FMITerminalBlock_BASE_SOURCE} )
+target_link_libraries( testChannelMapping ${Boost_LIBRARIES} fmippim )
