@@ -51,8 +51,7 @@ NetworkManager::NetworkManager(Base::ApplicationContext &context,
 		}
 		publisher_.push_back(pub);
 
-		pub->init(channel.getChannelConfig(),
-			context.getOutputChannelMapping()->getPorts(i));
+		pub->init(channel);
 	}
 
 	for(std::list<Publisher *>::iterator itr = publisher_.begin(); itr != publisher_.end(); ++itr)

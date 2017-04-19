@@ -41,6 +41,7 @@
 
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Network;
+using namespace boost::property_tree;
 
 /**
  * @brief Structure encapsulating data common to most of the test cases
@@ -51,8 +52,8 @@ struct ASN1Fixture
 {
 	/** @brief The configuration property tree */
 	boost::property_tree::ptree config;
-	/** @brief The vector of configured ports */
-	std::vector<Base::PortID> ports;
+	/** @brief The main transmission channel */
+	Base::TransmissionChannel ports;
 
 	/** @brief IO Service used to test the network connection */
 	boost::asio::io_service ioService;
@@ -74,14 +75,18 @@ struct ASN1Fixture
 	unsigned int validMessages;
 
 	/** @brief C'tor which initializes a minimal configuration */
-	ASN1Fixture(): config(), ports(), ioService(), validMessages(0)
+	ASN1Fixture(): config(), ports(config), ioService(), validMessages(0)
 	{
 		config.put<std::string>("addr", "127.0.0.1:4242");
+		config.put<std::string>("0", "");
+		config.put<std::string>("1", "");
+		config.put<std::string>("2", "");
+		config.put<std::string>("3", "");
 
-		ports.push_back(std::make_pair(fmiTypeReal, 666));
-		ports.push_back(std::make_pair(fmiTypeInteger, 0));
-		ports.push_back(std::make_pair(fmiTypeBoolean, 0));
-		ports.push_back(std::make_pair(fmiTypeString, 0));
+		ports.pushBackPort(std::make_pair(fmiTypeReal, 666), config.get_child("0"));
+		ports.pushBackPort(std::make_pair(fmiTypeInteger, 0), config.get_child("1"));
+		ports.pushBackPort(std::make_pair(fmiTypeBoolean, 0), config.get_child("2"));
+		ports.pushBackPort(std::make_pair(fmiTypeString, 0), config.get_child("3"));
 
 		// tidy up buffers
 		receiveBuffer.assign(BUFFER_SIZE, 0xAA);
@@ -193,15 +198,15 @@ struct ASN1TCPFixture: ASN1Fixture
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_address_0, ASN1TCPFixture )
 {
 	config.put("addr", ":1234");
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
 
 /** @brief Tests an invalid TCP address */
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_address_1, ASN1TCPFixture )
 {
-	config.clear();
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	config.erase("addr");
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
 
@@ -209,7 +214,7 @@ BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_address_1, ASN1TCPFixture )
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_address_2, ASN1TCPFixture )
 {
 	config.put("addr", "no-host-or-something-else:1234");
-	BOOST_CHECK_THROW(publisher.init(config, ports), std::runtime_error);
+	BOOST_CHECK_THROW(publisher.init(ports), std::runtime_error);
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
 
@@ -217,7 +222,7 @@ BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_address_2, ASN1TCPFixture )
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_fmiReal_conversion_0, ASN1TCPFixture )
 {
 	config.put("0.encoding", "");
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
 
@@ -225,7 +230,7 @@ BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_fmiReal_conversion_0, ASN1TCPFixt
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_TCP_fmiReal_conversion_1, ASN1TCPFixture )
 {
 	config.put("0.encoding", "BOOL");
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
 
@@ -234,7 +239,7 @@ BOOST_FIXTURE_TEST_CASE( test_create_ASN1_TCP_publisher, ASN1Fixture )
 {
 	Publisher * pub = new CompactASN1TCPClientPublisher();
 	// No server is currently listening
-	BOOST_CHECK_THROW(pub->init(config, ports), std::runtime_error);
+	BOOST_CHECK_THROW(pub->init(ports), std::runtime_error);
 	delete pub;
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
@@ -275,7 +280,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_manual_enc_0, ASN1TCPFixture )
 									 0x50,0x00,0x06,0x48,0x33,0x6c,0x6c,0xf6,0x21};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 	// Let the client connect
 	ioService.run_one();
 
@@ -325,7 +330,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_manual_enc_1, ASN1TCPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 	// Let the client connect
 	ioService.run_one();
 
@@ -379,7 +384,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_0, ASN1TCPFixture )
 									 0x50,0x00,0x06,0x48,0x33,0x6c,0x6c,0xf6,0x21};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 
 	// Let the client connect
 	ioService.run_one();
@@ -421,7 +426,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_1, ASN1TCPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 	// Let the client connect
 	ioService.run_one();
 
@@ -462,7 +467,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_multi_event_0, ASN1TCPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 	// Let the client connect
 	ioService.run_one();
 
@@ -525,7 +530,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_multi_event_1, ASN1TCPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 	// Let the client connect
 	ioService.run_one();
 
@@ -628,28 +633,28 @@ struct ASN1UDPFixture: ASN1Fixture
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_UDP_address_0, ASN1UDPFixture )
 {
 	config.put("addr", ":1234");
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 }
 
 /** @brief Tests an invalid UDP address */
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_UDP_address_1, ASN1UDPFixture )
 {
-	config.clear();
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	config.erase("addr");
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 }
 
 /** @brief Tests an invalid UDP address */
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_UDP_address_2, ASN1UDPFixture )
 {
 	config.put("addr", "no-host-or-something-else:1234");
-	BOOST_CHECK_THROW(publisher.init(config, ports), std::runtime_error);
+	BOOST_CHECK_THROW(publisher.init(ports), std::runtime_error);
 }
 
 /** @brief Tests an invalid fmiReal type conversion */
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_UDP_fmiReal_conversion_0, ASN1UDPFixture )
 {
 	config.put("0.encoding", "");
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
 
@@ -657,7 +662,7 @@ BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_UDP_fmiReal_conversion_0, ASN1UDPFixt
 BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_UDP_fmiReal_conversion_1, ASN1UDPFixture )
 {
 	config.put("0.encoding", "BOOL");
-	BOOST_CHECK_THROW(publisher.init(config, ports), Base::SystemConfigurationException);
+	BOOST_CHECK_THROW(publisher.init(ports), Base::SystemConfigurationException);
 	BOOST_CHECK_EQUAL(validMessages, 0);
 }
 
@@ -665,7 +670,7 @@ BOOST_FIXTURE_TEST_CASE( test_invalid_ASN1_UDP_fmiReal_conversion_1, ASN1UDPFixt
 BOOST_FIXTURE_TEST_CASE( test_create_ASN1_UDP_publisher, ASN1Fixture )
 {
 	Publisher * pub = new CompactASN1UDPPublisher();
-	pub->init(config, ports);
+	pub->init(ports);
 	delete pub;
 }
 
@@ -705,7 +710,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_manual_enc_0, ASN1UDPFixture )
 									 0x50,0x00,0x06,0x48,0x33,0x6c,0x6c,0xf6,0x21};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 
 	// Trigger event
 	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);
@@ -753,7 +758,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_manual_enc_1, ASN1UDPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 
 	// Trigger event
 	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);
@@ -805,7 +810,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_0, ASN1UDPFixture )
 									 0x50,0x00,0x06,0x48,0x33,0x6c,0x6c,0xf6,0x21};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 
 	// Trigger event
 	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);
@@ -844,7 +849,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_1, ASN1UDPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 
 	// Trigger event
 	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);
@@ -883,7 +888,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_multi_event_0, ASN1UDPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 
 	// Trigger first event
 	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);
@@ -945,7 +950,7 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_multi_event_1, ASN1UDPFixture )
 									 0x50,0x00,0x00};
 	receiveReference.assign(ref, ref+sizeof(ref));
 	// Init publisher
-	publisher.init(config, ports);
+	publisher.init(ports);
 
 	// Trigger first event
 	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);

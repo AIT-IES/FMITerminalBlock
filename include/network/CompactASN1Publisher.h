@@ -44,8 +44,6 @@ namespace FMITerminalBlock
 
 			/**
 			 * @brief The property name which specifies the channels encoding
-			 * @details It will be a boost::format string which requires the channel
-			 * and port number
 			 */
 			static const std::string PROP_ENCODE_TYPE;
 
@@ -60,8 +58,7 @@ namespace FMITerminalBlock
 			/**
 			 * @copydoc Publisher::init()
 			 */
-			virtual void init(const boost::property_tree::ptree &config, 
-				const std::vector<Base::PortID> &ports);
+			virtual void init(const Base::TransmissionChannel &channel);
 
 			/**
 			 * @brief Updates the outputVariables_ based on the given Event
@@ -135,13 +132,9 @@ namespace FMITerminalBlock
 			 * @details If no specific parameter is given, the best fitting one will
 			 * be used. If a parameter stored in the given tree is invalid, a
 			 * Base::SystemConfigurationException will be thrown.
-			 * @param ports The previously parsed channel mapping's port list
-			 * @param config The publisher's configuration subtree used to obtain 
-			 * the encoding type parameters.
+			 * @param channel The transmission channel configuration of the channel.
 			 */
-			void initOutputTypes(
-				const std::vector<Base::PortID> & ports, 
-				const boost::property_tree::ptree &config);
+			void initOutputTypes(const Base::TransmissionChannel &channel);
 
 			/**
 			 * @brief Returns the default ASN.1 type based on the fmiType

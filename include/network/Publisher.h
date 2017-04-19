@@ -13,6 +13,7 @@
 
 #include "timing/EventListener.h"
 #include "base/PortID.h"
+#include "base/TransmissionChannel.h"
 
 #include <boost/property_tree/ptree.hpp>
 
@@ -43,12 +44,9 @@ namespace FMITerminalBlock
 			 * @details The function will be called before calling any other function. 
 			 * If something went wrong a std::runtime_error or
 			 * Base::SystemConfigurationException may be thrown.
-			 * @param config The channel's configuration subtree
-			 * @param ports The list of output ports which have to be supported by the 
-			 * publisher.
+			 * @param channel The channel configuration which includes any property subtrees.
 			 */
-			virtual void init(const boost::property_tree::ptree &config, 
-				const std::vector<Base::PortID> &ports) = 0;
+			virtual void init(const Base::TransmissionChannel &channel) = 0;
 
 		};
 

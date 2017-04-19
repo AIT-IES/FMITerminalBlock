@@ -18,7 +18,7 @@
 
 using namespace FMITerminalBlock::Network;
 
-const std::string CompactASN1Publisher::PROP_ENCODE_TYPE = "%1%.encoding";
+const std::string CompactASN1Publisher::PROP_ENCODE_TYPE = "encoding";
 
 const bool CompactASN1Publisher::CASTABLE[5][ASN1Commons::DATA_TYPE_SIZE] = {
 	//"REAL", "LREAL", "DINT", "BOOL", "STRING"
@@ -34,12 +34,10 @@ CompactASN1Publisher::CompactASN1Publisher(): outputVariables_(), outputTypes_()
 
 }
 
-void CompactASN1Publisher::init(const boost::property_tree::ptree &config, 
-				const std::vector<Base::PortID> &ports)
+void CompactASN1Publisher::init(const Base::TransmissionChannel &channel)
 {
-
-	initOutputVariables(ports);
-	initOutputTypes(ports, config);
+	initOutputVariables(channel.getPortIDs());
+	initOutputTypes(channel);
 }
 
 void
@@ -142,22 +140,16 @@ CompactASN1Publisher::initOutputVariables(
 }
 
 void 
-CompactASN1Publisher::initOutputTypes(
-				const std::vector<Base::PortID> & ports, 
-				const boost::property_tree::ptree &config)
+CompactASN1Publisher::initOutputTypes(const Base::TransmissionChannel &channel)
 {
-	boost::format encodeTypeKey(PROP_ENCODE_TYPE);
-	outputTypes_.clear();
+	const std::vector<Base::PortID> &ports = channel.getPortIDs();
 	for(unsigned i = 0; i < ports.size(); i++)
 	{
 		ASN1Commons::DataType type = getDefaultType(ports[i].first);
 
 		// Query encoding property
-		encodeTypeKey.clear();
-		encodeTypeKey % i;
-
-		const boost::optional<std::string> encodeTypeValue = 
-			config.get_optional<std::string>(encodeTypeKey.str());
+		const boost::optional<std::string> encodeTypeValue =
+			channel.getPortConfig()[i]->get_optional<std::string>(PROP_ENCODE_TYPE);
 
 		if((bool) encodeTypeValue)
 		{
@@ -175,7 +167,7 @@ CompactASN1Publisher::initOutputTypes(
 			if(!found)
 			{
 				throw Base::SystemConfigurationException(
-					"The given encoding type is not supported.", encodeTypeKey.str(), 
+					"The given encoding type is not supported.", PROP_ENCODE_TYPE,
 					*encodeTypeValue);
 			}
 

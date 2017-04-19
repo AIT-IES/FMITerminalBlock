@@ -34,13 +34,12 @@ CompactASN1UDPPublisher::~CompactASN1UDPPublisher(void)
 	}
 }
 
-void CompactASN1UDPPublisher::init(const boost::property_tree::ptree &config, 
-				const std::vector<Base::PortID> &ports)
+void CompactASN1UDPPublisher::init(const Base::TransmissionChannel &channel)
 {
-	CompactASN1Publisher::init(config, ports);
+	CompactASN1Publisher::init(channel);
 
 	boost::optional<const boost::property_tree::ptree&> addrProp = 
-		config.get_child_optional(PROP_ADDR);
+		channel.getChannelConfig().get_child_optional(PROP_ADDR);
 	if(! ((bool) addrProp))
 	{
 		throw Base::SystemConfigurationException("Address property of ASN.1 publisher not found");
