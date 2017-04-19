@@ -46,6 +46,7 @@ struct InitializedChannelMappingFixture: public BasicChannelMappingFixture {
 		configRoot_.put("0.addr", "An address");
 		configRoot_.put("0.0.type", (int) fmiTypeReal);
 		configRoot_.put("0.0", "a");
+		configRoot_.put("0.0.mission", "Apollo13");
 
 		configRoot_.put("0.1.type", (int) fmiTypeInteger);
 		configRoot_.put("0.1", "b");
@@ -55,6 +56,7 @@ struct InitializedChannelMappingFixture: public BasicChannelMappingFixture {
 
 		configRoot_.put("0.3.type", (int) fmiTypeString);
 		configRoot_.put("0.3", "d");
+		configRoot_.put("0.3.dest", "Moon");
 
 		// Channel 1
 		configRoot_.put("1.lunch", "At Noon");
@@ -169,7 +171,6 @@ void checkVariableVector(std::shared_ptr<ChannelMapping> mapping, FMIType type, 
 		mapping->getVariableIDs(type).end(), varIDs.begin(), varIDs.end());
 	BOOST_CHECK_EQUAL_COLLECTIONS(mapping->getVariableNames(type).begin(),
 			mapping->getVariableNames(type).end(), varNames.begin(), varNames.end());
-
 }
 
 /** @brief Tests a standard population of the list elements */
@@ -233,5 +234,53 @@ BOOST_FIXTURE_TEST_CASE(testChannelStructure, InitializedChannelMappingFixture)
 	BOOST_CHECK_EQUAL_COLLECTIONS(mapping->getPorts(1).begin(),
 		mapping->getPorts(1).end(), portReference.begin(),
 		portReference.end());
+}
+
+/** @brief Tests the transmission channel by a standard channel mapping */
+BOOST_FIXTURE_TEST_CASE(testTransmissionChannel, InitializedChannelMappingFixture)
+{
+
+	std::unique_ptr<ChannelMapping> mapping =
+		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+
+	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
+
+	// Check Channel 0
+	std::vector<PortID> portReference;
+	portReference.push_back(PortID(fmiTypeReal, 0));
+	portReference.push_back(PortID(fmiTypeInteger, 0));
+	portReference.push_back(PortID(fmiTypeBoolean, 0));
+	portReference.push_back(PortID(fmiTypeString, 0));
+
+	const TransmissionChannel &channel0 = mapping->getTransmissionChannel(0);
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(channel0.getPortIDs().begin(),
+		channel0.getPortIDs().end(), portReference.begin(),
+		portReference.end());
+
+	BOOST_CHECK_EQUAL(channel0.getPortConfig().size(),	portReference.size());
+	BOOST_CHECK(channel0.getPortConfig()[0] != NULL);
+	BOOST_CHECK(channel0.getPortConfig()[0]->get_child_optional("mission"));
+	BOOST_CHECK_EQUAL(channel0.getPortConfig()[0]->get<std::string>("mission"), "Apollo13");
+
+	BOOST_CHECK(channel0.getPortConfig()[3] != NULL);
+	BOOST_CHECK(!channel0.getPortConfig()[3]->get_child_optional("moon"));
+	BOOST_CHECK(channel0.getPortConfig()[3]->get_child_optional("dest"));
+	BOOST_CHECK_EQUAL(channel0.getPortConfig()[3]->get<std::string>("dest"), "Moon");
+
+	// Check Channel 1
+	portReference.clear();
+	portReference.push_back(PortID(fmiTypeReal, 0));
+	const TransmissionChannel &channel1 = mapping->getTransmissionChannel(1);
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(channel1.getPortIDs().begin(),
+		channel1.getPortIDs().end(), portReference.begin(),
+		portReference.end());
+
+	BOOST_CHECK_EQUAL(channel1.getPortConfig().size(),
+		portReference.size());
+
+	BOOST_CHECK(channel1.getChannelConfig().get_child_optional("lunch"));
+	BOOST_CHECK_EQUAL(channel1.getChannelConfig().get<std::string>("lunch"), "At Noon");
 }
 

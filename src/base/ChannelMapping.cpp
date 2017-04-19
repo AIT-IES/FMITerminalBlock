@@ -59,6 +59,14 @@ ChannelMapping::getPorts(int channelID) const
 {
 	assert(channelID >= 0);
 	assert(channelID < ((int)channels_.size()));
+	return channels_[channelID].getPortIDs();
+}
+
+const TransmissionChannel & 
+ChannelMapping::getTransmissionChannel(int channelID) const
+{
+	assert(channelID >= 0);
+	assert(channelID < ((int)channels_.size()));
 	return channels_[channelID];
 }
 
@@ -100,14 +108,15 @@ std::string ChannelMapping::toString() const
 
 	for(unsigned i = 0; i < channels_.size(); i++)
 	{
-		for(unsigned j = 0; j < channels_[i].size(); j++)
+		const std::vector<PortID> & portIDs = channels_[i].getPortIDs();
+		for(unsigned j = 0; j < portIDs.size(); j++)
 		{
 			mp.clear();
 			mp % i % j;
-			mp % channels_[i][j].first % channels_[i][j].second;
+			mp % portIDs[j].first % portIDs[j].second;
 			ret += mp.str();
 			if(i < (channels_.size() - 1) 
-				|| j < (channels_[i].size() - 1))
+				|| j < (portIDs.size() - 1))
 			{
 				ret += ", ";
 			}
@@ -130,9 +139,9 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop)
 	{
 
 		// Add associated variables
-		std::vector<PortID> variables;
-		addVariables(channelProp.get(), variables);
-		channels_.push_back(variables);
+		TransmissionChannel channel(channelProp.get());
+		addVariables(channelProp.get(), channel);
+		channels_.push_back(channel);
 
 		// Try next configuration directive
 		channelNr++;
@@ -143,7 +152,7 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop)
 }
 
 void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp,
-				std::vector<PortID> &variableList)
+			TransmissionChannel &variableList)
 {
 	assert(variableNames_.size() >= 5);
 	assert(variableIDs_.size() == variableNames_.size());
@@ -176,7 +185,7 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 			variableIDs_[(int) type].push_back(variableID);
 		}
 
-		variableList.push_back(variableID);
+		variableList.pushBackPort(variableID,variableProp.get());
 
 		// Try next variable number
 		variableNr++;

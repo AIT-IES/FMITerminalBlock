@@ -90,6 +90,7 @@ add_source_file(NETWORK src/network/CompactASN1TCPClientPublisher.cpp )
 add_source_file(BASE src/base/ApplicationContext.cpp )
 add_source_file(BASE src/base/ChannelMapping.cpp )
 add_source_file(BASE src/base/PortIDDrawer.cpp )
+add_source_file(BASE src/base/TransmissionChannel.cpp )
 
 add_source_file(MODEL src/model/EventPredictor.cpp )
 add_source_file(MODEL src/model/LazyEvent.cpp )
@@ -126,7 +127,7 @@ if (FMITerminalBlock_BUILD_TESTS)
 	add_test( NAME EventPredictor COMMAND testEventPredictor )
 	add_test( NAME EventHandling COMMAND testEventHandling )
 	add_test( NAME ApplicationContext COMMAND testApplicationContext )
-
+	add_test( NAME ChannelMapping COMMAND testChannelMapping )
 endif ()
 
 

@@ -13,6 +13,7 @@
 
 #include "base/PortID.h"
 #include "base/PortIDDrawer.h"
+#include "base/TransmissionChannel.h"
 
 #include <common/FMIType.h>
 #include <boost/property_tree/ptree.hpp>
@@ -39,9 +40,10 @@ namespace FMITerminalBlock
 		 * holds every variable identifier (port) which is transmit or received in 
 		 * one protocol entity. For instance, a single ASN.1-based channel may 
 		 * encapsulate several model variables into one network packet. Each channel 
-		 * is identified by a unique integer ID. The ChannelMapping object does not 
-		 * specify the direction of the data-flow. Hence, it may be used for input 
-		 * and output channels alike.</p>
+		 * is identified by a unique integer ID. All ports of a channel are 
+		 * encapsulated into a common TransmissionChannel object. The ChannelMapping
+		 * object does not specify the direction of the data-flow. Hence, it may be
+		 * used for input and output channels alike.</p>
 		 */
 		class ChannelMapping
 		{
@@ -119,6 +121,16 @@ namespace FMITerminalBlock
 			const std::vector<PortID> & getPorts(int channelID) const;
 
 			/**
+			 * @brief Returns the transmission channel object of a particular channel ID
+			 * @details The reference remains valid until the ChannelMapping object is 
+			 * removed. It is equivalent to the getPorts function but also encapsulates 
+			 * configuration references.
+			 * @param cannelID a valid channel identifier ranging from zero to 
+			 * getNumberOfChannels()-1.
+			 */
+			const TransmissionChannel & getTransmissionChannel(int channelID) const;
+
+			/**
 			 * @brief Returns a string which describes the channel mapping
 			 * @return A string which describes the channel mapping
 			 */
@@ -135,7 +147,7 @@ namespace FMITerminalBlock
 			std::vector<std::vector<PortID>> variableIDs_;
 
 			/** @brief Vector storing configured variables for each output port */
-			std::vector<std::vector<PortID>> channels_;
+			std::vector<TransmissionChannel> channels_;
 
 			/**
 			 * @brief Adds the given channel configuration
@@ -157,7 +169,7 @@ namespace FMITerminalBlock
 			 * @param variablelList The list of previously added ports of the channel
 			 */			
 			void addVariables(const boost::property_tree::ptree &channelProp,
-				std::vector<PortID> &variableList);
+				TransmissionChannel &variableList);
 
 			/**
 			 * @brief Queries the ChannelMapping::PortID of the given name
