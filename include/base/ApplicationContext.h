@@ -62,6 +62,10 @@ namespace FMITerminalBlock
 			/** @brief The key of the output channel property */
 			static const std::string PROP_OUT;
 
+			/** @brief The key of the input channel property */
+			static const std::string PROP_IN;
+
+
 			/**
 			 * @brief Default C'tor initializing an empty application context object
 			 */
@@ -212,6 +216,16 @@ namespace FMITerminalBlock
 			 */
 			const ChannelMapping * getOutputChannelMapping(void);
 
+			/**
+			 * @brief Returns a pointer to the global input Base::ChannelMapping object
+			 * @details The first invocation of the function will create the object.
+			 * Subsequent configuration changes may not be reflected by the input
+			 * channel mapping object. The function may throw a
+			 * SystemConfigurationException if some properties are missing. In this
+			 * case no object is generated.
+			 */
+			const ChannelMapping * getInputChannelMapping(void);
+
 		private:
 
 			/** @brief Size of the internal error message buffers */
@@ -239,6 +253,13 @@ namespace FMITerminalBlock
 			 * getOutputChannelMapping().
 			 */
 			ChannelMapping * outputChannelMap_;
+
+			/**
+			 * @brief Pointer to the input channel mapping configuration.
+			 * @details The object will be created by the first query using
+			 * getInputChannelMapping().
+			 */
+			ChannelMapping * inputChannelMap_;
 
 			/**
 			 * @brief Extracts the key-value pair and adds it to the global

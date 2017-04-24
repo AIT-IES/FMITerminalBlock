@@ -28,9 +28,10 @@ const std::string ApplicationContext::PROP_LOOK_AHEAD_TIME = "app.lookAheadTime"
 const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAheadStepSize";
 const std::string ApplicationContext::PROP_INTEGRATOR_STEP_SIZE = "app.integratorStepSize";
 const std::string ApplicationContext::PROP_OUT = "out";
+const std::string ApplicationContext::PROP_IN = "in";
 
 ApplicationContext::ApplicationContext(void):
-	config_(), outputChannelMap_(NULL), portIDSource_()
+	config_(), outputChannelMap_(NULL), inputChannelMap_(NULL), portIDSource_()
 {
 }
 
@@ -40,6 +41,10 @@ ApplicationContext::~ApplicationContext(void)
 	if(outputChannelMap_ != NULL)
 	{
 		delete outputChannelMap_;
+	}
+	if (inputChannelMap_ != NULL)
+	{
+		delete inputChannelMap_;
 	}
 }
 
@@ -215,6 +220,17 @@ const ChannelMapping * ApplicationContext::getOutputChannelMapping()
 	}
 	return outputChannelMap_;
 }
+
+const ChannelMapping * ApplicationContext::getInputChannelMapping()
+{
+	if (inputChannelMap_ == NULL)
+	{
+		inputChannelMap_ = newChannelMapping(PROP_IN);
+		BOOST_LOG_TRIVIAL(debug) << "Just created input " << inputChannelMap_->toString();
+	}
+	return inputChannelMap_;
+}
+
 
 ChannelMapping * ApplicationContext::newChannelMapping(const std::string &propertyPrefix)
 {

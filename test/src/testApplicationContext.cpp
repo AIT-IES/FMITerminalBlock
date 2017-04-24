@@ -322,6 +322,28 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_channel )
 	BOOST_CHECK_EQUAL(mapping->getPorts(1)[2].second, 0);
 
 }
+/** @brief Queries a channel mapping object and checks some basic properties */
+BOOST_AUTO_TEST_CASE(test_get_input_channel_mapping)
+{
+	const char * argv[] = { "testApplicationContext", "in.0.0=x",
+		"in.0.0.type=0", NULL };
+	ApplicationContext context;
+	context.addCommandlineProperties(3, argv);
+
+	const ChannelMapping * mapping = context.getInputChannelMapping();
+	BOOST_REQUIRE(mapping != NULL);
+
+	BOOST_REQUIRE_EQUAL(mapping->getNumberOfChannels(), 1);
+	BOOST_REQUIRE_EQUAL(mapping->getTransmissionChannel(0).getPortIDs().size(), 1);
+	BOOST_CHECK(mapping->getTransmissionChannel(0).getPortIDs()[0] ==
+		std::make_pair(fmiTypeReal, 0));
+	
+	BOOST_REQUIRE_EQUAL(mapping->getVariableIDs(fmiTypeReal).size(), 1);
+	BOOST_REQUIRE_EQUAL(mapping->getVariableNames(fmiTypeReal).size(), 1);
+	BOOST_CHECK(mapping->getVariableIDs(fmiTypeReal)[0] == 
+		std::make_pair(fmiTypeReal, 0));
+	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeReal)[0], "x");
+}
 
 BOOST_AUTO_TEST_CASE(test_Port_id_drawer)
 {
