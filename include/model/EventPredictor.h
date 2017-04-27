@@ -52,6 +52,8 @@ namespace FMITerminalBlock
 			static const std::string PROP_FMU_NAME;
 			/** @brief The name of the FMU instance name property */
 			static const std::string PROP_FMU_INSTANCE_NAME;
+			/** @brief The format string of the default input property */
+			static const std::string PROP_DEFAULT_INPUT;
 
 			/**
 			 * @brief C'tor loading a FMU
@@ -137,7 +139,8 @@ namespace FMITerminalBlock
 			 * @details The function will set every changed input but doesn't call the
 			 * predictNext. After receiving the event it isn't possible to reset the
 			 * FMU prior the given event's time. Any such attempt may lead to
-			 * undesired behavior. The function is NOT fully implemented yet
+			 * undesired behavior. In particular, it is assumed that the event handling 
+			 * function is not called for any event which may be discarded later on.
 			 * @param ev The reference to the triggered event.
 			 */
 			virtual void eventTriggered(Timing::Event * ev);
@@ -201,6 +204,43 @@ namespace FMITerminalBlock
 			fmiTime lastPredictedEventTime_;
 
 			/**
+			* @brief Stores the ID of each registered input.
+			* @details The first index corresponds to the integer type of the
+			* type id and the second index corresponds to the index in the
+			* output array.
+			*/
+			std::vector<std::vector<Base::PortID>> inputIDs_;
+
+			/**
+			 * @brief vector which contains the values of all real inputs
+			 * @details The vector has exactly inputIDs_[fmiTypeReal].size() elements. 
+			 * The memory which holds the array must be allocated as soon as init() 
+			 * is called.
+			 */
+			std::vector<fmiReal> realInputImage_;
+			/**
+			 * @brief vector which contains the values of all integer inputs
+			 * @details The vector has exactly inputIDs_[fmiTypeInteger].size() elements.
+			 * The memory which holds the array must be allocated as soon as init()
+			 * is called.
+			 */
+			std::vector<fmiInteger> integerInputImage_;
+			/**
+			 * @brief vector which contains the values of all boolean inputs
+			 * @details The vector has exactly inputIDs_[fmiTypeBoolean].size() elements.
+			 * The memory which holds the array must be allocated as soon as init()
+			 * is called.
+			 */
+			std::vector<fmiBoolean> booleanInputImage_;
+			/**
+			 * @brief vector which contains the values of all string inputs
+			 * @details The vector has exactly inputIDs_[fmiTypeString].size() elements.
+			 * The memory which holds the array must be allocated as soon as init()
+			 * is called.
+			 */
+			std::vector<std::string> stringInputImage_;
+
+			/**
 			 * @brief Manages the output variables and returns a reference to them
 			 * @details If the output event variables arn't populated before, the
 			 * solver's update function will be called and the variables will be 
@@ -214,6 +254,23 @@ namespace FMITerminalBlock
 			 * @return A reference to the output variable's state
 			 */
 			std::vector<Timing::Event::Variable> & getOutputVariables(fmiTime time);
+
+			/**
+			 * @brief Initializes the solver
+			 * @details The function assumes that all parameters are previously checked 
+			 * and valid. It also assumes that the name, id and default process image 
+			 * values are properly set and validated. If the solver returned with an 
+			 * error, an std::runtime_exception is thrown. Please consider the FMI++ 
+			 * documentation for more details on the parameters.
+			 * @param instanceName The valid name of the FMU instance.
+			 * @param startTime The first time instant of the simulation
+			 * @param lookAheadHorizon A valid lookAheadHorizon value
+			 * @param lookAheadStepSize A valid lookAheadStepSize value
+			 * @param integratorStepSize A valid integrator Step size
+			 */
+			void initSolver(const std::string& instanceName, const fmiTime startTime,
+				const fmiTime lookAheadHorizon, const fmiTime lookAheadStepSize,
+				const fmiTime integratorStepSize);
 
 			/**
 			 * @brief Registers the output channels based on the given channel mapping
@@ -245,6 +302,55 @@ namespace FMITerminalBlock
 			 */
 			void fetchOutputs(std::vector<Timing::Event::Variable> &values,
 					fmiTime time);
+
+			/**
+			 * @brief Registers an input of a particular type
+			 * @details The function also populates all corresponding data structures. 
+			 * I.e. the input port IDs as well as the image are set to the default 
+			 * value. In order to be generic enough to handle all input types, the 
+			 * function defines several parameter and one generic type. It is assumed
+			 * that the type of the function corresponds to the type code which is 
+			 * passed in the type parameter.
+			 * @param destinationImage A valid pointer to the vector in which the 
+			 * default image is written.
+			 * @param type The FMI type code which corresponds to the template arguments.
+			 * @param defaultValue The value which is set if no default value was 
+			 * presented in the configuration section.
+			 * @param defineFunction The function of IncrementalFMU which is called 
+			 * to register the inputs at the solver_ instance.
+			 */
+			template<typename InputType>
+			void defineInputs(std::vector<InputType> *destinationImage, FMIType type, 
+				InputType defaultValue, 
+				void(IncrementalFMU::*defineFunction)(const std::string *, std::size_t));
+
+			/**
+			 * @brief Registers all inputs of the event predictor.
+			 * @details The function also populates all corresponding data structures.
+			 */
+			void defineInputs();
+
+			/**
+			 * @brief Updates the input image of a particular type.
+			 * @param destinationImage The image valid vector pointer to populate
+			 * @param ev The valid event pointer to query
+			 * @param type The type code of the particular data type.
+			 */
+			template<typename InputType>
+			bool updateInputImage(std::vector<InputType> *destinationImage,
+				Timing::Event *ev, FMIType type);
+
+			/**
+ 			 * @brief Updates the input image variables
+			 * @details Queries the event and checks whether an associated variable
+			 * is managed as input variable. If it is managed, the input image will
+			 * be updated accordingly.
+			 * @param ev A valid reference to the event instance
+			 * @returns <code>true</code> iff at least one variable is managed as
+			 * input.
+			 */
+			bool updateInputImage(Timing::Event *ev);
+
 
 		};
 

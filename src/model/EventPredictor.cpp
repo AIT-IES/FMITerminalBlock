@@ -30,12 +30,15 @@ using namespace FMITerminalBlock;
 const std::string EventPredictor::PROP_FMU_PATH = "fmu.path";
 const std::string EventPredictor::PROP_FMU_NAME = "fmu.name";
 const std::string EventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
+const std::string EventPredictor::PROP_DEFAULT_INPUT = Base::ApplicationContext::PROP_IN + ".default.%1%";
 
 EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	context_(context), solver_(NULL), description_(NULL), 
 	outputIDs_(5,std::vector<Base::PortID>()), 
 	lastPredictedEventTime_(0.0), currentTime_(0.0), outputEventVariables_(), 
-	outputEventVariablesPopulated_(false)
+	outputEventVariablesPopulated_(false),
+	inputIDs_(5,std::vector<Base::PortID>()), realInputImage_(), 
+	integerInputImage_(), booleanInputImage_(), stringInputImage_()
 {
 	std::string path = context.getProperty<std::string>(PROP_FMU_PATH);
 	std::string name = context.getProperty<std::string>(PROP_FMU_NAME);
@@ -56,7 +59,7 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 
 EventPredictor::~EventPredictor()
 {
-	if(solver_ != NULL)
+	if (solver_ != NULL)
 		delete solver_;
 }
 
@@ -109,17 +112,10 @@ EventPredictor::init()
 	outputEventVariablesPopulated_ = false;
 
 	defineOutputs(context_.getOutputChannelMapping());
+	defineInputs();
 
 	// initialize FMU
-	int err = solver_->init(instanceName, NULL, NULL, 0, start, lookAheadHorizon,
-		lookAheadStepSize, integratorStepSize);
-	if(err != 1)
-	{
-		boost::format msg("Can't initialize the ModelExchange FMU (%1%)");
-		msg % err;
-		throw std::runtime_error(msg.str());
-	}
-
+	initSolver(instanceName, start, lookAheadHorizon, lookAheadStepSize, integratorStepSize);
 }
 
 Timing::Event *
@@ -144,7 +140,46 @@ EventPredictor::predictNext()
 void 
 EventPredictor::eventTriggered(Timing::Event * ev)
 {
-	//TODO: Update input variables, if an external event was received. Otherwise check if solver_->updateState has to be called.
+	assert(ev != NULL);
+	assert(solver_ != NULL);
+
+	bool imageUpdated = updateInputImage(ev);
+	if (imageUpdated) {
+		// Update the model according to the received event
+		fmiTime eventTime = ev->getTime();
+		if (currentTime_ - solver_->getTimeDiffResolution() > eventTime) {
+			BOOST_LOG_TRIVIAL(warning) << "Received external event is timed before "
+				<< "the current time of the model. Changing event time from "
+				<< eventTime << " to " << currentTime_ << ".";
+			eventTime = currentTime_;
+		}
+
+		if (currentTime_ - solver_->getTimeDiffResolution() <= eventTime &&
+			currentTime_ + solver_->getTimeDiffResolution() >= eventTime)
+		{	// External event occurs at approximately the same time as the last event.
+			BOOST_LOG_TRIVIAL(trace) << "Received an event which is timely aligned "
+				<< "with the state of the model t=" << currentTime_;
+			eventTime = currentTime_; // Align events
+		}
+
+		// Forward the time of the model, regardless of the current state time
+		// The forward operation is needed to set IncrementalFMU and its FMU 
+		// instance to a defined state.
+		BOOST_LOG_TRIVIAL(trace) << "Update the model state to t=" << eventTime;
+		fmiTime updTime = solver_->updateState(eventTime);
+		assert(updTime == eventTime);
+		currentTime_ = eventTime;
+
+		// Set the inputs at the event time and execute any event handling functions.
+		solver_->syncState(eventTime, realInputImage_.data(), 
+			integerInputImage_.data(), booleanInputImage_.data(), 
+			stringInputImage_.data());
+
+		// Clear buffered variables.
+		outputEventVariables_.clear();
+		outputEventVariablesPopulated_ = false;
+		lastPredictedEventTime_ = eventTime;
+	}
 }
 
 std::vector<Timing::Event::Variable> &
@@ -169,10 +204,10 @@ EventPredictor::getOutputVariables(fmiTime time)
 
 		// fix time and populate outputEventVariables_
 		BOOST_LOG_TRIVIAL(trace) << "Pandora's box opened at " << time 
-			<< ". State will be setteled by querying event data.";
+			<< ". State will be settled by querying event data.";
 
 		fmiTime updTime = solver_->updateStateFromTheRight(time);
-		// update may inhance the time on its own -> 2* timeDiffResolution
+		// update may enhance the time on its own -> 2* timeDiffResolution
 		if(abs(updTime - time) > 2*solver_->getTimeDiffResolution())
 		{
 			throw Base::SolverException("Can't update the model's state", time);
@@ -182,6 +217,55 @@ EventPredictor::getOutputVariables(fmiTime time)
 		outputEventVariablesPopulated_ = true;
 	}
 	return outputEventVariables_;
+}
+
+void EventPredictor::initSolver(const std::string& instanceName, 
+	const fmiTime startTime, const fmiTime lookAheadHorizon, 
+	const fmiTime lookAheadStepSize, const fmiTime integratorStepSize)
+{
+	const Base::ChannelMapping *inputMapping = context_.getInputChannelMapping();
+	assert(solver_ != NULL);
+
+	assert(inputMapping != NULL);
+	assert(inputMapping->getVariableNames(fmiTypeReal).size() == 
+		realInputImage_.size());
+	assert(inputMapping->getVariableNames(fmiTypeInteger).size() == 
+		integerInputImage_.size());
+	assert(inputMapping->getVariableNames(fmiTypeBoolean).size() == 
+		booleanInputImage_.size());
+	assert(inputMapping->getVariableNames(fmiTypeString).size() == 
+		stringInputImage_.size());
+
+	assert(lookAheadHorizon >= lookAheadStepSize);
+	assert(lookAheadStepSize >= integratorStepSize);
+
+
+	// TODO: Add support for general initial conditions (#373)
+	int err = solver_->init(instanceName, 
+		inputMapping->getVariableNames(fmiTypeReal).data(), 
+		realInputImage_.data(), 
+		realInputImage_.size(),
+
+		inputMapping->getVariableNames(fmiTypeInteger).data(),
+		integerInputImage_.data(), 
+		integerInputImage_.size(),
+
+		inputMapping->getVariableNames(fmiTypeBoolean).data(), 
+		booleanInputImage_.data(), 
+		booleanInputImage_.size(),
+
+		inputMapping->getVariableNames(fmiTypeString).data(), 
+		stringInputImage_.data(), 
+		stringInputImage_.size(),
+
+		startTime, lookAheadHorizon, lookAheadStepSize, integratorStepSize);
+	if (err != 1)
+	{
+		boost::format msg("Can't initialize the ModelExchange FMU (%1%)");
+		msg % err;
+		throw std::runtime_error(msg.str());
+	}
+
 }
 
 void 
@@ -215,26 +299,23 @@ EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIType type)
 
 	if(!names.empty())
 	{
-		std::string * nameBuffer = new std::string[names.size()];
-		std::copy(names.begin(), names.end(), nameBuffer);
 		switch(type)
 		{
 		case fmiTypeReal:
-			solver_->defineRealOutputs(nameBuffer, names.size());
+			solver_->defineRealOutputs(names.data(), names.size());
 			break;
 		case fmiTypeInteger:
-			solver_->defineIntegerOutputs(nameBuffer, names.size());
+			solver_->defineIntegerOutputs(names.data(), names.size());
 			break;
 		case fmiTypeBoolean:
-			solver_->defineBooleanOutputs(nameBuffer, names.size());
+			solver_->defineBooleanOutputs(names.data(), names.size());
 			break;
 		case fmiTypeString:
-			solver_->defineStringOutputs(nameBuffer, names.size());
+			solver_->defineStringOutputs(names.data(), names.size());
 			break;
 		default:
 			assert(0);
 		}
-		delete [] nameBuffer;
 	}
 
 }
@@ -283,4 +364,88 @@ EventPredictor::fetchOutputs(std::vector<Timing::Event::Variable> &values, fmiTi
 		values.push_back(element);
 	}
 
+}
+
+template<typename InputType>
+void EventPredictor::defineInputs(std::vector<InputType> *destinationImage, 
+	FMIType type, InputType defaultValue, 
+	void(IncrementalFMU::*defineFunction)(const std::string *,std::size_t))
+{
+	assert(destinationImage != NULL);
+	assert(solver_ != NULL);
+	const Base::ChannelMapping *mapping = context_.getInputChannelMapping();
+	assert(mapping != NULL);
+
+	std::vector<std::string> names = mapping->getVariableNames(type);
+	std::vector<Base::PortID> ids = mapping->getVariableIDs(type);
+	boost::format fmt(PROP_DEFAULT_INPUT);
+
+	// Add the default variable to the image
+	destinationImage->clear();
+	for (unsigned int i = 0; i < names.size(); i++)
+	{
+		fmt.clear();
+		fmt % names[i];
+		InputType init_value;
+		init_value = context_.getProperty<InputType>(fmt.str(), defaultValue);
+		destinationImage->push_back(init_value);
+	}
+
+	// Register the Inputs
+	inputIDs_[type] = ids;
+	(solver_->*defineFunction)(names.data(), names.size());
+}
+
+void EventPredictor::defineInputs()
+{
+	const Base::ChannelMapping *mapping = context_.getInputChannelMapping();
+	assert(mapping != NULL);
+	
+	defineInputs<fmiReal>(&realInputImage_, fmiTypeReal, 0.0, 
+		&IncrementalFMU::defineRealInputs);
+	defineInputs<fmiInteger>(&integerInputImage_, fmiTypeInteger, 0, 
+		&IncrementalFMU::defineIntegerInputs);
+	defineInputs<fmiBoolean>(&booleanInputImage_, fmiTypeBoolean, false, 
+		&IncrementalFMU::defineBooleanInputs);
+	defineInputs<std::string>(&stringInputImage_, fmiTypeString, "", 
+		&IncrementalFMU::defineStringInputs);
+
+	if (!mapping->getVariableNames(fmiTypeUnknown).empty())
+	{
+		throw Base::SystemConfigurationException("Model input variable of unknown type registered");
+	}
+}
+
+template<typename InputType>
+bool EventPredictor::updateInputImage(std::vector<InputType> *destinationImage,
+	Timing::Event *ev, FMIType type)
+{
+	assert(destinationImage != NULL);
+	assert(ev != NULL);
+	assert(((unsigned int) type) < inputIDs_.size());
+
+	std::vector<Timing::Event::Variable> &vars = ev->getVariables();
+	std::vector<Base::PortID> &ports = inputIDs_[type];
+	bool found = false;
+	for (auto varIt = vars.begin(); varIt != vars.end(); ++varIt)
+	{
+		for (unsigned int i = 0; i < ports.size(); i++)
+		{
+			if (varIt->first == ports[i])
+			{
+				found = true;
+				(*destinationImage)[i] = boost::any_cast<InputType>(varIt->second);
+			}
+		}
+	}
+	return found;
+}
+
+bool EventPredictor::updateInputImage(Timing::Event *ev) {
+	bool found = false;
+	found |= updateInputImage(&realInputImage_, ev, fmiTypeReal);
+	found |= updateInputImage(&integerInputImage_, ev, fmiTypeInteger);
+	found |= updateInputImage(&booleanInputImage_, ev, fmiTypeBoolean);
+	found |= updateInputImage(&stringInputImage_, ev, fmiTypeString);
+	return found;
 }
