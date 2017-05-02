@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file EventDispatcher.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_TIMING_EVENT_DISPATCHER
@@ -19,6 +19,7 @@
 
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <list>
+#include <memory>
 
 namespace FMITerminalBlock 
 {
@@ -37,9 +38,6 @@ namespace FMITerminalBlock
 		 * the main program cycle. It may return, if a stopping time is
 		 * configured. Additionally the event dispatcher records the application's
 		 * timing via an Base::EventLogger instance.</p>
-		 * <p>Currently only the one-way transmission of events is implemented.
-		 * Future versions may implement an interface which allows the registration
-		 * of external events.</p>
 		 */
 		class EventDispatcher
 		{
@@ -85,11 +83,18 @@ namespace FMITerminalBlock
 			/**
 			 * @brief Adds the event listener reference
 			 * @details If an event is triggered every registered listener will be 
-			 * informed about the the upcoming event. The passed pointer must be
+			 * informed about the upcoming event. The passed pointer must be
 			 * valid until the object is destroyed.
 			 * @param listener The event listener pointer to add
 			 */
 			void addEventListener(EventListener * listener);
+
+			/**
+			 * @brief Returns a valid shared pointer to the managed event sink
+			 * @details The event sink reverence may be used to register external 
+			 * events. The returned pointer is always valid and mustn't be null.
+			 */
+			std::shared_ptr<EventSink> getEventSink();
 
 		private:
 
@@ -106,7 +111,7 @@ namespace FMITerminalBlock
 			 * @brief The Pointer to the event queue in use
 			 * @details A function can safely assume that this reference is not NULL
 			 */
-			EventQueue * queue_;
+			std::shared_ptr<EventQueue> queue_;
 
 			/** @brief The list of known event listeners */
 			std::list<EventListener *> listener_;

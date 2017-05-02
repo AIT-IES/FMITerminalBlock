@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file EventDispatcher.cpp
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #include "timing/EventDispatcher.h"
@@ -21,7 +21,7 @@ const std::string EventDispatcher::PROP_STOP_TIME = "app.stopTime";
 
 EventDispatcher::EventDispatcher(Base::ApplicationContext &context, 
 																 Model::AbstractEventPredictor &predictor):
-	context_(context), predictor_(predictor), theEnd_(0.0), queue_(NULL), 
+	context_(context), predictor_(predictor), theEnd_(0.0), queue_(), 
 	listener_(NULL), timingLogger_()
 {
 	
@@ -30,17 +30,14 @@ EventDispatcher::EventDispatcher(Base::ApplicationContext &context,
 	theEnd_ = context.getRealPositiveDoubleProperty(PROP_STOP_TIME, DBL_MAX);
 
 	// Eventually loaded dynamically in future versions.
-	queue_ = new TimedEventQueue();
+	queue_ = std::make_shared<TimedEventQueue>();
 
 	// Notify the predictor via the common event listener interface.
 	addEventListener(predictor);
-
 }
 
 EventDispatcher::~EventDispatcher()
 {
-	assert(queue_ != NULL);
-	delete queue_;
 }
 
 void 
@@ -69,6 +66,12 @@ void
 EventDispatcher::addEventListener(EventListener & listener)
 {
 	addEventListener(&listener);
+}
+
+std::shared_ptr<EventSink>
+EventDispatcher::getEventSink()
+{
+	return std::static_pointer_cast<EventSink>(queue_);
 }
 
 void

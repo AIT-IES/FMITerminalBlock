@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file TimedEventQueue.cpp
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #include "timing/TimedEventQueue.h"
@@ -71,19 +71,34 @@ TimedEventQueue::get(void)
 }
 
 void 
+TimedEventQueue::pushExternalEvent(Event *ev)
+{
+	add(ev, false);
+}
+
+fmiTime 
+TimedEventQueue::getTimeStampNow()
+{
+	boost::system_time currentTime;
+	currentTime = boost::posix_time::microsec_clock::universal_time();
+	return getSimulationTime(currentTime);
+}
+
+void 
 TimedEventQueue::removePredictions(fmiTime time)
 {
-	for( std::list<std::pair<Event*,bool>>::iterator ev = queue_.end(); 
-		ev != queue_.begin() && ev->first->getTime() >= time ; --ev )
-	{
-		if((*ev).second)
+	if (queue_.empty()) return;
+	auto ev = queue_.end();
+	do {
+		--ev;
+		if(ev->second && ev->first->getTime() >= time)
 		{
 			// remove it
-			BOOST_LOG_TRIVIAL(trace) << "De-queued " << ev->first->toString();
+			BOOST_LOG_TRIVIAL(trace) << "De-queued Predicted " << ev->first->toString();
 			delete (*ev).first;
 			ev = queue_.erase(ev);
 		}
-	}
+	} while (ev != queue_.begin() && ev->first->getTime() >= time);
 }
 
 void
@@ -104,7 +119,7 @@ TimedEventQueue::push(Event * ev, bool predicted)
 }
 
 boost::system_time
-TimedEventQueue::getSystemTime(const Event* ev)
+TimedEventQueue::getSystemTime(const Event* ev) const
 {
 	assert(ev != NULL);
 	fmiTime time = ev->getTime();
@@ -112,6 +127,13 @@ TimedEventQueue::getSystemTime(const Event* ev)
 		boost::posix_time::seconds((long) floor(time)) + 
 		boost::posix_time::microseconds((int64_t) ((time - floor(time)) * 1000*1000));
 	return localEpoch_ + evTime;
+}
+
+fmiTime
+TimedEventQueue::getSimulationTime(const boost::system_time &sysTime) const
+{
+	boost::posix_time::time_duration evTime = sysTime - localEpoch_;
+	return ((fmiTime) evTime.ticks()) / evTime.ticks_per_second();
 }
 
 bool

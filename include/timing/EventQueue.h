@@ -12,6 +12,7 @@
 #define _FMITERMINALBLOCK_EVENT_QUEUE
 
 #include "timing/Event.h"
+#include "timing/EventSink.h"
 
 namespace FMITerminalBlock 
 {
@@ -30,7 +31,7 @@ namespace FMITerminalBlock
 		 * <p>The event queue only operates on event pointers. Any given pointer 
 		 * must be valid until it is returned again. </p>
 		 */
-		class EventQueue
+		class EventQueue : public EventSink
 		{
 		public:
 

@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file TimedEventQueue.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_TIMING_TIMED_EVENT_QUEUE
@@ -60,6 +60,12 @@ namespace FMITerminalBlock
 			 */
 			virtual Event * get(void);
 
+			/** @copydoc EventSink::pushExternalEvent(Event) */
+			virtual void pushExternalEvent(Event *ev);
+
+			/** @copydoc EventSink::getTimeStampNow() */
+			virtual fmiTime getTimeStampNow();
+
 		private:
 
 			/**
@@ -107,7 +113,15 @@ namespace FMITerminalBlock
 			 * @param ev A valid event reference used to obtain the relative time
 			 * @return The corresponding system time object
 			 */
-			boost::system_time getSystemTime(const Event* ev);
+			boost::system_time getSystemTime(const Event* ev) const;
+
+			/**
+			 * @brief Returns the simulation time of the given system time instant
+			 * @details The simulation time will be based on the local notion of time 
+			 * which is stored in localEpoch_.
+			 * @param sysTime The system time of the event.
+			 */
+			fmiTime getSimulationTime(const boost::system_time &sysTime) const;
 
 			/**
 			 * @brief Returns whether the event's time is a future time-stamp
