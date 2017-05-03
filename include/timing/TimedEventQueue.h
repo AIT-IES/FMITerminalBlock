@@ -130,6 +130,14 @@ namespace FMITerminalBlock
 			 */
 			bool isFutureEvent(const Event* ev);
 
+			/**
+			 * @brief Checks whether the queue holds non-predicted events before maxTime
+			 * @details The queue will not be locked. Hence, it is assumed that the 
+			 * current thread has acquired the lock externally.
+			 * @return <code>true</code> if an external events exists which has a time 
+			 * instant strictly less than the given one.
+			 */
+			bool hasPriorExternalEvents(fmiTime maxTime);
 		};
 
 	}

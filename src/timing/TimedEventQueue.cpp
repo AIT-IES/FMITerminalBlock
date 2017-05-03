@@ -36,9 +36,15 @@ TimedEventQueue::add(Event * ev, bool predicted)
 		removePredictions(ev->getTime());
 	}
 
-	push(ev, predicted);
-
-	newEventCondition_.notify_one();
+	if (predicted && hasPriorExternalEvents(ev->getTime()))
+	{
+		delete ev; // The event is already outdated
+	}
+	else 
+	{
+		push(ev, predicted);
+		newEventCondition_.notify_one();
+	}
 }
 
 Event * 
@@ -141,4 +147,15 @@ TimedEventQueue::isFutureEvent(const Event* ev)
 {
 	boost::system_time evTime = getSystemTime(ev);
 	return evTime > boost::posix_time::microsec_clock::universal_time();
+}
+
+bool
+TimedEventQueue::hasPriorExternalEvents(fmiTime maxTime)
+{
+	for (auto it = queue_.begin();
+		it != queue_.end() && it->first->getTime() < maxTime; ++it)
+	{
+		if (!(it->second)) return true; // Not Predicted
+	}
+	return false;
 }

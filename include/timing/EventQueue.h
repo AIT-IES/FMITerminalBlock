@@ -42,7 +42,9 @@ namespace FMITerminalBlock
 			 * @brief Adds the event to the event queue.
 			 * @details Any non-predicted event will remove predicted events from the 
 			 * queue and will release any thread which is currently waiting. A non-
-			 * predicted event will always be returned by get().
+			 * predicted event will always be returned by get(). A predicted event 
+			 * may be refused, if it is already outdated. I.e. it won't be added to 
+			 * the queue and the function returns without modifying the queue.
 			 * @param ev A valid pointer to the event to queue
 			 * @param predicted Flag indicating the event's source
 			 */
