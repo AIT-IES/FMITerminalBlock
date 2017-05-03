@@ -31,6 +31,9 @@ TimedEventQueue::add(Event * ev, bool predicted)
 	assert(ev != NULL);
 	boost::lock_guard<boost::mutex> guard(queueMut_);
 
+	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(" << ev->toString() 
+		<< ", " << predicted << "): Pre-State: " << toString();
+
 	if(!predicted)
 	{
 		removePredictions(ev->getTime());
@@ -45,6 +48,8 @@ TimedEventQueue::add(Event * ev, bool predicted)
 		push(ev, predicted);
 		newEventCondition_.notify_one();
 	}
+
+	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(...): Post-State: " << toString();
 }
 
 Event * 
@@ -97,14 +102,15 @@ TimedEventQueue::removePredictions(fmiTime time)
 	auto ev = queue_.end();
 	do {
 		--ev;
-		if(ev->second && ev->first->getTime() >= time)
+		if (ev->first->getTime() <= time) break;
+		if (ev->second)
 		{
 			// remove it
 			BOOST_LOG_TRIVIAL(trace) << "De-queued Predicted " << ev->first->toString();
 			delete (*ev).first;
 			ev = queue_.erase(ev);
 		}
-	} while (ev != queue_.begin() && ev->first->getTime() >= time);
+	} while (ev != queue_.begin());
 }
 
 void
@@ -158,4 +164,19 @@ TimedEventQueue::hasPriorExternalEvents(fmiTime maxTime)
 		if (!(it->second)) return true; // Not Predicted
 	}
 	return false;
+}
+
+
+std::string 
+TimedEventQueue::toString()
+{
+	std::string ret("TimedEventQueue: [");
+	for (auto it = queue_.begin(); it != queue_.end(); ++it)
+	{
+		ret += it->first->toString();
+		ret += it->second ? " (predicted)" : " (external)";
+		ret += ", ";
+	}
+	ret += "]";
+	return ret;
 }

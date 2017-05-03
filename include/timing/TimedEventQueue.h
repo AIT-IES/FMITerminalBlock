@@ -138,6 +138,12 @@ namespace FMITerminalBlock
 			 * instant strictly less than the given one.
 			 */
 			bool hasPriorExternalEvents(fmiTime maxTime);
+
+			/**
+			 * @brief Returns a string representation of the queue.
+			 * @details The function assumes that the queue mutex is already locked.
+			 */
+			std::string toString();
 		};
 
 	}

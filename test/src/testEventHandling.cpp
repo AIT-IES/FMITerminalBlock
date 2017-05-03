@@ -460,12 +460,56 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_predicted_taken, EventDispatcherFixture)
 	BOOST_CHECK(expectedTime.empty());
 }
 
-/** TODO: Triggers an external event with the same time as the last predicted one before the predicted event is triggered */
+/** 
+ * @brief Adds an external event with the same time as the next predicted 
+ * one before the predicted event is triggered 
+ */
+BOOST_FIXTURE_TEST_CASE(test_concurrent_predicted_not_taken, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.stopTime=1.6", NULL };
+	appContext.addCommandlineProperties(2, argv);
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(0.4);
+	EventDispatcher dispatcher(appContext, pred);
+	SynchronizedEventSource eventSource(dispatcher.getEventSink());
+
+	dispatcher.addEventListener(this);
+	dispatcher.addEventListener(eventSource);
+
+	// Add generated events
+	expectedTime.push_back(0.4); // Predicted
+	expectedTime.push_back(0.8); // Predicted
+	expectedTime.push_back(0.8); // External
+	expectedTime.push_back(1.2); // Predicted
+	expectedTime.push_back(1.2); // External
+	expectedTime.push_back(1.6); // Predicted
+
+	eventSource.addAction(0.4, std::chrono::milliseconds(0), 0.8);
+	eventSource.addAction(0.8, std::chrono::milliseconds(100), 1.2);
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	BOOST_LOG_TRIVIAL(info) << "----------- test_concurrent_predicted_not_taken";
+	eventSource.start();
+	dispatcher.run();
+
+	// Check termination
+	eventSource.waitForTermination();
+	BOOST_CHECK(expectedTime.empty());
+}
+
 /** 
  * TODO: Triggers an external event which has a bigger timestamp than the 
  * predicted one in the queue
  * @details The external event is added after the first predicted event is 
  * added but no delay is used in adding the event. Hence, the predicted event 
  * is not deleted and returned regularly.
+ */
+/** 
+ * TODO: Adds an external event which should be triggered after the next predicted one.
+ * @details The predicted event is added to the queue after the external event 
+ * was added. Still the predicted one must be scheduled first.
  */
  /** TODO: Triggers a predicted event and checks whether the returned system time is close to the event time. */
