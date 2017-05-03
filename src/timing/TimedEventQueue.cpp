@@ -34,20 +34,20 @@ TimedEventQueue::add(Event * ev, bool predicted)
 	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(" << ev->toString() 
 		<< ", " << predicted << "): Pre-State: " << toString();
 
-	if(!predicted)
-	{
-		removePredictions(ev->getTime());
-	}
+	removeFuturPredictions(ev->getTime());
 
-	if (predicted && hasPriorExternalEvents(ev->getTime()))
+	if (predicted && hasPriorEvents(ev->getTime()))
 	{
 		delete ev; // The event is already outdated
+		return;
 	}
-	else 
+	if (predicted)
 	{
-		push(ev, predicted);
-		newEventCondition_.notify_one();
+		removeConcurrentPrediction(ev->getTime());
 	}
+
+	push(ev, predicted);
+	newEventCondition_.notify_one();
 
 	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(...): Post-State: " << toString();
 }
@@ -96,33 +96,45 @@ TimedEventQueue::getTimeStampNow()
 }
 
 void 
-TimedEventQueue::removePredictions(fmiTime time)
+TimedEventQueue::removeFuturPredictions(fmiTime time)
 {
-	if (queue_.empty()) return;
-	auto ev = queue_.end();
-	do {
-		--ev;
-		if (ev->first->getTime() <= time) break;
-		if (ev->second)
-		{
-			// remove it
-			BOOST_LOG_TRIVIAL(trace) << "De-queued Predicted " << ev->first->toString();
-			delete (*ev).first;
-			ev = queue_.erase(ev);
-		}
-	} while (ev != queue_.begin());
+	assert(isQueuePredictionConsistent());
+	if (!queue_.empty() && queue_.front().second &&
+		queue_.front().first->getTime() > time + eps_)
+	{
+		BOOST_LOG_TRIVIAL(trace) << "De-queued future predicted "
+			<< queue_.front().first->toString();
+		delete queue_.front().first;
+		queue_.erase(queue_.begin());
+	}
+}
+
+void 
+TimedEventQueue::removeConcurrentPrediction(fmiTime time)
+{
+	assert(isQueuePredictionConsistent());
+	if (!queue_.empty() && queue_.front().second && 
+		fabs(queue_.front().first->getTime() - time) <= eps_)
+	{
+		BOOST_LOG_TRIVIAL(trace) << "De-queued concurrent predicted " 
+			<< queue_.front().first->toString();
+		delete queue_.front().first;
+		queue_.erase(queue_.begin());
+	}
 }
 
 void
 TimedEventQueue::push(Event * ev, bool predicted)
 {
 	assert(ev != NULL);
+	assert(queue_.empty() || !queue_.front().second || !predicted);
 	fmiTime invariantOldTime = DBL_MIN;
 
-	std::list<std::pair<Event*,bool>>::iterator evIt = queue_.begin();
-	while(evIt != queue_.end() && evIt->first->getTime() <= ev->getTime())
+	auto evIt = queue_.begin();
+	while(evIt != queue_.end() && 
+		evIt->first->getTime() <= ev->getTime() + eps_ && !predicted )
 	{
-		assert(invariantOldTime <= evIt->first->getTime());
+		assert(invariantOldTime <= evIt->first->getTime() + eps_);
 		invariantOldTime = evIt->first->getTime();
 
 		++evIt;
@@ -149,23 +161,32 @@ TimedEventQueue::getSimulationTime(const boost::system_time &sysTime) const
 }
 
 bool
-TimedEventQueue::isFutureEvent(const Event* ev)
+TimedEventQueue::isFutureEvent(const Event* ev) const
 {
 	boost::system_time evTime = getSystemTime(ev);
 	return evTime > boost::posix_time::microsec_clock::universal_time();
 }
 
 bool
-TimedEventQueue::hasPriorExternalEvents(fmiTime maxTime)
+TimedEventQueue::hasPriorEvents(fmiTime maxTime) const
 {
-	for (auto it = queue_.begin();
-		it != queue_.end() && it->first->getTime() < maxTime; ++it)
-	{
-		if (!(it->second)) return true; // Not Predicted
-	}
-	return false;
+	return !queue_.empty() && queue_.front().first->getTime() < maxTime - eps_;
 }
 
+
+bool 
+TimedEventQueue::isQueuePredictionConsistent() const
+{
+	auto it = queue_.cbegin();
+	// Ignore the first position, it may be a prediction.
+	if (it != queue_.cend()) ++it;
+	while(it != queue_.cend())
+	{
+		if (it->second) return false;
+		++it;
+	}
+	return true;
+}
 
 std::string 
 TimedEventQueue::toString()

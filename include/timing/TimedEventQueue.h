@@ -29,15 +29,37 @@ namespace FMITerminalBlock
 
 		/**
 		 * @brief EventQueue implementation issuing predicted events in time.
-		 * @details The event queue maintains the reference clock (system clock). As
-		 * soon as the reference clock maintains the next event's time, this event
-		 * will be scheduled. Since the simulation time does not correspond to an
-		 * absolute time-stamp, the reference time (t_event = 0.0) will be set to
-		 * the C'tor's time of execution.
+		 * @details <p> The event queue maintains the reference clock (system 
+		 * clock). As soon as the reference clock maintains the next event's time, 
+		 * this event will be scheduled. Since the simulation time does not 
+		 * correspond to an absolute time-stamp, the reference time (t_event = 0.0)
+		 * will be set to the C'tor's time of execution. </p>
+		 * 
+		 * <p>The queue automatically outdates predicted events whenever another 
+		 * event is scheduled before the predicted one. It is assumed that 
+		 * predicted events depend on all previously scheduled events. Hence, they 
+		 * are deleted, if they do not correspond to the first event. If multiple 
+		 * events occur at the same instant of time, they are considered as a 
+		 * unique single event. Still, a new prediction may outdate an old one at 
+		 * the same instant of time. Hence, equally timed events are stored in 
+		 * separate places in the queue. In order to maintain the invariant, that 
+		 * the predicted event is always at the first place in the queue, 
+		 * simultaneous events will be sorted accordingly. </p>
+		 *
+		 * <p>For future implementations it is advised to merge events which occur 
+		 * at the same instant of time. Such an implementation may avoid redundant 
+		 * predictions and may improve realtime performance.</p>
 		 */
 		class TimedEventQueue: public EventQueue
 		{
 		public:
+
+			/** 
+			 * @brief The tolerance used to compare time instants
+			 * @details The value is always greater or equal (yes folks, welcome to 
+			 * discrete math :-) ) to zero.
+			 */
+			const fmiTime eps_ = 1e-3;
 
 			/**
 			 * C'tor generating an empty TimedEventQueue
@@ -72,7 +94,8 @@ namespace FMITerminalBlock
 			 * @brief Ordered list of upcoming events
 			 * @details The most recent event will be at the first indices. The
 			 * boolean flag indicates that the entry is a prediction which is
-			 * invalidated by new events.
+			 * invalidated by new events. The queue may contain at most one 
+			 * predicted entry at the very first position.
 			 */
 			std::list<std::pair<Event*,bool>> queue_;
 
@@ -92,16 +115,28 @@ namespace FMITerminalBlock
 
 			/**
 			 * @brief Dequeues every predicted value after the given time
-			 * @details The function assumes that the mutex has been acquired
+			 * @details The function assumes that the mutex has been acquired 
+			 * before. Removed events will have a time instant which is strictly 
+			 * greater than the given instant in time.
 			 * @param time The event's time used to separate predictions to delete
 			 * from those to keep.
 			 */
-			void removePredictions(fmiTime time);
+			void removeFuturPredictions(fmiTime time);
+
+			/**
+			 * @brief Removes any prediction which has the same instant of time.
+			 * @details It is assumed that the queue is locked. The function will 
+			 * not lock the queue again.
+			 * @param time The time of any prediction to remove
+			 */
+			void removeConcurrentPrediction(fmiTime time);
 
 			/**
 			 * @brief Puts the event in the event queue
 			 * @details The queue won't be cleaned nor locked. The function expects
 			 * the caller to acquire the lock before actually calling the function.
+			 * A predicted event at the same time instant of an external one will
+			 * always be scheduled first.
 			 * @param ev The event pointer to push, not NULL
 			 * @param predicted Flag which indicates the event's prediction status.
 			 */
@@ -128,16 +163,23 @@ namespace FMITerminalBlock
 			 * @param ev A valid pointer to the event object
 			 * @return The temporal status of the event
 			 */
-			bool isFutureEvent(const Event* ev);
+			bool isFutureEvent(const Event* ev) const;
 
 			/**
-			 * @brief Checks whether the queue holds non-predicted events before maxTime
+			 * @brief Checks whether the queue holds events strictly before maxTime
 			 * @details The queue will not be locked. Hence, it is assumed that the 
 			 * current thread has acquired the lock externally.
-			 * @return <code>true</code> if an external events exists which has a time 
+			 * @return <code>true</code> if an events exists which has a time 
 			 * instant strictly less than the given one.
 			 */
-			bool hasPriorExternalEvents(fmiTime maxTime);
+			bool hasPriorEvents(fmiTime maxTime) const;
+
+			/**
+			 * @brief Checks whether the queue is in a consistent state according 
+			 * to the predictions
+			 * @details The function will assumes that the queue is already locked.
+			 */
+			bool isQueuePredictionConsistent() const;
 
 			/**
 			 * @brief Returns a string representation of the queue.
