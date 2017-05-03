@@ -501,15 +501,126 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_predicted_not_taken, EventDispatcherFixt
 }
 
 /** 
- * TODO: Triggers an external event which has a bigger timestamp than the 
+ * @brief Triggers an external event which has a bigger timestamp than the 
  * predicted one in the queue
  * @details The external event is added after the first predicted event is 
  * added but no delay is used in adding the event. Hence, the predicted event 
  * is not deleted and returned regularly.
  */
+BOOST_FIXTURE_TEST_CASE(test_add_external_futur_event, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.stopTime=1.4", NULL };
+	appContext.addCommandlineProperties(2, argv);
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(0.4);
+	EventDispatcher dispatcher(appContext, pred);
+	SynchronizedEventSource eventSource(dispatcher.getEventSink());
+
+	dispatcher.addEventListener(this);
+	dispatcher.addEventListener(eventSource);
+
+	// Add generated events
+	expectedTime.push_back(0.4); // Predicted
+	expectedTime.push_back(0.8); // Predicted
+	expectedTime.push_back(1.0); // External
+	expectedTime.push_back(1.4); // Predicted
+
+	eventSource.addAction(0.4, std::chrono::milliseconds(100), 1.0);
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	eventSource.start();
+	dispatcher.run();
+
+	// Check termination
+	eventSource.waitForTermination();
+	BOOST_CHECK(expectedTime.empty());
+}
+
+
 /** 
- * TODO: Adds an external event which should be triggered after the next predicted one.
+ * @brief Adds an external event which should be triggered after the next predicted one.
  * @details The predicted event is added to the queue after the external event 
  * was added. Still the predicted one must be scheduled first.
  */
- /** TODO: Triggers a predicted event and checks whether the returned system time is close to the event time. */
+BOOST_FIXTURE_TEST_CASE(test_add_near_predicted_event, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.stopTime=1.4", NULL };
+	appContext.addCommandlineProperties(2, argv);
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(0.4);
+	EventDispatcher dispatcher(appContext, pred);
+	SynchronizedEventSource eventSource(dispatcher.getEventSink());
+
+	dispatcher.addEventListener(this);
+	dispatcher.addEventListener(eventSource);
+
+	// Add generated events
+	expectedTime.push_back(0.4); // Predicted
+	expectedTime.push_back(0.8); // Predicted
+	expectedTime.push_back(1.0); // External
+	expectedTime.push_back(1.4); // Predicted
+
+	eventSource.addAction(0.4, std::chrono::milliseconds(0), 1.0);
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	eventSource.start();
+	dispatcher.run();
+
+	// Check termination
+	eventSource.waitForTermination();
+	BOOST_CHECK(expectedTime.empty());
+}
+
+struct RealTimeMonitor : public EventListener
+{
+	std::shared_ptr<EventSink> sink_; ///< The event sink object reference
+	/// @brief Check the real-time performance
+	virtual void eventTriggered(Event * ev)
+	{
+		BOOST_REQUIRE((bool)sink_);
+		fmiTime now = sink_->getTimeStampNow();
+		BOOST_CHECK_GE(now, ev->getTime() - 0.05);
+		BOOST_CHECK_LE(now, ev->getTime() + 0.05);
+	}
+};
+
+ /** 
+  * @brief Triggers a predicted event and checks whether the returned system 
+	* time is close to the event time. 
+	*/
+BOOST_FIXTURE_TEST_CASE(test_realtime_performance, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.stopTime=1.0", NULL };
+	appContext.addCommandlineProperties(2, argv);
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(0.2);
+	EventDispatcher dispatcher(appContext, pred);
+	RealTimeMonitor monitor;
+
+	dispatcher.addEventListener(this);
+	dispatcher.addEventListener(monitor);
+
+	monitor.sink_ = dispatcher.getEventSink();
+
+	// Add generated events
+	expectedTime.push_back(0.2); // Predicted
+	expectedTime.push_back(0.4); // Predicted
+	expectedTime.push_back(0.6); // Predicted
+	expectedTime.push_back(0.8); // Predicted
+	expectedTime.push_back(1.0); // Predicted
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	dispatcher.run();
+
+	// Check termination
+	BOOST_CHECK(expectedTime.empty());
+}
