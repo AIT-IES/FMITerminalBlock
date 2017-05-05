@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file NetworkManager.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_NETWORK_NETWORK_MANAGER
@@ -13,9 +13,14 @@
 
 #include "base/ApplicationContext.h"
 #include "timing/EventDispatcher.h"
-#include "network\Publisher.h"
+#include "network/Publisher.h"
+#include "network/Subscriber.h"
 
+#include <exception>
+#include <functional>
 #include <list>
+#include <memory>
+#include <mutex>
 
 namespace FMITerminalBlock 
 {
@@ -54,18 +59,118 @@ namespace FMITerminalBlock
 
 			/** @brief Deletes managed resources */
 			~NetworkManager();
+
+			/**
+			 * @brief Checks whether an exception from a network thread is pending
+			 */
+			bool hasPendingException();
+
+			/**
+			 * @brief Throws any pending exception
+			 * @details If no exception was registered by another thread, the 
+			 * function terminates regularly.
+			 */
+			void throwPendingException();
+
 		private:
 
 			/**
-			 * @brief Returns a pointer to an uninitialized publisher instance.
-			 * @details The publisher will be chosen by the given string id. If the id
-			 * is invalid, NULL will be returned.
-			 * @return A reference to the newly created publisher or NULL
+			 * @brief Listens for incoming events and checks the exception status.
+			 * @details If an exception was registered at the associated 
+			 * NetworkManager, it will be re-thrown. Hence, the exception is 
+			 * transferred to the main thread. The class may be removed in later 
+			 * versions leading to a more controlled error handling.
 			 */
-			static Publisher * instantiatePublisher(const std::string &id);
+			class ExceptionBomb : public Timing::EventListener
+			{
+			public:
+				/** @brief Registers the parent instance which will be queried. */
+				ExceptionBomb(NetworkManager &parent);
+				/** @brief Checks for new exceptions */
+				virtual void eventTriggered(Timing::Event *);
+			private:
+				NetworkManager &parent_;
+			};
 
 			/** @brief List which stores a pointer to every managed publisher */
-			std::list<Publisher *> publisher_;
+			std::list<std::shared_ptr<Publisher>> publisher_;
+
+			/** @brief List which stores a pointer to every managed subscriber */
+			std::list<std::shared_ptr<Subscriber>> subscriber_;
+
+			/** 
+			 * @brief Holds an exception issued by another thread
+			 * @details The variable holds a nullptr in case no exception was 
+			 * registered or the exception was already thrown.
+			 */
+			std::exception_ptr pendingException_;
+			/** @brief Synchronizes the external exception variable */
+			std::mutex pendingExceptionMutex_;
+
+			/** @brief Checks the exception status as soon as an event is received */
+			std::shared_ptr<ExceptionBomb> exceptionTester_;
+
+			/**
+			 * @brief Instantiates and initializes the given network entity
+			 * @details The network entity type, i.e. a Publisher or Subscriber, is 
+			 * given in BaseType
+			 * @param destinationList The list to append the newly instantiated 
+			 * entities. Any Entities which are already present, will remain in the 
+			 * list.
+			 * @param channels The configuration structure which is used to create 
+			 * the network entities.
+			 * @param instFct The instantiation function which creates new network 
+			 * entities.
+			 * @param initFct The initialization function which is called on every 
+			 * network entity.
+			 */
+			template<typename BaseType>
+			static void addChannels(
+				std::list<std::shared_ptr<BaseType>> *destinationList, 
+				const Base::ChannelMapping * channels,
+				std::function<std::shared_ptr<BaseType>(const std::string&)> instFct,
+				std::function<void(std::shared_ptr<BaseType>, 
+						const Base::TransmissionChannel&)> initFct);
+
+			/**
+			 * @brief Returns a pointer to an uninitialized publisher instance.
+			 * @details The publisher will be chosen by the given string id. If the 
+			 * id is invalid, a NULL instance will be returned.
+			 * @return A reference to the newly created publisher or NULL
+			 */
+			static std::shared_ptr<Publisher> instantiatePublisher(
+				const std::string &id);
+
+			/**
+			 * @brief Returns a pointer to an uninitialized subscriber instance.
+			 * @details The subscriber will be chosen by the given string id. If the 
+			 * id is invalid, a NULL instance will be returned.
+			 * @return A reference to the newly created publisher or a NULL instance
+			 */
+			static std::shared_ptr<Subscriber> instantiateSubscriber(
+				const std::string &id);
+
+			/**
+			 * @brief Adds all publisher as EventListener instances to the given 
+			 * EventDispatcher.
+			 */
+			void addListeningPublisher(Timing::EventDispatcher &dispatcher);
+
+			/**
+			 * @brief Terminates every registered subscriber instance
+			 * @details Terminated subscriber instances will be removed from the 
+			 * list of subscribers.
+			 */
+			void terminateSubscribers();
+
+			/**
+			 * @brief Handles the exception from another thread.
+			 * @details The function is thread save, i.e. it may be called from 
+			 * another thread.
+			 * @param exec A pointer to the exception which should be passed to the 
+			 * main thread.
+			 */
+			void handleException(std::exception_ptr exc);
 		};
 
 	}
