@@ -20,7 +20,7 @@ PortIDDrawer::PortIDDrawer() : nextPortID_(5, 0)
 
 PortID PortIDDrawer::getNextPortID(FMIType type)
 {
-	assert(((int) type) < nextPortID_.size());
+	assert(((unsigned int) type) < nextPortID_.size());
 	PortID id = std::make_pair(type, nextPortID_[(int) type]);
 	nextPortID_[(int) type] ++;
 	return id;

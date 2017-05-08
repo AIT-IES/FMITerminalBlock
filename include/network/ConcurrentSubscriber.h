@@ -37,6 +37,13 @@ namespace FMITerminalBlock
 			ConcurrentSubscriber();
 
 			/**
+			 * @brief Frees allocated resources.
+			 * @details The function assumes that terminate() is called before 
+			 * whenever initAndStart() returns successfully.
+			 */
+			virtual ~ConcurrentSubscriber();
+
+			/**
 			 * @copydoc Subscriber::initAndStart(const Base::TransmissionChannel, \
 						std::shared_ptr<Timing::EventSink>, \
 						std::function<void(std::exception_ptr)>)
@@ -48,7 +55,7 @@ namespace FMITerminalBlock
 			virtual void initAndStart(
 				const Base::TransmissionChannel &settings,
 				std::shared_ptr<Timing::EventSink> eventSink,
-				std::function<void(std::exception_ptr)> errorCallback) final;
+				std::function<void(std::exception_ptr)> errorCallback);
 
 			/**
 			 * @brief Processes an external termination request
@@ -57,7 +64,7 @@ namespace FMITerminalBlock
 			 * isTerminationRequestPending() returns the correct result. Use 
 			 * terminationRequest() to be notified of pending termination requests.
 			 */
-			virtual void terminate() final;
+			virtual void terminate();
 
 		protected:
 			/**

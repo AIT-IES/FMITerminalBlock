@@ -12,12 +12,25 @@
 
 #include <assert.h>
 
+#include <boost/log/trivial.hpp>
+
 using namespace FMITerminalBlock::Network;
 using namespace FMITerminalBlock;
 
 ConcurrentSubscriber::ConcurrentSubscriber() : subscriptionThread_(), 
 	terminationRequest_(false),	objectMut_()
 {
+}
+
+ConcurrentSubscriber::~ConcurrentSubscriber()
+{
+	if (subscriptionThread_.joinable())
+	{
+		BOOST_LOG_TRIVIAL(warning) << "The ConcurrentSubscriber was not "
+			<< "terminated regularly. Try to shut down the subscription thread "
+			<< "anyway.";
+		subscriptionThread_.join();
+	}
 }
 
 void ConcurrentSubscriber::initAndStart(
