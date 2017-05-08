@@ -72,6 +72,17 @@ namespace FMITerminalBlock
 			 */
 			void throwPendingException();
 
+			/**
+			 * @brief Terminates every registered subscriber instance
+			 * @details Terminated subscriber instances will be removed from the 
+			 * list of subscribers. The function is specified as a public function in
+			 * order to trigger termination errors outside the destructor. If the 
+			 * function is not called, all subscribers will be terminated in the 
+			 * destructor but it is assumed that subscribers do not throw errors on 
+			 * terminations.
+			 */
+			void terminateSubscribers();
+
 		private:
 
 			/**
@@ -155,13 +166,6 @@ namespace FMITerminalBlock
 			 * EventDispatcher.
 			 */
 			void addListeningPublisher(Timing::EventDispatcher &dispatcher);
-
-			/**
-			 * @brief Terminates every registered subscriber instance
-			 * @details Terminated subscriber instances will be removed from the 
-			 * list of subscribers.
-			 */
-			void terminateSubscribers();
 
 			/**
 			 * @brief Handles the exception from another thread.

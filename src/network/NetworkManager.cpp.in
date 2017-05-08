@@ -79,6 +79,29 @@ NetworkManager::throwPendingException()
 	}
 }
 
+void 
+NetworkManager::terminateSubscribers()
+{
+	std::exception_ptr exc;
+	for (auto it = subscriber_.begin(); it != subscriber_.end(); ++it)
+	{
+		try {
+			(*it)->terminate();
+		}	catch (std::exception &ex) {
+			exc = std::current_exception();
+			BOOST_LOG_TRIVIAL(error)
+				<< "Cough an exception while terminating a subscriber: "
+				<< ex.what();
+		}	catch (...) {
+			exc = std::current_exception();
+			BOOST_LOG_TRIVIAL(error) 
+				<< "Cough an exception while terminating a subscriber";
+		}
+	}
+	subscriber_.clear();
+	if ((bool) exc) std::rethrow_exception(exc);
+}
+
 NetworkManager::ExceptionBomb::ExceptionBomb(NetworkManager &parent): 
 	parent_(parent)
 {
@@ -130,7 +153,6 @@ void NetworkManager::addChannels(
 std::shared_ptr<Publisher>
 NetworkManager::instantiatePublisher(const std::string &id)
 {
-
 	@FMITerminalBlock_NetworkManager_PUBLISHER@{
 		return std::shared_ptr<Publisher>();
 	}
@@ -151,29 +173,6 @@ NetworkManager::addListeningPublisher(Timing::EventDispatcher &dispatcher)
 	{
 		dispatcher.addEventListener(itr->get());
 	}
-}
-
-void 
-NetworkManager::terminateSubscribers()
-{
-	std::exception_ptr exc;
-	for (auto it = subscriber_.begin(); it != subscriber_.end(); ++it)
-	{
-		try {
-			(*it)->terminate();
-		}	catch (std::exception &ex) {
-			exc = std::current_exception();
-			BOOST_LOG_TRIVIAL(error)
-				<< "Cough an exception while terminating a subscriber: "
-				<< ex.what();
-		}	catch (...) {
-			exc = std::current_exception();
-			BOOST_LOG_TRIVIAL(error) 
-				<< "Cough an exception while terminating a subscriber";
-		}
-	}
-	subscriber_.clear();
-	if ((bool) exc) std::rethrow_exception(exc);
 }
 
 void 

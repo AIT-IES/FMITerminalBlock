@@ -19,6 +19,7 @@ add_definitions( -DEPS_TIME=${EPS_TIME} )
 add_definitions( -DEPS_VALUE=${EPS_TIME} )
 
 # Include common directories
+include_directories( ${FMITerminalBlockTest_SOURCE_DIR}/include )
 include_directories( ${FMITerminalBlock_SOURCE_DIR} )
 include_directories( ${FMITerminalBlock_SOURCE_DIR}/include )
 include_directories( ${Boost_INCLUDE_DIRS} )
@@ -31,6 +32,25 @@ add_executable( testASN1 src/testASN1.cpp
 	${FMITerminalBlock_TIMING_SOURCE} 
 	${FMITerminalBlock_NETWORK_SOURCE} )
 target_link_libraries( testASN1 PUBLIC ${Boost_LIBRARIES} fmippim )
+
+ResetNetworkManagerConfig()
+AddNetworkManagerSubscriber(
+	"FMITerminalBlockTest::Network::ConcurrentMockupSubscriber"
+	"ConcurrentMockupSubscriber.h")
+AddNetworkManagerPublisher(
+	"FMITerminalBlockTest::Network::MockupPublisher"
+	"MockupPublisher.h")
+
+ConfigureNetworkManager( ${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
+add_executable( testNetworkManager src/testNetworkManager.cpp
+	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ConcurrentMockupSubscriber.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/MockupPublisher.cpp
+	${FMITerminalBlock_BASE_SOURCE} 
+	${FMITerminalBlock_MODEL_SOURCE} 
+	${FMITerminalBlock_TIMING_SOURCE} 
+	${FMITerminalBlock_NETWORK_SOURCE} )
+target_link_libraries( testNetworkManager PUBLIC ${Boost_LIBRARIES} fmippim )
 
 add_executable( testEventPredictor src/testEventPredictor.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 

@@ -19,7 +19,7 @@
 #   The code snipped which contains the include directives
 function( ConfigureNetworkManager outputFile )
 	configure_file(
-		${CMAKE_CURRENT_SOURCE_DIR}/src/network/NetworkManager.cpp.in
+		${FMITerminalBlock_SOURCE_DIR}/src/network/NetworkManager.cpp.in
 		${outputFile} )
 endfunction ()
 
@@ -53,5 +53,16 @@ endfunction ()
 # name         The name including all namesapces
 # includefile  The relative path to the includefile
 function( AddNetworkManagerSubscriber name includefile)
-# TODO: Implement
+	set(FMITerminalBlock_NetworkManager_SUBSCRIBERS 
+	# -------------------->8--------------------------
+	"${FMITerminalBlock_NetworkManager_SUBSCRIBERS} \n\
+	if(id == ${name}::SUBSCRIBER_ID) \n\
+	{ \n\
+		return std::make_shared<${name}>(); \n\
+	}else " 
+	#-------------------------------------------------
+		PARENT_SCOPE)
+	set(FMITerminalBlock_NetworkManager_INCLUDES
+		"${FMITerminalBlock_NetworkManager_INCLUDES}\n\#include \"${includefile}\""
+		PARENT_SCOPE)
 endfunction ()
