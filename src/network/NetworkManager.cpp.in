@@ -9,8 +9,9 @@
  */
 
 #include "network/NetworkManager.h"
-#include "network/CompactASN1UDPPublisher.h"
-#include "network/CompactASN1TCPClientPublisher.h"
+
+@FMITerminalBlock_NetworkManager_INCLUDES@
+
 #include "base/ChannelMapping.h"
 #include "base/BaseExceptions.h"
 #include "base/TransmissionChannel.h"
@@ -130,13 +131,7 @@ std::shared_ptr<Publisher>
 NetworkManager::instantiatePublisher(const std::string &id)
 {
 
-	if(id == CompactASN1UDPPublisher::PUBLISHER_ID)
-	{
-		return std::make_shared<CompactASN1UDPPublisher>();
-	}else if(id == CompactASN1TCPClientPublisher::PUBLISHER_ID)
-	{
-		return std::make_shared<CompactASN1TCPClientPublisher>();
-	}else{
+	@FMITerminalBlock_NetworkManager_PUBLISHER@{
 		return std::shared_ptr<Publisher>();
 	}
 }
@@ -144,7 +139,9 @@ NetworkManager::instantiatePublisher(const std::string &id)
 std::shared_ptr<Subscriber> 
 NetworkManager::instantiateSubscriber(const std::string &id)
 {
-	return std::shared_ptr<Subscriber>();
+	@FMITerminalBlock_NetworkManager_SUBSCRIBERS@{
+		return std::shared_ptr<Subscriber>();
+	}
 }
 
 void

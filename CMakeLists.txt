@@ -8,7 +8,8 @@ cmake_minimum_required( VERSION 2.8.12 )
 project( FMITerminalBlock )
 
 # Include custom functions
-include( CMakeAddSourceFile.txt )
+include( cmake/CMakeAddSourceFile.txt )
+include( cmake/ConfigureNetworkManager.cmake )
 
 # add a target to generate documentation with Doxygen
 # The statements were taken from FMI++
@@ -80,8 +81,12 @@ include_directories( ${FMITerminalBlock_SOURCE_DIR}/include )
 include_directories( ${Boost_INCLUDE_DIRS} )
 include_directories( ${fmipp_PROJECT_DIR} )
 
+# Configure Network Manager
+AddNetworkManagerPublisher("CompactASN1UDPPublisher" "network/CompactASN1UDPPublisher.h")
+AddNetworkManagerPublisher("CompactASN1TCPClientPublisher" "network/CompactASN1TCPClientPublisher.h")
+ConfigureNetworkManager( ${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
+
 # Declare source files per namespace
-add_source_file(NETWORK src/network/NetworkManager.cpp )
 add_source_file(NETWORK src/network/ASN1Commons.cpp )
 add_source_file(NETWORK src/network/CompactASN1Publisher.cpp )
 add_source_file(NETWORK src/network/CompactASN1UDPPublisher.cpp )
@@ -108,7 +113,8 @@ add_executable(FMITerminalBlock src/main.cpp
 	${FMITerminalBlock_BASE_SOURCE} 
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE} )
+	${FMITerminalBlock_NETWORK_SOURCE}
+	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
 
 target_link_libraries(FMITerminalBlock ${Boost_LIBRARIES} fmippim )
 
