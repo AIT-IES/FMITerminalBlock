@@ -11,6 +11,8 @@
 #ifndef _FMITERMINALBLOCK_NETWORK_CONCURRENT_SUBSCRIBER
 #define _FMITERMINALBLOCK_NETWORK_CONCURRENT_SUBSCRIBER
 
+#include "base/environment-helper.h"
+
 #include "Subscriber.h"
 
 #include <thread>

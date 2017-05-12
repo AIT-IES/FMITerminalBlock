@@ -26,12 +26,22 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 include_directories( ${fmipp_INCLUDE_DIRS} )
 
 # Generate test programs
-add_executable( testASN1 src/testASN1.cpp 
+add_executable( testASN1Publisher src/testASN1Publisher.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE} )
-target_link_libraries( testASN1 PUBLIC ${Boost_LIBRARIES} fmippim )
+	${FMITerminalBlock_NETWORK_SOURCE} 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTCPServerTestDataSource.cpp )
+target_link_libraries( testASN1Publisher PUBLIC ${Boost_LIBRARIES} fmippim )
+
+add_executable( testASN1Subscriber src/testASN1Subscriber.cpp 
+	${FMITerminalBlock_BASE_SOURCE} 
+	${FMITerminalBlock_MODEL_SOURCE} 
+	${FMITerminalBlock_TIMING_SOURCE} 
+	${FMITerminalBlock_NETWORK_SOURCE} 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTCPServerTestDataSource.cpp )
+target_link_libraries( testASN1Subscriber PUBLIC ${Boost_LIBRARIES} fmippim )
+
 
 ResetNetworkManagerConfig()
 AddNetworkManagerSubscriber(

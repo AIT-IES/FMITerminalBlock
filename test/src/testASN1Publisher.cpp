@@ -1,10 +1,10 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
- * @file testASN1.cpp
+ * @file testASN1Publisher.cpp
  * @brief Tests the ASN.1 communication facility
  * @details The test suit uses a fixture based model. Each fixture provides a 
  * common initialization and the functionality to open a listening socket and 
@@ -12,10 +12,10 @@
  * protocol dependent fixtures which handle protocol specifics. To process any
  * communication event the ioService's run_once function has to be called at 
  * the right place. 
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
-#define BOOST_TEST_MODULE testASN1
+#define BOOST_TEST_MODULE testASN1Publisher
 
 #include "base/environment-helper.h"
 
