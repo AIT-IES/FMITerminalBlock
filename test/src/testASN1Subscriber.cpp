@@ -27,6 +27,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/test/data/test_case.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <mutex>
 #include <condition_variable>
@@ -178,7 +179,7 @@ public:
 	/** @brief Sets the given address string */
 	void setAddress(const std::string &addr)
 	{
-		config_.add("address", addr);
+		config_.add("addr", addr);
 	}
 
 private:
@@ -279,7 +280,13 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testMinimalConfiguration,
 	subscriber->terminate();
 	dataSource->postTerminateSubscriber();
 
-	BOOST_CHECK_NO_THROW(throwLastException());
+	try {
+		throwLastException();
+	} catch (std::exception &ex) {
+		BOOST_LOG_TRIVIAL(error) << "Cough an exception: " << ex.what();
+		BOOST_CHECK(false);
+	}
+	
 }
 
 /** @brief Applies a missing address field */

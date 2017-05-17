@@ -33,6 +33,15 @@ RawTCPServerTestDataSource::RawTCPServerTestDataSource()
 	ioThread_ = std::thread(&RawTCPServerTestDataSource::runIOService, this);
 }
 
+RawTCPServerTestDataSource::~RawTCPServerTestDataSource()
+{
+	// Stop and join in case the program flow exited prematurely
+	if (!service_.stopped())
+		service_.stop();
+	if (ioThread_.joinable())
+		ioThread_.join();
+}
+
 void RawTCPServerTestDataSource::preInitSubscriber()
 {
 	std::lock_guard<std::mutex> guard(objectMutex_);
@@ -49,7 +58,7 @@ void RawTCPServerTestDataSource::postInitSubscriber()
 	while (!accepted_)
 	{
 		std::cv_status stat;
-		stat = stateChanged_.wait_for(guard, std::chrono::milliseconds(200));
+		stat = stateChanged_.wait_for(guard, std::chrono::milliseconds(500));
 		BOOST_REQUIRE(stat != std::cv_status::timeout);
 	}
 }

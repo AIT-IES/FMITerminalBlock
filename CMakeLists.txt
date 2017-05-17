@@ -94,6 +94,7 @@ add_source_file(NETWORK src/network/CompactASN1TCPClientPublisher.cpp )
 add_source_file(NETWORK src/network/ConcurrentSubscriber.cpp )
 add_source_file(NETWORK src/network/CompactASN1Subscriber.cpp )
 add_source_file(NETWORK src/network/CompactASN1TCPClientSubscriber.cpp )
+add_source_file(NETWORK src/network/PartialEvent.cpp )
 
 add_source_file(BASE src/base/ApplicationContext.cpp )
 add_source_file(BASE src/base/ChannelMapping.cpp )

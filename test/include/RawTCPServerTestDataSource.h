@@ -35,7 +35,7 @@ namespace FMITerminalBlockTest
 			RawTCPServerTestDataSource();
 
 			/** @brief Frees allocated resources */
-			virtual ~RawTCPServerTestDataSource() {}
+			virtual ~RawTCPServerTestDataSource();
 
 			/**
 			 * @copydoc RawTestDataSource::preInitSubscriber()
