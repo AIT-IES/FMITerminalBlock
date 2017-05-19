@@ -18,8 +18,9 @@ using namespace FMITerminalBlock::Network;
 
 PartialEvent::PartialEvent(fmiTime time,
 	const std::vector<Base::PortID> &portTemplate): 
-	Timing::Event(time), portTemplate_(portTemplate), var_(portTemplate.size())
+	Timing::Event(time), portTemplate_(portTemplate), var_()
 {
+	var_.reserve(portTemplate.size());
 }
 
 std::vector<Timing::Event::Variable> PartialEvent::getVariables()
@@ -51,6 +52,8 @@ FMIType PartialEvent::getNextPortType() const
 void PartialEvent::pushNextValue(boost::any value)
 {
 	assert(hasRemainingElements());
+	assert(var_.size() < portTemplate_.size());
+
 	Timing::Event::Variable nextVar;
 	nextVar.first = portTemplate_[nextTemplateIndex_];
 	nextVar.second = value;

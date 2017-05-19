@@ -171,13 +171,22 @@ namespace FMITerminalBlock
 			 * @details The reference may be NULL in case all variables were 
 			 * registered at the event sink.
 			 */
-			PartialEvent *partialData_;
+			PartialEvent *partialData_ = NULL;
 
 			/** @brief All unprocessed data elements */
 			boost::asio::streambuf remainingRawData_;
 
 			/** @brief The IO service which handles all tasks */
 			boost::asio::io_service service_;
+			/** 
+			 * @brief Prevents the service_ object from exiting while no work is to 
+			 * be done
+			 * @details The function is just a safety measure to generalize the usage
+			 * of the class. In case an external event is expected and no tasks are 
+			 * to be done, it prevents the working thread to terminate before the 
+			 * termination function is actually called.
+			 */
+			std::unique_ptr<boost::asio::io_service::work> busyKeeper_;
 
 			/** @brief the timer which handles packet timeouts */
 			std::shared_ptr<boost::asio::deadline_timer> packetTimeoutTimer_;

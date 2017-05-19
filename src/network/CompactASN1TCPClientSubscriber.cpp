@@ -16,6 +16,7 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/system/error_code.hpp>
 
 #include "base/BaseExceptions.h"
 
@@ -38,7 +39,6 @@ void CompactASN1TCPClientSubscriber::initNetwork()
 void CompactASN1TCPClientSubscriber::terminateNetworkConnection()
 {
 	assert(socket_);
-	socket_->cancel();
 	socket_->close();
 }
 
@@ -113,11 +113,15 @@ void CompactASN1TCPClientSubscriber::handleReceive(
 	std::size_t bytesTransferred)
 {
 	commitData(bytesTransferred);
-	if (!socket_->is_open() && !isTerminationRequestPending())
+	if (!isTerminationRequestPending())
 	{
-		syncReconnect();
+		// is_open() does not necessarily reflect the connection status
+		if (!socket_->is_open() || error == boost::asio::error::eof)
+		{
+			syncReconnect();
+		}
+		initiateAsyncReceiving();
 	}
-	initiateAsyncReceiving();
 }
 
 void CompactASN1TCPClientSubscriber::initConfigVariables()

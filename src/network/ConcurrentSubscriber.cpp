@@ -27,9 +27,9 @@ ConcurrentSubscriber::~ConcurrentSubscriber()
 	if (subscriptionThread_.joinable())
 	{
 		BOOST_LOG_TRIVIAL(warning) << "The ConcurrentSubscriber was not "
-			<< "terminated regularly. Try to shut down the subscription thread "
-			<< "anyway.";
-		subscriptionThread_.join();
+			<< "terminated regularly. Try to terminate the subscription thread "
+			<< "again.";
+		terminate();
 	}
 }
 
@@ -69,6 +69,13 @@ void ConcurrentSubscriber::executeRun()
 {
 	try {
 		run();
+	}
+	catch (std::exception &ex)
+	{
+		BOOST_LOG_TRIVIAL(debug) << "ConcurrentSubscriber prematurely terminated"
+			<< " by throwing an exception: " << ex.what() ;
+		std::lock_guard<std::mutex> guard(objectMut_);
+		errorCallback_(std::current_exception());
 	}
 	catch (...)
 	{

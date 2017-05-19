@@ -61,6 +61,10 @@ namespace FMITerminalBlockTest
 		private:
 			/** @brief The basic endpoint which handles asynchronous communication */
 			boost::asio::io_service service_;
+
+			/** @brief Keeps the io_service running while no work is to do */
+			std::unique_ptr<boost::asio::io_service::work> busyKeeper_;
+
 			/** @brief The acceptor which listens for incoming connections */
 			std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
 			/** @brief The socket of the first opened connection. */

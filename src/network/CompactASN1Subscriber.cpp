@@ -19,6 +19,7 @@
 #include <boost/convert/lexical_cast.hpp>
 
 #include "network/ASN1Commons.h"
+#include "base/BaseExceptions.h"
 
 using namespace FMITerminalBlock::Network;
 using namespace FMITerminalBlock;
@@ -34,7 +35,16 @@ void CompactASN1Subscriber::init(const Base::TransmissionChannel &settings,
 {
 	channelConfig_ = &settings;
 	eventSink_ = eventSink;
+
+	if (settings.getPortIDs().size() <= 0)
+	{
+		throw Base::SystemConfigurationException("Compact ASN.1 channel has no"
+			" associated ports");
+	}
+
 	clearUnprocessedData();
+
+	busyKeeper_ = std::make_unique<boost::asio::io_service::work>(service_);
 
 	// Initialize the timer
 	uint32_t packetTimeout;
@@ -76,7 +86,7 @@ CompactASN1Subscriber::prepareData()
 
 void CompactASN1Subscriber::commitData(size_t actualSize)
 {
-	restartPacketTimer();
+	//restartPacketTimer();
 	remainingRawData_.commit(actualSize);
 
 	while (remainingRawData_.size() > 0)
@@ -151,7 +161,8 @@ void CompactASN1Subscriber::pushPartialEvent()
 void CompactASN1Subscriber::handleTermination()
 {
 	assert(packetTimeoutTimer_);
-
+	
+	busyKeeper_.reset();
 	terminateNetworkConnection();
 	packetTimeoutTimer_->cancel();
 	service_.stop();
@@ -219,31 +230,32 @@ CompactASN1Subscriber::readNextVariable(boost::any *dest)
 	switch (tag)
 	{
 	case ASN1Commons::CLASS_APPLICATION | ASN1Commons::LREAL_TAG_NR:
-		readAndConvertVariable<DestinationType, double>(
+		state = readAndConvertVariable<DestinationType, double>(
 			&CompactASN1Subscriber::readXREALVariable<uint64_t, double>, dest);
 		break;
 	case ASN1Commons::CLASS_APPLICATION | ASN1Commons::REAL_TAG_NR:
-		readAndConvertVariable<DestinationType, float>(
+		state = readAndConvertVariable<DestinationType, float>(
 			&CompactASN1Subscriber::readXREALVariable<uint32_t, float>, dest);
 		break;
 	case ASN1Commons::CLASS_APPLICATION | ASN1Commons::STRING_TAG_NR:
-		readAndConvertVariable<DestinationType, std::string>(
+		state = readAndConvertVariable<DestinationType, std::string>(
 			&CompactASN1Subscriber::readSTRINGVariable, dest);
 		break;
 	case ASN1Commons::CLASS_APPLICATION | ASN1Commons::BOOL0_TAG_NR:
-		readAndConvertVariable<DestinationType, fmiBoolean>(
+		state = readAndConvertVariable<DestinationType, fmiBoolean>(
 			&CompactASN1Subscriber::readBOOL0Variable, dest);
 		break;
 	case ASN1Commons::CLASS_APPLICATION | ASN1Commons::BOOL1_TAG_NR:
-		readAndConvertVariable<DestinationType, fmiBoolean>(
+		state = readAndConvertVariable<DestinationType, fmiBoolean>(
 			&CompactASN1Subscriber::readBOOL1Variable, dest);
 		break;
 	case ASN1Commons::CLASS_APPLICATION | ASN1Commons::DINT_TAG_NR:
-		readAndConvertVariable<DestinationType, uint32_t>(
-			&CompactASN1Subscriber::readXINTVariable<uint32_t>, dest);
+		state = readAndConvertVariable<DestinationType, int32_t>(
+			&CompactASN1Subscriber::readXINTVariable<int32_t>, dest);
 		break;
 	default:
 		state.state = InvalidBufferContent;
+		state.missingData = 0;
 		BOOST_LOG_TRIVIAL(warning) << "Unsupported ASN.1 type with tag " << tag;
 	}
 	return state;
@@ -267,6 +279,8 @@ CompactASN1Subscriber::readAndConvertVariable(
 		{
 			*dest = convertedValue.value();
 		} else {
+			BOOST_LOG_TRIVIAL(error) << "Fail to convert received value \""
+				<< value << "\" to the defined model type.";
 			state.state = TypeConversionError;
 		}
 	}
@@ -290,7 +304,7 @@ CompactASN1Subscriber::readXREALVariable(FloatType *dest)
 	}
 	else
 	{
-		remainingRawData_.consume(1); // Assume the tag is correct
+		remainingRawData_.consume(sizeof(uint8_t)); // Assume the tag is correct
 
 		const UIntType *buffer = boost::asio::buffer_cast<const UIntType*>(
 			remainingRawData_.data());
@@ -396,10 +410,12 @@ CompactASN1Subscriber::readXINTVariable(IntType *dest)
 		return status;
 	}
 
+	remainingRawData_.consume(sizeof(uint8_t)); // Consume the tag
+
 	const IntType *dat = buffer_cast<const IntType*>(remainingRawData_.data());
 	*dest = boost::endian::big_to_native<IntType>(*dat);
 
-	remainingRawData_.consume(expectedSize);
+	remainingRawData_.consume(sizeof(IntType)); // Consume the value
 
 	ParsingStatus status = {Ok, 0};
 	return status;
