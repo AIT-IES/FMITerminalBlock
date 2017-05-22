@@ -11,12 +11,13 @@
 #ifndef _FMITERMINALBLOCK_TIMING_VARIABLE
 #define _FMITERMINALBLOCK_TIMING_VARIABLE
 
-#include <common/FMIType.h>
 #include <utility>
+#include <ostream>
 
 #include <boost/any.hpp>
 
 #include <common/fmi_v1.0/fmiModelTypes.h>
+#include <common/FMIType.h>
 
 #include "base/PortID.h"
 
@@ -80,6 +81,35 @@ namespace FMITerminalBlock
 			boost::any getValue() const;
 
 			/**
+			 * @brief Returns the real-typed value of the variable
+			 * @details The function assumes that the variable is valid and holds a
+			 * real value.
+			 */
+			fmiReal getRealValue() const;
+
+			/**
+			 * @brief Returns the integer-typed value of the variable
+			 * @details The function assumes that the variable is valid and holds an
+			 * integer value.
+			 */
+			fmiInteger getIntegerValue() const;
+
+			/**
+			 * @brief Returns the boolean-typed value of the variable
+			 * @details The function assumes that the variable is valid and holds a
+			 * boolean value.
+			 */
+			fmiBoolean getBooleanValue() const;
+
+			/**
+			 * @brief Returns the string-typed value of the variable
+			 * @details The function assumes that the variable is valid and holds a
+			 * string value.
+			 */
+			const std::string getStringValue() const;
+
+
+			/**
 			 * @brief Sets the ID of the variable.
 			 * @details The ID may not correspond to the previously set value. In 
 			 * case the value type does not match the id type, no value must be 
@@ -107,7 +137,24 @@ namespace FMITerminalBlock
 			 * @details Unknown types are usually considered as a major error.
 			 */
 			bool isTypeUnknown() const;
-			//TODO: implement is valid and adapt function in Event
+
+			/**
+			 * @brief Converts the Variable to a human readable string representation
+			 */
+			std::string toString() const;
+
+			/**
+			 * @brief Returns whether the variables are equal
+			 * @details Two variables are considered equal iff both have the same id
+			 * and the same value or both have the same id and are invalid.
+			 */
+			bool operator == (const Variable &other) const;
+
+			/**
+			 * @brief Returns whether both variables have the same content.
+			 * @details It is assumed that both variables are valid.
+			 */
+			bool equalValue(const Variable &other) const;
 
 		private:
 			/** @brief The unique identifier of the variable */
@@ -115,7 +162,16 @@ namespace FMITerminalBlock
 			/** @brief The value which is typed according to the identifier */
 			boost::any data_;
 		};
+
+		/**
+		 * @brief Prints the content of the variable
+		 */
+		// Must be declared in the namespace of the argument! 
+		// -> Otherwise some boost macros cannot resolve it
+		std::ostream& operator<<(std::ostream& stream, 
+			const FMITerminalBlock::Timing::Variable& var);
 	}
 }
+
 
 #endif

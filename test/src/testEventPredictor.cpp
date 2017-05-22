@@ -389,7 +389,7 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
 	vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
 	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 0.5, 0.1);
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 0.5, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -417,7 +417,7 @@ BOOST_FIXTURE_TEST_CASE(test_causality_violation, EventPredictorDxIsKxFixture)
 	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
 	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 2.0, 0.1);
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 2.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 
@@ -435,7 +435,7 @@ BOOST_FIXTURE_TEST_CASE(test_causality_violation, EventPredictorDxIsKxFixture)
 	vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
 	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.0, 0.1);
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -475,7 +475,7 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event, EventPredictorDxIsKxFixtur
 	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
 	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.0, 0.1);
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -504,7 +504,7 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event_taken,
 	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
 	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 2.0, 0.1);
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 2.0, 0.1);
 	pred.eventTriggered(ev);
 
 	// Issue an event at 1.0.
@@ -522,7 +522,7 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event_taken,
 	vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
 	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.0, 0.1);
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }

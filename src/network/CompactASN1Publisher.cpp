@@ -70,19 +70,19 @@ CompactASN1Publisher::encodeASN1OutputVariables(std::vector<uint8_t> &buffer)
 		switch(outputTypes_[i])
 		{
 		case ASN1Commons::DataType::LREAL:
-			encodeLREALValue(buffer, boost::any_cast<fmiReal>(outputVariables_[i].getValue()));
+			encodeLREALValue(buffer,outputVariables_[i].getRealValue());
 			break;
 		case ASN1Commons::DataType::REAL:
-			encodeREALValue(buffer, boost::any_cast<fmiReal>(outputVariables_[i].getValue()));
+			encodeREALValue(buffer, outputVariables_[i].getRealValue());
 			break;
 		case ASN1Commons::DataType::DINT:
-			encodeValue(buffer, boost::any_cast<fmiInteger>(outputVariables_[i].getValue()));
+			encodeValue(buffer, outputVariables_[i].getIntegerValue());
 			break;
 		case ASN1Commons::DataType::BOOL:
-			encodeValue(buffer, boost::any_cast<fmiBoolean>(outputVariables_[i].getValue()));
+			encodeValue(buffer, outputVariables_[i].getBooleanValue());
 			break;
 		case ASN1Commons::DataType::STRING:
-			encodeValue(buffer, boost::any_cast<std::string>(outputVariables_[i].getValue()));
+			encodeValue(buffer, outputVariables_[i].getStringValue());
 			break;
 		default:
 			assert(0);

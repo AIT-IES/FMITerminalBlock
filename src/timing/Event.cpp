@@ -37,35 +37,17 @@ bool Event::isValid(const std::vector<Variable> &values)
 	for(unsigned i = 0; i < values.size(); i++)
 	{
 		const boost::any & val = values[i].getValue();
-		bool ok;
-		switch(values[i].getID().first)
+
+		if (values[i].isTypeUnknown())
 		{
-		case fmiTypeReal:
-			ok = val.type() == typeid(fmiReal);
-			break;
-		case fmiTypeInteger:
-			ok = val.type() == typeid(fmiInteger);
-			break;
-		case fmiTypeBoolean:
-			ok = val.type() == typeid(fmiBoolean);
-			break;
-		case fmiTypeString:
-			ok = val.type() == typeid(std::string);
-			break;
-		case fmiTypeUnknown:
-			ok = false;
-			BOOST_LOG_TRIVIAL(debug) << "Value of unknown type found. (Type=<" 
-				<< (int) values[i].getID().first << ", " << values[i].getID().second << ">, index=" 
-				<< i << ")";
-			break;
-		default:
-			assert(false);
+			BOOST_LOG_TRIVIAL(debug) << "Value of unknown type found." 
+				<< values[i].toString();
 		}
-		if(!ok)
+
+		if(!values[i].isValid())
 		{
-			BOOST_LOG_TRIVIAL(warning) << "Invalid type found. (Type=<" 
-				<< (int) values[i].getID().first << ", " << values[i].getID().second << ">, index=" 
-				<< i << ")";
+			BOOST_LOG_TRIVIAL(warning) << "Invalid type found. " 
+				<< values[i].toString();
 			return false;
 		}
 	}
@@ -76,38 +58,15 @@ std::string
 Event::toString(const std::vector<Variable> &vars)
 {
 	std::string ret("variables={");
-	boost::format var("<t:%1%, id:%2%>=\"%3%\"");
-		for(unsigned i = 0; i < vars.size(); i++)
+	for(unsigned i = 0; i < vars.size(); i++)
+	{
+		ret += vars[i].toString();
+		if(i < (vars.size() - 1))
 		{
-			var.clear();
-			var % (int) vars[i].getID().first;
-			var % (int) vars[i].getID().second;
-		
-			switch(vars[i].getID().first)
-			{
-			case fmiTypeReal:
-				var % boost::any_cast<fmiReal>(vars[i].getValue());
-				break;
-			case fmiTypeInteger:
-				var % boost::any_cast<fmiInteger>(vars[i].getValue());
-				break;
-			case fmiTypeBoolean:
-				var % (boost::any_cast<fmiBoolean>(vars[i].getValue()) == fmiTrue?"true":"false");
-				break;
-			case fmiTypeString:
-				var % boost::any_cast<std::string>(vars[i].getValue());
-				break;
-			default:
-				assert(false);
-			}
-
-			ret += var.str();
-			if(i < (vars.size() - 1))
-			{
-				ret += ", ";
-			}
+			ret += ", ";
 		}
-		ret += "}";
+	}
+	ret += "}";
 
-		return ret;
+	return ret;
 }

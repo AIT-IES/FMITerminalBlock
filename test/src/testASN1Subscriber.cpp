@@ -240,38 +240,6 @@ std::ostream& operator << (std::ostream& stream,	const FMIType& type)
 	return stream;
 }
 
-/** @brief Checks whether the two variables are equal */
-void checkEqual(const Timing::Variable &var1,
-	const Timing::Variable &var2)
-{
-	BOOST_CHECK_EQUAL(var1.getID().first, var2.getID().first);
-	BOOST_CHECK_EQUAL(var1.getID().second, var2.getID().second);
-	try {
-		switch (var1.getID().first)
-		{
-			case fmiTypeReal:
-				BOOST_CHECK_EQUAL(boost::any_cast<fmiReal>(var1.getValue()),
-					boost::any_cast<fmiReal>(var2.getValue()));
-				break;
-			case fmiTypeInteger:
-				BOOST_CHECK_EQUAL(boost::any_cast<fmiInteger>(var1.getValue()),
-					boost::any_cast<fmiInteger>(var2.getValue()));
-				break;
-			case fmiTypeBoolean:
-				BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(var1.getValue()),
-					boost::any_cast<fmiBoolean>(var2.getValue()));
-				break;
-			case fmiTypeString:
-				BOOST_CHECK_EQUAL(boost::any_cast<std::string>(var1.getValue()),
-					boost::any_cast<std::string>(var2.getValue()));
-				break;
-		}
-	} catch (boost::bad_any_cast &ex) {
-		BOOST_LOG_TRIVIAL(error) << "Cannot compare two different types in "
-			<< "boost::any: " << ex.what();
-	}
-}
-
 /** @brief Test minimal configuration instantiation */
 BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testMinimalConfiguration,
 	data::make(SUBSCRIBER_GENERATOR) ^ data::make(RAW_SOURCE_GENERATOR), 
@@ -476,10 +444,8 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testInvalidStringConversion,
 	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 2);
 	BOOST_CHECK_EQUAL(ev->getVariables()[0].getID().first, fmiTypeBoolean);
 	BOOST_CHECK_EQUAL(ev->getVariables()[1].getID().first, fmiTypeBoolean);
-	BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(ev->getVariables()[0].getValue()), 
-		fmiTrue);
-	BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(ev->getVariables()[1].getValue()), 
-		fmiFalse);
+	BOOST_CHECK_EQUAL(ev->getVariables()[0].getBooleanValue(), fmiTrue);
+	BOOST_CHECK_EQUAL(ev->getVariables()[1].getBooleanValue(), fmiFalse);
 	delete ev;
 
 	dataSource->preTerminateSubscriber();
@@ -545,7 +511,6 @@ Timing::Variable SECOND_REFERENCE_VAR[] = {
 	Timing::Variable(Base::PortID(fmiTypeBoolean,0),((fmiBoolean) fmiFalse))
 };
 
-BOOST_TEST_DONT_PRINT_LOG_VALUE(Timing::Variable)
 BOOST_TEST_DONT_PRINT_LOG_VALUE(std::function<std::vector<uint8_t>()>)
 
 /** 
@@ -577,7 +542,7 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testRealPacketSequence,
 	BOOST_REQUIRE(ev != NULL);
 	BOOST_CHECK_EQUAL(ev->getTime(), 0.0);
 	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 1);
-	checkEqual(ev->getVariables()[0], firstRef); // FIXME: Throws bas_anycast on fmiBoolean values!
+	BOOST_CHECK_EQUAL(ev->getVariables()[0], firstRef);
 	delete ev;
 
 	// Second Packet
@@ -587,7 +552,7 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testRealPacketSequence,
 	BOOST_REQUIRE(ev != NULL);
 	BOOST_CHECK_EQUAL(ev->getTime(), 1.0);
 	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 1);
-	checkEqual(ev->getVariables()[0], secondRef);
+	BOOST_CHECK_EQUAL(ev->getVariables()[0], secondRef);
 	delete ev;
 
 	dataSource->preTerminateSubscriber();
@@ -629,11 +594,11 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testComplexPacket,
 	BOOST_REQUIRE(ev != NULL);
 	BOOST_CHECK_EQUAL(ev->getTime(), 0.0);
 	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 3);
-	checkEqual(ev->getVariables()[0], 
+	BOOST_CHECK_EQUAL(ev->getVariables()[0], 
 		Timing::Variable(Base::PortID(fmiTypeReal, 0), ((fmiReal) 0.3f)));
-	checkEqual(ev->getVariables()[1], 
+	BOOST_CHECK_EQUAL(ev->getVariables()[1], 
 		Timing::Variable(Base::PortID(fmiTypeInteger, 1), INT_MAX));
-	checkEqual(ev->getVariables()[2], 
+	BOOST_CHECK_EQUAL(ev->getVariables()[2], 
 		Timing::Variable(Base::PortID(fmiTypeReal, 2), DBL_EPSILON));
 	delete ev;
 
