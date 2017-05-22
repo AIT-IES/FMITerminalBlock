@@ -106,7 +106,7 @@ namespace FMITerminalBlock
 			 * @brief Buffered state of the message's data
 			 * @details The state will be updated by every event variable.
 			 */
-			std::vector<Timing::Event::Variable> outputVariables_;
+			std::vector<Timing::Variable> outputVariables_;
 
 			/**
 			 * @brief Vector of IEC 61499 output types

@@ -52,7 +52,7 @@ public:
 	/** @brief Returns the next event */
 	virtual Timing::Event * predictNext(void)
 	{
-		std::vector<Timing::Event::Variable> vars;
+		std::vector<Timing::Variable> vars;
 		return new Timing::StaticEvent(currentTime_ + eventDistance_, vars);
 	}
 
@@ -81,7 +81,7 @@ class SynchronizedEventSource : public EventListener
 {
 public:
 	/**@brief  A magic variable which indicates an internal event */
-	const Event::Variable MAGIC_VAR;
+	const Variable MAGIC_VAR;
 
 private:
 
@@ -118,7 +118,7 @@ private:
 	void generateEvents()
 	{
 		BOOST_REQUIRE(!actionMutex_.try_lock());
-		std::vector<Event::Variable> vars;
+		std::vector<Variable> vars;
 		vars.push_back(MAGIC_VAR);
 
 		while (!actionList_.empty() &&
@@ -220,7 +220,7 @@ public:
 
 		// Ignore internal events
 		if (ev->getVariables().size() != 1 || 
-			ev->getVariables()[0].first != MAGIC_VAR.first)
+			ev->getVariables()[0].getID() != MAGIC_VAR.getID())
 		{
 			std::unique_lock<std::mutex> lock(actionMutex_);
 			lastExternalEvent_ = ev->getTime();

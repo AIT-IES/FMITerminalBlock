@@ -20,7 +20,7 @@ StaticEvent::StaticEvent(fmiTime time, const std::vector<Variable> &var):
 	assert(Event::isValid(var));
 }
 
-std::vector<Event::Variable> 
+std::vector<Variable> 
 StaticEvent::getVariables()
 {
 	return var_;

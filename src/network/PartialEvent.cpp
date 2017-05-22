@@ -23,7 +23,7 @@ PartialEvent::PartialEvent(fmiTime time,
 	var_.reserve(portTemplate.size());
 }
 
-std::vector<Timing::Event::Variable> PartialEvent::getVariables()
+std::vector<Timing::Variable> PartialEvent::getVariables()
 {
 	return var_;
 }
@@ -54,9 +54,7 @@ void PartialEvent::pushNextValue(boost::any value)
 	assert(hasRemainingElements());
 	assert(var_.size() < portTemplate_.size());
 
-	Timing::Event::Variable nextVar;
-	nextVar.first = portTemplate_[nextTemplateIndex_];
-	nextVar.second = value;
+	Timing::Variable nextVar(portTemplate_[nextTemplateIndex_], value);
 	var_.push_back(nextVar);
 	nextTemplateIndex_++;
 }

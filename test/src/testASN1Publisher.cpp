@@ -258,18 +258,18 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_manual_enc_0, ASN1TCPFixture )
 	config.put("3.encoding", "STRING");
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
+	std::vector<Timing::Variable> vars;
 
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) DBL_EPSILON));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MIN));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiTrue));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("H3llö!")));
 	
@@ -309,17 +309,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_manual_enc_1, ASN1TCPFixture )
 	config.put("3.encoding", "STRING"); // Still default
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -350,30 +350,30 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_0, ASN1TCPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
+	std::vector<Timing::Variable> vars;
 
-	vars.push_back(std::make_pair( 	// dummy
+	vars.push_back(Timing::Variable( 	// dummy
 			std::make_pair(fmiTypeInteger, INT_MAX), 
 			(fmiInteger) 3));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) DBL_EPSILON));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MIN));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiTrue));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("H3llö!")));
-	vars.push_back(std::make_pair( // dummy
+	vars.push_back(Timing::Variable( // dummy
 			std::make_pair(fmiTypeReal, 665), 
 			(fmiReal) 43.0));
-	vars.push_back(std::make_pair( // dummy
+	vars.push_back(Timing::Variable( // dummy
 			std::make_pair(fmiTypeString, INT_MAX), 
 			std::string("Nope")));
-	vars.push_back(std::make_pair( // dummy
+	vars.push_back(Timing::Variable( // dummy
 			std::make_pair(fmiTypeBoolean, INT_MAX), 
 			(fmiBoolean) fmiFalse));
 	
@@ -405,17 +405,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_1, ASN1TCPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -446,17 +446,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_multi_event_0, ASN1TCPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -480,10 +480,10 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_multi_event_0, ASN1TCPFixture )
 	ioService.run_one();
 	
 	vars.clear();
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiTrue));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) DBL_EPSILON));
 
@@ -509,17 +509,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_multi_event_1, ASN1TCPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -543,10 +543,10 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_multi_event_1, ASN1TCPFixture )
 	ioService.run_one();
 	
 	vars.clear();
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("H3llö!")));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MIN));
 
@@ -688,18 +688,18 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_manual_enc_0, ASN1UDPFixture )
 	config.put("3.encoding", "STRING");
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
+	std::vector<Timing::Variable> vars;
 
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) DBL_EPSILON));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MIN));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiTrue));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("H3llö!")));
 	
@@ -737,17 +737,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_manual_enc_1, ASN1UDPFixture )
 	config.put("3.encoding", "STRING"); // Still default
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -776,30 +776,30 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_0, ASN1UDPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
+	std::vector<Timing::Variable> vars;
 
-	vars.push_back(std::make_pair( 	// dummy
+	vars.push_back(Timing::Variable( 	// dummy
 			std::make_pair(fmiTypeInteger, INT_MAX), 
 			(fmiInteger) 3));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) DBL_EPSILON));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MIN));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiTrue));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("H3llö!")));
-	vars.push_back(std::make_pair( // dummy
+	vars.push_back(Timing::Variable( // dummy
 			std::make_pair(fmiTypeReal, 665), 
 			(fmiReal) 43.0));
-	vars.push_back(std::make_pair( // dummy
+	vars.push_back(Timing::Variable( // dummy
 			std::make_pair(fmiTypeString, INT_MAX), 
 			std::string("Nope")));
-	vars.push_back(std::make_pair( // dummy
+	vars.push_back(Timing::Variable( // dummy
 			std::make_pair(fmiTypeBoolean, INT_MAX), 
 			(fmiBoolean) fmiFalse));
 	
@@ -828,17 +828,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_1, ASN1UDPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -867,17 +867,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_multi_event_0, ASN1UDPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -899,10 +899,10 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_multi_event_0, ASN1UDPFixture )
 	ioService.run_one();
 	
 	vars.clear();
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiTrue));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) DBL_EPSILON));
 
@@ -929,17 +929,17 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_multi_event_1, ASN1UDPFixture )
 {
 
 	// Set-up event values
-	std::vector<Timing::Event::Variable> vars;
-	vars.push_back(std::make_pair(
+	std::vector<Timing::Variable> vars;
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeReal, 666), 
 			(fmiReal) 0.3 ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MAX ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeBoolean, 0), 
 			(fmiBoolean) fmiFalse ));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("") ));
 
@@ -961,10 +961,10 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_multi_event_1, ASN1UDPFixture )
 	ioService.run_one();
 	
 	vars.clear();
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeString, 0), 
 			std::string("H3llö!")));
-	vars.push_back(std::make_pair(
+	vars.push_back(Timing::Variable(
 			std::make_pair(fmiTypeInteger, 0), 
 			(fmiInteger) INT_MIN));
 

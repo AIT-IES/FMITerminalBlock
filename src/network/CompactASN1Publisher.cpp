@@ -45,15 +45,15 @@ CompactASN1Publisher::eventTriggered(Timing::Event * ev)
 {
 	assert(ev != NULL);
 	
-	std::vector<Timing::Event::Variable> & vars = ev->getVariables();
+	std::vector<Timing::Variable> & vars = ev->getVariables();
 	for(unsigned i = 0; i < vars.size(); i++)
 	{
 		for(unsigned j = 0; j < outputVariables_.size(); j++)
 		{
-			if(vars[i].first == outputVariables_[j].first)
+			if(vars[i].getID() == outputVariables_[j].getID())
 			{
 				// Update
-				outputVariables_[j].second = vars[i].second;
+				outputVariables_[j].setValue(vars[i].getValue());
 			}
 		}
 	}
@@ -70,19 +70,19 @@ CompactASN1Publisher::encodeASN1OutputVariables(std::vector<uint8_t> &buffer)
 		switch(outputTypes_[i])
 		{
 		case ASN1Commons::DataType::LREAL:
-			encodeLREALValue(buffer, boost::any_cast<fmiReal>(outputVariables_[i].second));
+			encodeLREALValue(buffer, boost::any_cast<fmiReal>(outputVariables_[i].getValue()));
 			break;
 		case ASN1Commons::DataType::REAL:
-			encodeREALValue(buffer, boost::any_cast<fmiReal>(outputVariables_[i].second));
+			encodeREALValue(buffer, boost::any_cast<fmiReal>(outputVariables_[i].getValue()));
 			break;
 		case ASN1Commons::DataType::DINT:
-			encodeValue(buffer, boost::any_cast<fmiInteger>(outputVariables_[i].second));
+			encodeValue(buffer, boost::any_cast<fmiInteger>(outputVariables_[i].getValue()));
 			break;
 		case ASN1Commons::DataType::BOOL:
-			encodeValue(buffer, boost::any_cast<fmiBoolean>(outputVariables_[i].second));
+			encodeValue(buffer, boost::any_cast<fmiBoolean>(outputVariables_[i].getValue()));
 			break;
 		case ASN1Commons::DataType::STRING:
-			encodeValue(buffer, boost::any_cast<std::string>(outputVariables_[i].second));
+			encodeValue(buffer, boost::any_cast<std::string>(outputVariables_[i].getValue()));
 			break;
 		default:
 			assert(0);
@@ -116,21 +116,20 @@ CompactASN1Publisher::initOutputVariables(
 
 	for(unsigned i = 0; i < ports.size(); i++)
 	{
-		Timing::Event::Variable var;
-		var.first = ports[i];
-		switch(var.first.first)
+		Timing::Variable var(ports[i]);
+		switch(var.getID().first)
 		{
 		case fmiTypeReal:
-			var.second = (fmiReal) 0.0;
+			var.setValue((fmiReal) 0.0);
 			break;
 		case fmiTypeInteger:
-			var.second = (fmiInteger) 0;
+			var.setValue((fmiInteger) 0);
 			break;
 		case fmiTypeBoolean:
-			var.second = (fmiBoolean) fmiFalse;
+			var.setValue((fmiBoolean) fmiFalse);
 			break;
 		case fmiTypeString:
-			var.second = std::string();
+			var.setValue(std::string());
 			break;
 		default:
 			assert(false);

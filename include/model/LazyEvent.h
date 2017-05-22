@@ -50,7 +50,7 @@ namespace FMITerminalBlock
 			 * variables, the model might not be able to reset the event.
 			 * @return The vector of changed or relevant variables
 			 */
-			virtual std::vector<Variable> getVariables(void);
+			virtual std::vector<Timing::Variable> getVariables(void);
 
 			/**
 			 * @brief Returns the object's readable string representation

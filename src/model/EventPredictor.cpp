@@ -183,7 +183,7 @@ EventPredictor::eventTriggered(Timing::Event * ev)
 	}
 }
 
-std::vector<Timing::Event::Variable> &
+std::vector<Timing::Variable> &
 EventPredictor::getOutputVariables(fmiTime time)
 {
 	assert(time >= 0.0);
@@ -322,19 +322,19 @@ EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIType type)
 }
 
 void 
-EventPredictor::fetchOutputs(std::vector<Timing::Event::Variable> &values, fmiTime time)
+EventPredictor::fetchOutputs(std::vector<Timing::Variable> &values, fmiTime time)
 {
 	assert(solver_ != NULL);
 	assert(outputIDs_.size() >= 5);
 
-	Timing::Event::Variable element;
+	Timing::Variable element;
 
 	const fmiReal * real = solver_->getRealOutputs();
 	assert(outputIDs_[(int) fmiTypeReal].size() == 0 || real != NULL);
 	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeReal].size(); i++)
 	{
-		element.first = outputIDs_[(int)fmiTypeReal][i];
-		element.second = real[i];
+		element.setID(outputIDs_[(int)fmiTypeReal][i]);
+		element.setValue(real[i]);
 		values.push_back(element);
 	}
 
@@ -342,8 +342,8 @@ EventPredictor::fetchOutputs(std::vector<Timing::Event::Variable> &values, fmiTi
 	assert(outputIDs_[(int) fmiTypeInteger].size() == 0 || integer != NULL);
 	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeInteger].size(); i++)
 	{
-		element.first = outputIDs_[(int)fmiTypeInteger][i];
-		element.second = integer[i];
+		element.setID(outputIDs_[(int)fmiTypeInteger][i]);
+		element.setValue(integer[i]);
 		values.push_back(element);
 	}
 
@@ -351,8 +351,8 @@ EventPredictor::fetchOutputs(std::vector<Timing::Event::Variable> &values, fmiTi
 	assert(outputIDs_[(int) fmiTypeBoolean].size() == 0 || boolean != NULL);
 	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeBoolean].size(); i++)
 	{
-		element.first = outputIDs_[(int)fmiTypeBoolean][i];
-		element.second = boolean[i];
+		element.setID(outputIDs_[(int)fmiTypeBoolean][i]);
+		element.setValue(boolean[i]);
 		values.push_back(element);
 	}
 	
@@ -360,8 +360,8 @@ EventPredictor::fetchOutputs(std::vector<Timing::Event::Variable> &values, fmiTi
 	assert(outputIDs_[(int) fmiTypeString].size() == 0 || str != NULL);
 	for(unsigned i = 0; i < outputIDs_[(int) fmiTypeString].size(); i++)
 	{
-		element.first = outputIDs_[(int)fmiTypeString][i];
-		element.second = str[i];
+		element.setID(outputIDs_[(int)fmiTypeString][i]);
+		element.setValue(str[i]);
 		values.push_back(element);
 	}
 
@@ -425,17 +425,17 @@ bool EventPredictor::updateInputImage(std::vector<InputType> *destinationImage,
 	assert(ev != NULL);
 	assert(((unsigned int) type) < inputIDs_.size());
 
-	std::vector<Timing::Event::Variable> &vars = ev->getVariables();
+	std::vector<Timing::Variable> &vars = ev->getVariables();
 	std::vector<Base::PortID> &ports = inputIDs_[type];
 	bool found = false;
 	for (auto varIt = vars.begin(); varIt != vars.end(); ++varIt)
 	{
 		for (unsigned int i = 0; i < ports.size(); i++)
 		{
-			if (varIt->first == ports[i])
+			if (varIt->getID() == ports[i])
 			{
 				found = true;
-				(*destinationImage)[i] = boost::any_cast<InputType>(varIt->second);
+				(*destinationImage)[i] = boost::any_cast<InputType>(varIt->getValue());
 			}
 		}
 	}

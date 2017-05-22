@@ -105,6 +105,7 @@ add_source_file(MODEL src/model/EventPredictor.cpp )
 add_source_file(MODEL src/model/LazyEvent.cpp )
 add_source_file(MODEL src/model/PredictingFMU.cpp )
 
+add_source_file(TIMING src/timing/Variable.cpp )
 add_source_file(TIMING src/timing/Event.cpp )
 add_source_file(TIMING src/timing/StaticEvent.cpp )
 add_source_file(TIMING src/timing/EventDispatcher.cpp )

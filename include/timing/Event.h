@@ -11,13 +11,13 @@
 #ifndef _FMITERMINALBLOCK_TIMING_EVENT
 #define _FMITERMINALBLOCK_TIMING_EVENT
 
-#include "base/PortID.h"
-
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <boost/any.hpp>
 #include <vector>
 #include <utility>
 
+#include "base/PortID.h"
+#include "timing/Variable.h"
 
 namespace FMITerminalBlock 
 {
@@ -34,13 +34,6 @@ namespace FMITerminalBlock
 		class Event
 		{
 		public:
-
-			/** 
-			 * @brief Defines a variable which may be changed during the event
-			 * @details The first parameter identifies the variable and the second 
-			 * parameter stores its value
-			 */
-			typedef std::pair<Base::PortID, boost::any> Variable;
 
 			/**
 			 * @brief C'tor initializing an empty event with the given time-stamp

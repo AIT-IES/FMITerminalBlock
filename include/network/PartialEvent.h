@@ -50,7 +50,7 @@ namespace FMITerminalBlock
 			/**
 			 * @copydoc FMITerminalBlock::Timing::Event::getVariables()
 			 */
-			virtual std::vector<Variable> getVariables(void);
+			virtual std::vector<Timing::Variable> getVariables(void);
 
 			/**
 			 * @copydoc FMITerminalBlock::Timing::Event::toString()
@@ -82,7 +82,7 @@ namespace FMITerminalBlock
 
 		private:
 			/** @brief The list of registered variables */
-			std::vector<Variable> var_;
+			std::vector<Timing::Variable> var_;
 
 			/** @brief The full list of expected PortIDs */
 			const std::vector<Base::PortID> &portTemplate_;

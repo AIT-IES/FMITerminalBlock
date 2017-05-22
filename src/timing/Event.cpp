@@ -32,13 +32,13 @@ Event::toString(void) const
 	return ret;
 }
 
-bool Event::isValid(const std::vector<Event::Variable> &values)
+bool Event::isValid(const std::vector<Variable> &values)
 {
 	for(unsigned i = 0; i < values.size(); i++)
 	{
-		const boost::any & val = values[i].second;
+		const boost::any & val = values[i].getValue();
 		bool ok;
-		switch(values[i].first.first)
+		switch(values[i].getID().first)
 		{
 		case fmiTypeReal:
 			ok = val.type() == typeid(fmiReal);
@@ -55,7 +55,7 @@ bool Event::isValid(const std::vector<Event::Variable> &values)
 		case fmiTypeUnknown:
 			ok = false;
 			BOOST_LOG_TRIVIAL(debug) << "Value of unknown type found. (Type=<" 
-				<< (int) values[i].first.first << ", " << values[i].first.second << ">, index=" 
+				<< (int) values[i].getID().first << ", " << values[i].getID().second << ">, index=" 
 				<< i << ")";
 			break;
 		default:
@@ -64,7 +64,7 @@ bool Event::isValid(const std::vector<Event::Variable> &values)
 		if(!ok)
 		{
 			BOOST_LOG_TRIVIAL(warning) << "Invalid type found. (Type=<" 
-				<< (int) values[i].first.first << ", " << values[i].first.second << ">, index=" 
+				<< (int) values[i].getID().first << ", " << values[i].getID().second << ">, index=" 
 				<< i << ")";
 			return false;
 		}
@@ -73,29 +73,29 @@ bool Event::isValid(const std::vector<Event::Variable> &values)
 }
 
 std::string 
-Event::toString(const std::vector<Event::Variable> &vars)
+Event::toString(const std::vector<Variable> &vars)
 {
 	std::string ret("variables={");
 	boost::format var("<t:%1%, id:%2%>=\"%3%\"");
 		for(unsigned i = 0; i < vars.size(); i++)
 		{
 			var.clear();
-			var % (int) vars[i].first.first;
-			var % (int) vars[i].first.second;
+			var % (int) vars[i].getID().first;
+			var % (int) vars[i].getID().second;
 		
-			switch(vars[i].first.first)
+			switch(vars[i].getID().first)
 			{
 			case fmiTypeReal:
-				var % boost::any_cast<fmiReal>(vars[i].second);
+				var % boost::any_cast<fmiReal>(vars[i].getValue());
 				break;
 			case fmiTypeInteger:
-				var % boost::any_cast<fmiInteger>(vars[i].second);
+				var % boost::any_cast<fmiInteger>(vars[i].getValue());
 				break;
 			case fmiTypeBoolean:
-				var % (boost::any_cast<fmiBoolean>(vars[i].second) == fmiTrue?"true":"false");
+				var % (boost::any_cast<fmiBoolean>(vars[i].getValue()) == fmiTrue?"true":"false");
 				break;
 			case fmiTypeString:
-				var % boost::any_cast<std::string>(vars[i].second);
+				var % boost::any_cast<std::string>(vars[i].getValue());
 				break;
 			default:
 				assert(false);

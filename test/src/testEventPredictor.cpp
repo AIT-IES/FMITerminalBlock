@@ -198,11 +198,11 @@ BOOST_FIXTURE_TEST_CASE(test_fmireal_events, EventPredictorZigzagFixture)
 	BOOST_CHECK_CLOSE(ev->getTime(), 1.0, 1.0);
 
 	// Use result: Afterwards no reset is possible
-	std::vector<Timing::Event::Variable> vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_CHECK_EQUAL(vars.size(), 1);
-	BOOST_CHECK_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_EQUAL(vars[0].first.second, 0);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 1.0, 1.0);
+	BOOST_CHECK_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_EQUAL(vars[0].getID().second, 0);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.0, 1.0);
 	delete ev;
 
 	// Predict end of horizon event
@@ -214,9 +214,9 @@ BOOST_FIXTURE_TEST_CASE(test_fmireal_events, EventPredictorZigzagFixture)
 	// Use result: Afterwards no reset is possible
 	vars = ev->getVariables();
 	BOOST_CHECK_EQUAL(vars.size(), 1);
-	BOOST_CHECK_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_EQUAL(vars[0].first.second, 0);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), -0.1, 1.0);
+	BOOST_CHECK_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_EQUAL(vars[0].getID().second, 0);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), -0.1, 1.0);
 	delete ev;
 
 	// Predict FMU event
@@ -228,9 +228,9 @@ BOOST_FIXTURE_TEST_CASE(test_fmireal_events, EventPredictorZigzagFixture)
 	// Use result: Afterwards no reset is possible
 	vars = ev->getVariables();
 	BOOST_CHECK_EQUAL(vars.size(), 1);
-	BOOST_CHECK_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_EQUAL(vars[0].first.second, 0);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), -1.0, 1.0);
+	BOOST_CHECK_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_EQUAL(vars[0].getID().second, 0);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), -1.0, 1.0);
 	delete ev;
 
 }
@@ -257,10 +257,10 @@ BOOST_FIXTURE_TEST_CASE(test_pure_output_events, EventPredictorDxIsKxFixture)
 	BOOST_CHECK_CLOSE(ev->getTime(), 1.0, 0.001);
 	
 	// Use result: Afterwards no reset is possible
-	std::vector<Timing::Event::Variable> vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 2.0, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 2.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 
@@ -271,8 +271,8 @@ BOOST_FIXTURE_TEST_CASE(test_pure_output_events, EventPredictorDxIsKxFixture)
 	// Use result: Afterwards no reset is possible
 	vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 3.0, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 3.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -299,8 +299,8 @@ BOOST_FIXTURE_TEST_CASE(test_multiple_input_events, EventPredictorDxIsKxFixture)
 	delete ev;
 
 	// Issue an event at 0.3 (x=1.3)
-	std::vector<Timing::Event::Variable> inVar;
-	inVar.push_back(Timing::Event::Variable(
+	std::vector<Timing::Variable> inVar;
+	inVar.push_back(Timing::Variable(
 		appContext.getInputChannelMapping()->getVariableIDs(fmiTypeReal)[0],
 		-1.0));
 	Timing::StaticEvent ev1(0.3, inVar);
@@ -312,7 +312,7 @@ BOOST_FIXTURE_TEST_CASE(test_multiple_input_events, EventPredictorDxIsKxFixture)
 	delete ev;
 
 	// Issue an event at 0.8 (x=0.8)
-	inVar[0].second = 1.0;
+	inVar[0].setValue(1.0);
 	Timing::StaticEvent ev2(0.8, inVar);
 	pred.eventTriggered(&ev2);
 
@@ -321,10 +321,10 @@ BOOST_FIXTURE_TEST_CASE(test_multiple_input_events, EventPredictorDxIsKxFixture)
 	BOOST_CHECK_CLOSE(ev->getTime(), 1.8, 0.001);
 
 	// Use result: Afterwards no reset is possible
-	std::vector<Timing::Event::Variable> vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 1.8, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.8, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -353,8 +353,8 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
 	delete ev;
 
 	// Issue an event at 0.0 (x=0.0)
-	std::vector<Timing::Event::Variable> inVar;
-	inVar.push_back(Timing::Event::Variable(
+	std::vector<Timing::Variable> inVar;
+	inVar.push_back(Timing::Variable(
 		appContext.getInputChannelMapping()->getVariableIDs(fmiTypeReal)[0],
 		-1.0));
 	Timing::StaticEvent ev1(0.0, inVar);
@@ -363,11 +363,11 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
 	// Predict  and take FMU event
 	ev = pred.predictNext();
 	BOOST_CHECK_CLOSE(ev->getTime(), 1.0, 0.001);
-	std::vector<Timing::Event::Variable> vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
 	// "+1.0" is used to reduce numerical errors
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second) + 1.0, 0.0 + 1.0, 0.1);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()) + 1.0, 0.0 + 1.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 
@@ -377,7 +377,7 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
 	delete ev;
 
 	// Issue an event at 1.5 (x=-0.5)
-	inVar[0].second = 1.0;
+	inVar[0].setValue(1.0);
 	Timing::StaticEvent ev2(1.5, inVar);
 	pred.eventTriggered(&ev2);
 
@@ -388,8 +388,8 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
 	// Use result: Afterwards no reset is possible
 	vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 0.5, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 0.5, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -414,16 +414,16 @@ BOOST_FIXTURE_TEST_CASE(test_causality_violation, EventPredictorDxIsKxFixture)
 	// Predict and take FMU event
 	Timing::Event * ev = pred.predictNext();
 	BOOST_CHECK_CLOSE(ev->getTime(), 1.0, 0.001);
-	std::vector<Timing::Event::Variable> vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 2.0, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 2.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 
 	// Issue an event at 0.8. The event must be re-timed to 1.0
-	std::vector<Timing::Event::Variable> inVar;
-	inVar.push_back(Timing::Event::Variable(
+	std::vector<Timing::Variable> inVar;
+	inVar.push_back(Timing::Variable(
 		appContext.getInputChannelMapping()->getVariableIDs(fmiTypeReal)[0],
 		-1.0));
 	Timing::StaticEvent ev1(0.8, inVar);
@@ -434,8 +434,8 @@ BOOST_FIXTURE_TEST_CASE(test_causality_violation, EventPredictorDxIsKxFixture)
 	BOOST_CHECK_CLOSE(ev->getTime(), 2.0, 0.001);
 	vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 1.0, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -461,8 +461,8 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event, EventPredictorDxIsKxFixtur
 	BOOST_CHECK_CLOSE(ev->getTime(), 1.0, 0.001);
 
 	// Issue an event at 1.0.
-	std::vector<Timing::Event::Variable> inVar;
-	inVar.push_back(Timing::Event::Variable(
+	std::vector<Timing::Variable> inVar;
+	inVar.push_back(Timing::Variable(
 		appContext.getInputChannelMapping()->getVariableIDs(fmiTypeReal)[0],
 		-1.0));
 	Timing::StaticEvent ev1(ev->getTime(), inVar);
@@ -472,10 +472,10 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event, EventPredictorDxIsKxFixtur
 	// Predict FMU event
 	ev = pred.predictNext();
 	BOOST_CHECK_CLOSE(ev->getTime(), 2.0, 0.001);
-	std::vector<Timing::Event::Variable> vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 1.0, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }
@@ -501,15 +501,15 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event_taken,
 	// Predict and take FMU event
 	Timing::Event * ev = pred.predictNext();
 	BOOST_CHECK_CLOSE(ev->getTime(), 1.0, 0.001);
-	std::vector<Timing::Event::Variable> vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 2.0, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 2.0, 0.1);
 	pred.eventTriggered(ev);
 
 	// Issue an event at 1.0.
-	std::vector<Timing::Event::Variable> inVar;
-	inVar.push_back(Timing::Event::Variable(
+	std::vector<Timing::Variable> inVar;
+	inVar.push_back(Timing::Variable(
 		appContext.getInputChannelMapping()->getVariableIDs(fmiTypeReal)[0],
 		-1.0));
 	Timing::StaticEvent ev1(ev->getTime(), inVar);
@@ -521,8 +521,8 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event_taken,
 	BOOST_CHECK_CLOSE(ev->getTime(), 2.0, 0.001);
 	vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 1);
-	BOOST_REQUIRE_EQUAL(vars[0].first.first, fmiTypeReal);
-	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].second), 1.0, 0.1);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal);
+	BOOST_CHECK_CLOSE(boost::any_cast<fmiReal>(vars[0].getValue()), 1.0, 0.1);
 	pred.eventTriggered(ev);
 	delete ev;
 }

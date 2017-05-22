@@ -241,29 +241,29 @@ std::ostream& operator << (std::ostream& stream,	const FMIType& type)
 }
 
 /** @brief Checks whether the two variables are equal */
-void checkEqual(const Timing::Event::Variable &var1,
-	const Timing::Event::Variable &var2)
+void checkEqual(const Timing::Variable &var1,
+	const Timing::Variable &var2)
 {
-	BOOST_CHECK_EQUAL(var1.first.first, var2.first.first);
-	BOOST_CHECK_EQUAL(var1.first.second, var2.first.second);
+	BOOST_CHECK_EQUAL(var1.getID().first, var2.getID().first);
+	BOOST_CHECK_EQUAL(var1.getID().second, var2.getID().second);
 	try {
-		switch (var1.first.first)
+		switch (var1.getID().first)
 		{
 			case fmiTypeReal:
-				BOOST_CHECK_EQUAL(boost::any_cast<fmiReal>(var1.second),
-					boost::any_cast<fmiReal>(var2.second));
+				BOOST_CHECK_EQUAL(boost::any_cast<fmiReal>(var1.getValue()),
+					boost::any_cast<fmiReal>(var2.getValue()));
 				break;
 			case fmiTypeInteger:
-				BOOST_CHECK_EQUAL(boost::any_cast<fmiInteger>(var1.second),
-					boost::any_cast<fmiInteger>(var2.second));
+				BOOST_CHECK_EQUAL(boost::any_cast<fmiInteger>(var1.getValue()),
+					boost::any_cast<fmiInteger>(var2.getValue()));
 				break;
 			case fmiTypeBoolean:
-				BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(var1.second),
-					boost::any_cast<fmiBoolean>(var2.second));
+				BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(var1.getValue()),
+					boost::any_cast<fmiBoolean>(var2.getValue()));
 				break;
 			case fmiTypeString:
-				BOOST_CHECK_EQUAL(boost::any_cast<std::string>(var1.second),
-					boost::any_cast<std::string>(var2.second));
+				BOOST_CHECK_EQUAL(boost::any_cast<std::string>(var1.getValue()),
+					boost::any_cast<std::string>(var2.getValue()));
 				break;
 		}
 	} catch (boost::bad_any_cast &ex) {
@@ -474,11 +474,11 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testInvalidStringConversion,
 
 	BOOST_CHECK_EQUAL(ev->getTime(), 0.0);
 	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 2);
-	BOOST_CHECK_EQUAL(ev->getVariables()[0].first.first, fmiTypeBoolean);
-	BOOST_CHECK_EQUAL(ev->getVariables()[1].first.first, fmiTypeBoolean);
-	BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(ev->getVariables()[0].second), 
+	BOOST_CHECK_EQUAL(ev->getVariables()[0].getID().first, fmiTypeBoolean);
+	BOOST_CHECK_EQUAL(ev->getVariables()[1].getID().first, fmiTypeBoolean);
+	BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(ev->getVariables()[0].getValue()), 
 		fmiTrue);
-	BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(ev->getVariables()[1].second), 
+	BOOST_CHECK_EQUAL(boost::any_cast<fmiBoolean>(ev->getVariables()[1].getValue()), 
 		fmiFalse);
 	delete ev;
 
@@ -531,21 +531,21 @@ const std::function<std::vector<uint8_t>()> SECOND_RAW_DATA_PACKET[] = {
 	}
 };
 
-Timing::Event::Variable FIRST_REFERENCE_VAR[] = {
-	Timing::Event::Variable(Base::PortID(fmiTypeReal,0), ((double) 0.3f)),
-	Timing::Event::Variable(Base::PortID(fmiTypeInteger,0),INT_MIN),
+Timing::Variable FIRST_REFERENCE_VAR[] = {
+	Timing::Variable(Base::PortID(fmiTypeReal,0), ((double) 0.3f)),
+	Timing::Variable(Base::PortID(fmiTypeInteger,0),INT_MIN),
 	// Must be converted to fmiBoolean, otherwise int and bad anycast!!
-	Timing::Event::Variable(Base::PortID(fmiTypeBoolean,0),((fmiBoolean) fmiTrue))
+	Timing::Variable(Base::PortID(fmiTypeBoolean,0),((fmiBoolean) fmiTrue))
 };
 
-Timing::Event::Variable SECOND_REFERENCE_VAR[] = {
-	Timing::Event::Variable(Base::PortID(fmiTypeReal,0),DBL_EPSILON),
-	Timing::Event::Variable(Base::PortID(fmiTypeInteger,0),INT_MAX),
+Timing::Variable SECOND_REFERENCE_VAR[] = {
+	Timing::Variable(Base::PortID(fmiTypeReal,0),DBL_EPSILON),
+	Timing::Variable(Base::PortID(fmiTypeInteger,0),INT_MAX),
 	// Must be converted to fmiBoolean, otherwise int and bad anycast!!
-	Timing::Event::Variable(Base::PortID(fmiTypeBoolean,0),((fmiBoolean) fmiFalse))
+	Timing::Variable(Base::PortID(fmiTypeBoolean,0),((fmiBoolean) fmiFalse))
 };
 
-BOOST_TEST_DONT_PRINT_LOG_VALUE(Timing::Event::Variable)
+BOOST_TEST_DONT_PRINT_LOG_VALUE(Timing::Variable)
 BOOST_TEST_DONT_PRINT_LOG_VALUE(std::function<std::vector<uint8_t>()>)
 
 /** 
@@ -562,7 +562,7 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testRealPacketSequence,
 	std::shared_ptr<Subscriber> subscriber = subscriberFactory();
 	std::shared_ptr<RawTestDataSource> dataSource = sourceFactory();
 
-	addPortConfig(firstRef.first.first);
+	addPortConfig(firstRef.getID().first);
 	setValidAddressConfig();
 
 	dataSource->preInitSubscriber();
@@ -630,11 +630,11 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testComplexPacket,
 	BOOST_CHECK_EQUAL(ev->getTime(), 0.0);
 	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 3);
 	checkEqual(ev->getVariables()[0], 
-		Timing::Event::Variable(Base::PortID(fmiTypeReal, 0), ((fmiReal) 0.3f)));
+		Timing::Variable(Base::PortID(fmiTypeReal, 0), ((fmiReal) 0.3f)));
 	checkEqual(ev->getVariables()[1], 
-		Timing::Event::Variable(Base::PortID(fmiTypeInteger, 1), INT_MAX));
+		Timing::Variable(Base::PortID(fmiTypeInteger, 1), INT_MAX));
 	checkEqual(ev->getVariables()[2], 
-		Timing::Event::Variable(Base::PortID(fmiTypeReal, 2), DBL_EPSILON));
+		Timing::Variable(Base::PortID(fmiTypeReal, 2), DBL_EPSILON));
 	delete ev;
 
 	dataSource->preTerminateSubscriber();

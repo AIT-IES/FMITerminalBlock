@@ -19,7 +19,7 @@ LazyEvent::LazyEvent(fmiTime time, EventPredictor &predictor):
 {
 }
 
-std::vector<LazyEvent::Variable> 
+std::vector<Timing::Variable> 
 LazyEvent::getVariables(void)
 {
 	assert(predictor_.solver_ != NULL);
@@ -28,7 +28,7 @@ LazyEvent::getVariables(void)
 	{
 		throw Base::SolverException("The event is outdated", getTime());
 	}
-	std::vector<LazyEvent::Variable> & vars = predictor_.getOutputVariables(getTime());
+	std::vector<Timing::Variable> & vars = predictor_.getOutputVariables(getTime());
 	assert(isValid(vars));
 	return vars;
 }
@@ -46,7 +46,7 @@ LazyEvent::toString(void) const
 	}else if(!predictor_.outputEventVariablesPopulated_){
 		ret += "Event variables were not queried before";
 	}else{ // Directly fetch variables
-		const std::vector<Event::Variable> & vars = predictor_.outputEventVariables_;
+		const std::vector<Timing::Variable> & vars = predictor_.outputEventVariables_;
 		ret += Event::toString(vars);
 	}
 

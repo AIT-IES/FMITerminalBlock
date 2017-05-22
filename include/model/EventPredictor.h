@@ -183,7 +183,7 @@ namespace FMITerminalBlock
 			 * @details If the vector is empty, current output variables havn't been 
 			 * queried.
 			 */
-			std::vector<Timing::Event::Variable> outputEventVariables_;
+			std::vector<Timing::Variable> outputEventVariables_;
 			/** 
 			 * @brief Flag which indicates that the outputEventVariables_ vector is
 			 * populated
@@ -253,7 +253,7 @@ namespace FMITerminalBlock
 			 * @param time The output event's time
 			 * @return A reference to the output variable's state
 			 */
-			std::vector<Timing::Event::Variable> & getOutputVariables(fmiTime time);
+			std::vector<Timing::Variable> & getOutputVariables(fmiTime time);
 
 			/**
 			 * @brief Initializes the solver
@@ -300,7 +300,7 @@ namespace FMITerminalBlock
 			 * @param values The vector of fetched variable values.
 			 * @param time The last event's time
 			 */
-			void fetchOutputs(std::vector<Timing::Event::Variable> &values,
+			void fetchOutputs(std::vector<Timing::Variable> &values,
 					fmiTime time);
 
 			/**
