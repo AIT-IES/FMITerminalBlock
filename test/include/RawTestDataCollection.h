@@ -26,9 +26,12 @@ namespace FMITerminalBlockTest
 
 			RawTestData RAW_TEST_STRING_EMPTY();
 			RawTestData RAW_TEST_STRING_HII();
+			RawTestData RAW_TEST_STRING_0_3();
 
 			RawTestData RAW_TEST_REAL_0_3();
+			RawTestData RAW_TEST_REAL_PI();
 			RawTestData RAW_TEST_LREAL_DBL_EPSILON();
+			RawTestData RAW_TEST_LREAL_PI();
 
 			RawTestData RAW_TEST_DINT_INT_MIN();
 			RawTestData RAW_TEST_DINT_INT_MAX();

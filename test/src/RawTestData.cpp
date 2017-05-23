@@ -48,6 +48,28 @@ RawTestData RawTestData::operator+(const RawTestData &data) const
 	return RawTestData(*this, data);
 }
 
+size_t RawTestData::getSize() const
+{
+	return data_.size();
+}
+
+std::pair<RawTestData, RawTestData> 
+RawTestData::split(unsigned int position) const
+{
+	RawTestData first;
+	RawTestData second;
+	for (unsigned int i = 0; i < data_.size(); i++)
+	{
+		if (i < position)
+		{
+			first.data_.push_back(data_[i]);
+		} else {
+			second.data_.push_back(data_[i]);
+		}
+	}
+	return std::make_pair(first, second);
+}
+
 std::ostream& FMITerminalBlockTest::Network::operator<<(std::ostream& stream,
 	const RawTestData& data)
 {
@@ -62,3 +84,4 @@ std::ostream& FMITerminalBlockTest::Network::operator<<(std::ostream& stream,
 	stream << "}";
 	return stream;
 }
+

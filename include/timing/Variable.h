@@ -150,6 +150,9 @@ namespace FMITerminalBlock
 			 */
 			bool operator == (const Variable &other) const;
 
+			/** @brief Returns the negated result of the == operator */
+			bool operator != (const Variable &other) const;
+
 			/**
 			 * @brief Returns whether both variables have the same content.
 			 * @details It is assumed that both variables are valid.

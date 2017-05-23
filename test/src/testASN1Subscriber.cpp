@@ -30,6 +30,7 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/log/trivial.hpp>
 
+#include <algorithm>
 #include <mutex>
 #include <condition_variable>
 #include <functional>
@@ -97,7 +98,7 @@ public:
 		while (currentEvent_ == NULL)
 		{
 			std::cv_status stat = newEvent_.wait_for(lock, 
-				std::chrono::milliseconds(500));
+				std::chrono::milliseconds(1000));
 			BOOST_REQUIRE(stat != std::cv_status::timeout);
 		}
 
@@ -191,6 +192,11 @@ public:
 		config_.add("addr", addr);
 	}
 
+	void setPacketTimeout(int timeout)
+	{
+		config_.add("packetTimeout", timeout);
+	}
+
 private:
 	/** @brief Transmission channel reference which is constructed on demand */
 	std::shared_ptr<Base::TransmissionChannel> channel_;
@@ -270,7 +276,9 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testMissingAddress,
 	BOOST_CHECK_NO_THROW(throwLastException());
 }
 
-const std::string INVALID_ADDRESSES[] = {"",":",":4242","localhost:"};
+const std::string INVALID_ADDRESSES[] = {
+	"",":",":4242","localhost:","localhost:no-port", "no-host:4242"
+};
 
 /** @brief Applies an invalid address field */
 BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testInvalidAddress0,
@@ -526,22 +534,240 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testComplexPacket,
 	BOOST_CHECK_NO_THROW(throwLastException());
 }
 
+const RawTestData COMPLETE_RAW_PACKET_TO_SPLIT[] =
+{
+	RAW_TEST_BOOL_TRUE() + RAW_TEST_STRING_HII() + RAW_TEST_REAL_PI() + 
+	RAW_TEST_DINT_INT_MAX() + RAW_TEST_BOOL_TRUE(),
+
+	RAW_TEST_BOOL_FALSE() + RAW_TEST_STRING_EMPTY() + RAW_TEST_LREAL_PI() + 
+	RAW_TEST_DINT_INT_MIN() + RAW_TEST_BOOL_FALSE(),
+};
+
+std::vector<Timing::Variable> COMPLETE_REFERENCE_TO_SPLIT[] = {
+	{
+		Timing::Variable(Base::PortID(fmiTypeBoolean,0), (fmiBoolean) fmiTrue),
+		Timing::Variable(Base::PortID(fmiTypeString,1), std::string("Hi!")),
+		Timing::Variable(Base::PortID(fmiTypeReal,2), (fmiReal) 3.1415F),
+		Timing::Variable(Base::PortID(fmiTypeInteger,3), INT_MAX),
+		Timing::Variable(Base::PortID(fmiTypeBoolean,4), (fmiBoolean) fmiTrue)
+	},
+	{
+		Timing::Variable(Base::PortID(fmiTypeBoolean,0), (fmiBoolean) fmiFalse),
+		Timing::Variable(Base::PortID(fmiTypeString,1), std::string()),
+		Timing::Variable(Base::PortID(fmiTypeReal,2), (fmiReal) 3.141592653589793),
+		Timing::Variable(Base::PortID(fmiTypeInteger,3), INT_MIN),
+		Timing::Variable(Base::PortID(fmiTypeBoolean,4), (fmiBoolean) fmiFalse)
+	}
+};
+
+
+BOOST_TEST_DONT_PRINT_LOG_VALUE(std::vector<Timing::Variable>);
+
 /** 
- * TODO: Splits a complex message in two packets. 
+ * @brief Splits a complex message in two packets. 
  * @brief The function sends another packet in order to test whether the object
  * is reset correctly.
  */
+BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testSplitMessage,
+	(data::make(SUBSCRIBER_GENERATOR) ^ data::make(RAW_SOURCE_GENERATOR)) * 
+	(data::make(COMPLETE_RAW_PACKET_TO_SPLIT) ^ 
+		data::make(COMPLETE_REFERENCE_TO_SPLIT)) * 
+	data::xrange<unsigned int>(1U, 17U, 1U),
+	subscriberFactory, sourceFactory, rawData, referenceData, splitPosition)
+{
+	if (splitPosition >= rawData.getSize()) return; // Unfeasible test case
+
+	std::shared_ptr<Subscriber> subscriber = subscriberFactory();
+	std::shared_ptr<RawTestDataSource> dataSource = sourceFactory();
+
+	addPortConfig(fmiTypeBoolean);
+	addPortConfig(fmiTypeString);
+	addPortConfig(fmiTypeReal);
+	addPortConfig(fmiTypeInteger);
+	addPortConfig(fmiTypeBoolean);
+	setValidAddressConfig();
+	setPacketTimeout(5000);
+
+	// Setup the connection
+	dataSource->preInitSubscriber();
+	subscriber->initAndStart(*getTransmissionChannel(), eventSink_, 
+		getErrorCallback());
+	dataSource->postInitSubscriber();
+
+	// Send the data
+	auto splitData = rawData.split(splitPosition);
+	BOOST_CHECK_GT(splitData.first.getSize(), 0U);
+	BOOST_CHECK_GT(splitData.second.getSize(), 0U);
+
+	dataSource->pushRawData(splitData.first);
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	dataSource->pushRawData(splitData.second);
+
+	Timing::Event *ev = eventSink_->fetchNextEvent();
+	BOOST_REQUIRE(ev != NULL);
+	BOOST_CHECK_EQUAL(ev->getTime(), 0.0);
+	auto vars = ev->getVariables(); // Copies the data!
+	BOOST_CHECK_EQUAL_COLLECTIONS(vars.begin(), 
+		vars.end(), referenceData.begin(), referenceData.end());
+	delete ev;
+
+	// Assemble and send the second packet
+	RawTestData staticRawData = RAW_TEST_BOOL_TRUE() + RAW_TEST_STRING_HII() + 
+		RAW_TEST_LREAL_PI() + RAW_TEST_DINT_INT_MAX() + RAW_TEST_BOOL_FALSE();
+	std::vector<Timing::Variable> staticReference = {
+		Timing::Variable(Base::PortID(fmiTypeBoolean,0), (fmiBoolean) fmiTrue),
+		Timing::Variable(Base::PortID(fmiTypeString,1), std::string("Hi!")),
+		Timing::Variable(Base::PortID(fmiTypeReal,2), (fmiReal) 3.141592653589793),
+		Timing::Variable(Base::PortID(fmiTypeInteger,3), INT_MAX),
+		Timing::Variable(Base::PortID(fmiTypeBoolean,4), (fmiBoolean) fmiFalse)
+	};
+
+	dataSource->pushRawData(staticRawData);
+	ev = eventSink_->fetchNextEvent();
+	BOOST_REQUIRE(ev != NULL);
+	BOOST_CHECK_EQUAL(ev->getTime(), 1.0);
+	vars = ev->getVariables(); // Copies the data!
+	BOOST_CHECK_EQUAL_COLLECTIONS(vars.begin(), 
+		vars.end(), staticReference.begin(), staticReference.end());
+	delete ev;
+
+	// Terminate the connection
+	dataSource->preTerminateSubscriber();
+	subscriber->terminate();
+	dataSource->postTerminateSubscriber();
+
+	try {
+		throwLastException();
+	} catch (std::exception &ex) {
+		BOOST_LOG_TRIVIAL(error) << "Cough an exception: " << ex.what();
+		BOOST_CHECK(false);
+	}
+}
+
 /** 
- * TODO: Sends an incomplete packet
+ * @brief Sends an incomplete packet
  * @details After a timeout, the subscriber needs to issue the (incomplete) 
  * event and must be able to receive other complete events correctly.
  */
+BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testIncompleteMessage,
+	data::make(SUBSCRIBER_GENERATOR) ^ data::make(RAW_SOURCE_GENERATOR), 
+	subscriberFactory, sourceFactory)
+{
+	std::shared_ptr<Subscriber> subscriber = subscriberFactory();
+	std::shared_ptr<RawTestDataSource> dataSource = sourceFactory();
 
-/** TODO: Test an invalid type code */
+	addPortConfig(fmiTypeReal);
+	addPortConfig(fmiTypeReal);
+	setValidAddressConfig();
+
+	dataSource->preInitSubscriber();
+	subscriber->initAndStart(*getTransmissionChannel(), eventSink_, 
+		getErrorCallback());
+	dataSource->postInitSubscriber();
+
+	// Send Incomplete message and wait until the timeout occurs
+	RawTestData incompletePart = {0x4b, 0x40};
+	RawTestData incompleteMassage = RAW_TEST_LREAL_PI() + incompletePart;
+	dataSource->pushRawData(incompleteMassage);
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+	Timing::Event *ev = eventSink_->fetchNextEvent();
+	BOOST_REQUIRE(ev != NULL);
+	BOOST_CHECK_EQUAL(ev->getTime(), 0.0);
+	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 1);
+	BOOST_REQUIRE_EQUAL(ev->getVariables()[0].getID().first, fmiTypeReal);
+	BOOST_REQUIRE_EQUAL(ev->getVariables()[0].getID().second, 0);
+	BOOST_REQUIRE_EQUAL(ev->getVariables()[0].getRealValue(), 3.141592653589793);
+	delete ev;
+
+	// Send the complete Message
+	RawTestData completeMessage = RAW_TEST_LREAL_DBL_EPSILON() + 
+		RAW_TEST_REAL_0_3();
+	std::vector<Timing::Variable> completeReference = {
+		Timing::Variable(Base::PortID(fmiTypeReal,0), (fmiReal) DBL_EPSILON),
+		Timing::Variable(Base::PortID(fmiTypeReal,1), (fmiReal) 0.3F)
+	};
+
+	dataSource->pushRawData(completeMessage);
+	ev = eventSink_->fetchNextEvent();
+	BOOST_REQUIRE(ev != NULL);
+	BOOST_CHECK_EQUAL(ev->getTime(), 1.0);
+	auto vars = ev->getVariables(); // Copies the data!
+	BOOST_CHECK_EQUAL_COLLECTIONS(vars.begin(), 
+		vars.end(), completeReference.begin(), completeReference.end());
+	delete ev;
+
+	dataSource->preTerminateSubscriber();
+	subscriber->terminate();
+	dataSource->postTerminateSubscriber();
+
+	try {
+		throwLastException();
+	} catch (std::exception &ex) {
+		BOOST_LOG_TRIVIAL(error) << "Cough an exception: " << ex.what();
+		BOOST_CHECK(false);
+	}
+}
+
+/** @brief Test an invalid type code */
+BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testInvalidTypeCode,
+	data::make(SUBSCRIBER_GENERATOR) ^ data::make(RAW_SOURCE_GENERATOR), 
+	subscriberFactory, sourceFactory)
+{
+	std::shared_ptr<Subscriber> subscriber = subscriberFactory();
+	std::shared_ptr<RawTestDataSource> dataSource = sourceFactory();
+
+	addPortConfig(fmiTypeReal);
+	addPortConfig(fmiTypeReal);
+	setValidAddressConfig();
+
+	dataSource->preInitSubscriber();
+	subscriber->initAndStart(*getTransmissionChannel(), eventSink_, 
+		getErrorCallback());
+	dataSource->postInitSubscriber();
+
+	// Send invalid message
+	RawTestData invalidPart = {0x99, 0x00};
+	RawTestData invalidMassage = RAW_TEST_LREAL_PI() + invalidPart;
+	dataSource->pushRawData(invalidMassage);
+
+	Timing::Event *ev = eventSink_->fetchNextEvent();
+	BOOST_REQUIRE(ev != NULL);
+	BOOST_CHECK_EQUAL(ev->getTime(), 0.0);
+	BOOST_REQUIRE_EQUAL(ev->getVariables().size(), 1);
+	BOOST_REQUIRE_EQUAL(ev->getVariables()[0].getID().first, fmiTypeReal);
+	BOOST_REQUIRE_EQUAL(ev->getVariables()[0].getID().second, 0);
+	BOOST_REQUIRE_EQUAL(ev->getVariables()[0].getRealValue(), 3.141592653589793);
+	delete ev;
+
+	// Send the complete Message
+	RawTestData completeMessage = RAW_TEST_LREAL_DBL_EPSILON() + 
+		RAW_TEST_REAL_0_3();
+	std::vector<Timing::Variable> completeReference = {
+		Timing::Variable(Base::PortID(fmiTypeReal,0), (fmiReal) DBL_EPSILON),
+		Timing::Variable(Base::PortID(fmiTypeReal,1), (fmiReal) 0.3F)
+	};
+
+	dataSource->pushRawData(completeMessage);
+	ev = eventSink_->fetchNextEvent();
+	BOOST_REQUIRE(ev != NULL);
+	BOOST_CHECK_EQUAL(ev->getTime(), 1.0);
+	auto vars = ev->getVariables(); // Copies the data!
+	BOOST_CHECK_EQUAL_COLLECTIONS(vars.begin(), 
+		vars.end(), completeReference.begin(), completeReference.end());
+	delete ev;
+
+	dataSource->preTerminateSubscriber();
+	subscriber->terminate();
+	dataSource->postTerminateSubscriber();
+
+	try {
+		throwLastException();
+	} catch (std::exception &ex) {
+		BOOST_LOG_TRIVIAL(error) << "Cough an exception: " << ex.what();
+		BOOST_CHECK(false);
+	}
+}
 
 /** TODO: Test type conversion system extensively */
-
-/** 
- * TODO: Test initializing a subscriber with no associates network ports 
- * @details An exception must be thrown
- */

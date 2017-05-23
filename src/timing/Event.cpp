@@ -57,7 +57,7 @@ bool Event::isValid(const std::vector<Variable> &values)
 std::string 
 Event::toString(const std::vector<Variable> &vars)
 {
-	std::string ret("variables={");
+	std::string ret(" variables={");
 	for(unsigned i = 0; i < vars.size(); i++)
 	{
 		ret += vars[i].toString();

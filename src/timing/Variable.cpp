@@ -152,6 +152,11 @@ bool Variable::operator == (const Variable &other) const
 	return true;
 }
 
+bool Variable::operator != (const Variable &other) const
+{
+	return !operator == (other);
+}
+
 bool Variable::equalValue(const Variable &other) const
 {
 	assert(isValid() && other.isValid());

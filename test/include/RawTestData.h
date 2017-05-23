@@ -48,6 +48,16 @@ namespace FMITerminalBlockTest
 			 */
 			RawTestData operator+(const RawTestData &data) const;
 
+			/** @brief Returns the number of raw bytes */
+			size_t getSize() const;
+
+			/**
+			 * @brief Splits the buffer into two parts
+			 * @param position The index of the first byte of the second buffer. It 
+			 * is assumed that the position is always valid.
+			 */
+			std::pair<RawTestData, RawTestData> split(unsigned int position) const;
+
 		private:
 			/** @brief The encapsulated test data sequence */
 			std::vector<uint8_t> data_;

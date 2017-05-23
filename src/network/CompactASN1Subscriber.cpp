@@ -80,13 +80,14 @@ CompactASN1Subscriber::getChannelConfiguration() const
 boost::asio::streambuf::mutable_buffers_type 
 CompactASN1Subscriber::prepareData()
 {
-	// TODO: Estimate the size of the next or remaining packet and return the buffer
-	return remainingRawData_.prepare(42);
+	// TODO: Estimate the size of the next or remaining packet and return the 
+	//       buffer accordingly (#381)
+	return remainingRawData_.prepare(128);
 }
 
 void CompactASN1Subscriber::commitData(size_t actualSize)
 {
-	//restartPacketTimer();
+	restartPacketTimer();
 	remainingRawData_.commit(actualSize);
 
 	while (remainingRawData_.size() > 0)
@@ -256,7 +257,8 @@ CompactASN1Subscriber::readNextVariable(boost::any *dest)
 	default:
 		state.state = InvalidBufferContent;
 		state.missingData = 0;
-		BOOST_LOG_TRIVIAL(warning) << "Unsupported ASN.1 type with tag " << tag;
+		BOOST_LOG_TRIVIAL(warning) << "Unsupported ASN.1 type with tag " 
+			<< (int) tag;
 	}
 	return state;
 }
@@ -279,7 +281,7 @@ CompactASN1Subscriber::readAndConvertVariable(
 		{
 			*dest = convertedValue.value();
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Fail to convert received value \""
+			BOOST_LOG_TRIVIAL(warning) << "Fail to convert received value \""
 				<< value << "\" to the defined model type.";
 			state.state = TypeConversionError;
 		}
