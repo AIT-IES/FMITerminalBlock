@@ -68,16 +68,17 @@ void RawTCPServerTestDataSource::postInitSubscriber()
 	{
 		std::cv_status stat;
 		stat = stateChanged_.wait_for(guard, std::chrono::milliseconds(500));
-//		BOOST_REQUIRE(stat != std::cv_status::timeout);
+		BOOST_REQUIRE(stat != std::cv_status::timeout);
 	}
 }
 
 void RawTCPServerTestDataSource::pushRawData(
-	const std::vector<uint8_t> &buffer)
+	const RawTestData &buffer)
 {
 	std::lock_guard<std::mutex> guard(objectMutex_);
-	size_t bytesSent = boost::asio::write(*socket_, boost::asio::buffer(buffer));
-	BOOST_CHECK_EQUAL(bytesSent, buffer.size());
+	size_t bytesSent = boost::asio::write(*socket_, 
+		boost::asio::buffer(buffer.getData()));
+	BOOST_CHECK_EQUAL(bytesSent, buffer.getData().size());
 }
 
 void RawTCPServerTestDataSource::preTerminateSubscriber()

@@ -46,9 +46,9 @@ namespace FMITerminalBlockTest
 			 */
 			virtual void postInitSubscriber();
 			/**
-			 * @copydoc RawTestDataSource::pushRawData(const boost::asio::const_buffer &)
+			 * @copydoc RawTestDataSource::pushRawData(const RawTestData &)
 			 */
-			virtual void pushRawData(const std::vector<uint8_t> &buffer);
+			virtual void pushRawData(const RawTestData &buffer);
 			/**
 			 * @copydoc RawTestDataSource::preTerminateSubscriber()
 			 */

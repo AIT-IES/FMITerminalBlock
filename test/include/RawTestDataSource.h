@@ -11,8 +11,7 @@
 #ifndef _FMITERMINALBLOCKTEST_NETWORK_RAW_TEST_DATA_SOURCE
 #define _FMITERMINALBLOCKTEST_NETWORK_RAW_TEST_DATA_SOURCE
 
-#include <vector>
-#include <stdint.h>
+#include "RawTestData.h"
 
 namespace FMITerminalBlockTest
 {
@@ -50,7 +49,7 @@ namespace FMITerminalBlockTest
 			 * connection is closed.
 			 * @param buffer a valid buffer to the data which should be sent
 			 */
-			virtual void pushRawData(const std::vector<uint8_t> &buffer) = 0;
+			virtual void pushRawData(const RawTestData &buffer) = 0;
 			/**
 			 * @brief Initiates closing the end point.
 			 * @details The function will be invoked before the subscriber is 

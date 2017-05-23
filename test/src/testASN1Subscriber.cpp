@@ -18,6 +18,7 @@
 
 #include "RawTestDataSource.h"
 #include "RawTCPServerTestDataSource.h"
+#include "RawTestDataCollection.h"
 #include "PrintableFactory.h"
 #include "timing/EventSink.h"
 #include "network/Subscriber.h"
@@ -41,6 +42,7 @@ using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Network;
 using namespace FMITerminalBlockTest;
 using namespace FMITerminalBlockTest::Network;
+using namespace FMITerminalBlockTest::Network::ASN1TestData;
 
 namespace data = boost::unit_test::data;
 
@@ -216,23 +218,6 @@ PrintableFactory<RawTestDataSource> RAW_SOURCE_GENERATOR[] = {
 		"RawTCPServerTestDataSource")
 };
 
-
-/** @brief Provides print functionality of rawData vectors */
-/* TODO: Does not satisfy the compiler, needs some research
-std::ostream& operator << (std::ostream& stream,	
-	std::vector<uint8_t> const& rawData)
-{
-	stream << "{";
-	for (unsigned int i = 0; i < rawData.size(); i++)
-	{
-		stream << (int) rawData[i];
-		if (i < rawData.size() - 1) stream << ", ";
-	}
-	stream << "}";
-	return stream;
-}
-*/
-
 /** @brief Provides print functionality of fmiTypes vectors */
 std::ostream& operator << (std::ostream& stream,	const FMIType& type)
 {
@@ -339,8 +324,7 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testReconnection,
 	std::shared_ptr<Subscriber> subscriber = subscriberFactory();
 	std::shared_ptr<RawTestDataSource> dataSource = sourceFactory();
 
-	std::vector<uint8_t> rawData;
-	rawData.push_back(0x41); // fmiTrue
+	RawTestData rawData = RAW_TEST_BOOL_TRUE();
 
 	addPortConfig(fmiTypeBoolean);
 	setValidAddressConfig();
@@ -379,39 +363,13 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testReconnection,
 	BOOST_CHECK_NO_THROW(throwLastException());
 }
 
-/** 
- * @brief Returns a list of raw data 
- * @details The non-convertible string is embedded into two boolean variable, 
- * one which is true and one which is false.
- */
-std::list<std::vector<uint8_t>> getNonConvertibleStringPackets()
-{
-	std::list<std::vector<uint8_t>> ret;
-	std::vector<uint8_t> data;
-
-	const uint8_t rawData0[] = {
-		0x41, // fmiTrue
-		0x50, 0x00,0x03, 'H', 'i', '!',
-		0x40 // fmiFalse
-	};
-	data.assign(rawData0, rawData0 + sizeof(rawData0));
-	ret.push_back(data);
-
-	const uint8_t rawData1[] = {
-		0x41, // fmiTrue
-		0x50, 0x00,0x00,
-		0x40 // fmiFalse
-	};
-	data.assign(rawData1, rawData1 + sizeof(rawData1));
-	ret.push_back(data);
-
-	return ret;
-}
+const RawTestData NON_CONVERTIBLE_STRING_PACKETS[] = {
+	(RAW_TEST_BOOL_TRUE() + RAW_TEST_STRING_HII() + RAW_TEST_BOOL_FALSE()),
+	(RAW_TEST_BOOL_TRUE() + RAW_TEST_STRING_EMPTY() + RAW_TEST_BOOL_FALSE())
+};
 
 const FMIType NON_STRING_TYPES[] = {fmiTypeReal, fmiTypeInteger, 
 	fmiTypeBoolean};
-
-BOOST_TEST_DONT_PRINT_LOG_VALUE( std::vector<uint8_t> )
 
 /** 
  * @brief Sends a string which is not convertible to any other type
@@ -420,7 +378,7 @@ BOOST_TEST_DONT_PRINT_LOG_VALUE( std::vector<uint8_t> )
  */
 BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testInvalidStringConversion,
 	(data::make(SUBSCRIBER_GENERATOR) ^ data::make(RAW_SOURCE_GENERATOR))*
-	data::make(getNonConvertibleStringPackets()) * data::make(NON_STRING_TYPES), 
+	data::make(NON_CONVERTIBLE_STRING_PACKETS) * data::make(NON_STRING_TYPES), 
 	subscriberFactory, sourceFactory, rawPacket, destinationType)
 {
 	std::shared_ptr<Subscriber> subscriber = subscriberFactory();
@@ -455,46 +413,12 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testInvalidStringConversion,
 	BOOST_CHECK_NO_THROW(throwLastException());
 }
 
-const std::function<std::vector<uint8_t>()> FIRST_RAW_DATA_PACKET[] = {
-	[]() { // fmiReal: 0.3 as REAL
-		std::vector<uint8_t> rawData;
-		uint8_t data[] = {0x4a, 0x3e,0x99,0x99,0x9a};
-		rawData.assign(data, data + sizeof(data));
-		return rawData;
-	},
-	[]() { // fmiInteger: INT_MIN as DINT
-		std::vector<uint8_t> rawData;
-		uint8_t data[] = {0x44, 0x80,0x00,0x00,0x00};
-		rawData.assign(data, data + sizeof(data));
-		return rawData;
-	},
-	[]() { // fmiBoolean: fmiTrue
-		std::vector<uint8_t> rawData;
-		uint8_t data[] = {0x41};
-		rawData.assign(data, data + sizeof(data));
-		return rawData;
-	}
+const RawTestData FIRST_RAW_DATA_PACKET[] = {
+	RAW_TEST_REAL_0_3(), RAW_TEST_DINT_INT_MIN(), RAW_TEST_BOOL_TRUE()
 };
 
-const std::function<std::vector<uint8_t>()> SECOND_RAW_DATA_PACKET[] = {
-	[]() { // DBL_EPSILON as LREAL
-		std::vector<uint8_t> rawData;
-		uint8_t data[] = {0x4b, 0x3c,0xb0,0x00,0x00,0x00,0x00,0x00,0x00};
-		rawData.assign(data, data + sizeof(data));
-		return rawData;
-	},
-	[]() { // fmiInteger: INT_MAX as DINT
-		std::vector<uint8_t> rawData;
-		uint8_t data[] = {0x44, 0x7F,0xFF,0xFF,0xFF};
-		rawData.assign(data, data + sizeof(data));
-		return rawData;
-	},
-	[]() { // fmiBoolean: fmiFalse
-		std::vector<uint8_t> rawData;
-		uint8_t data[] = {0x40};
-		rawData.assign(data, data + sizeof(data));
-		return rawData;
-	}
+const RawTestData SECOND_RAW_DATA_PACKET[] = {
+	RAW_TEST_LREAL_DBL_EPSILON(), RAW_TEST_DINT_INT_MAX(), RAW_TEST_BOOL_FALSE()
 };
 
 Timing::Variable FIRST_REFERENCE_VAR[] = {
@@ -510,8 +434,6 @@ Timing::Variable SECOND_REFERENCE_VAR[] = {
 	// Must be converted to fmiBoolean, otherwise int and bad anycast!!
 	Timing::Variable(Base::PortID(fmiTypeBoolean,0),((fmiBoolean) fmiFalse))
 };
-
-BOOST_TEST_DONT_PRINT_LOG_VALUE(std::function<std::vector<uint8_t>()>)
 
 /** 
  * @brief Tests the type conversion by sending various acceptable packets 
@@ -536,7 +458,7 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testRealPacketSequence,
 	dataSource->postInitSubscriber();
 
 	// First Packet
-	dataSource->pushRawData(firstRawPacket());
+	dataSource->pushRawData(firstRawPacket);
 
 	Timing::Event *ev = eventSink_->fetchNextEvent();
 	BOOST_REQUIRE(ev != NULL);
@@ -546,7 +468,7 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testRealPacketSequence,
 	delete ev;
 
 	// Second Packet
-	dataSource->pushRawData(secondRawPacket());
+	dataSource->pushRawData(secondRawPacket);
 
 	ev = eventSink_->fetchNextEvent();
 	BOOST_REQUIRE(ev != NULL);
@@ -581,13 +503,8 @@ BOOST_DATA_TEST_CASE_F(ASN1SubscriberFixture, testComplexPacket,
 		getErrorCallback());
 	dataSource->postInitSubscriber();
 
-	std::vector<uint8_t> rawData;
-	uint8_t data[] = {
-		0x4a, 0x3e,0x99,0x99,0x9a, //0.3 as REAL
-		0x44, 0x7F,0xFF,0xFF,0xFF, //INT_MAX as DINT
-		0x4b, 0x3c,0xb0,0x00,0x00,0x00,0x00,0x00,0x00 //DBL_EPSILON as REAL
-	};
-	rawData.assign(data, data + sizeof(data));
+	RawTestData rawData = RAW_TEST_REAL_0_3() + RAW_TEST_DINT_INT_MAX() + 
+		RAW_TEST_LREAL_DBL_EPSILON();
 	dataSource->pushRawData(rawData);
 
 	Timing::Event *ev = eventSink_->fetchNextEvent();

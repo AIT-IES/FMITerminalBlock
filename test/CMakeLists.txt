@@ -30,8 +30,7 @@ add_executable( testASN1Publisher src/testASN1Publisher.cpp
 	${FMITerminalBlock_BASE_SOURCE} 
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE} 
-	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTCPServerTestDataSource.cpp )
+	${FMITerminalBlock_NETWORK_SOURCE} )
 target_link_libraries( testASN1Publisher PUBLIC ${Boost_LIBRARIES} fmippim )
 
 add_executable( testASN1Subscriber src/testASN1Subscriber.cpp 
@@ -39,7 +38,9 @@ add_executable( testASN1Subscriber src/testASN1Subscriber.cpp
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} 
 	${FMITerminalBlock_NETWORK_SOURCE} 
-	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTCPServerTestDataSource.cpp )
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTCPServerTestDataSource.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTestData.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTestDataCollection.cpp )
 target_link_libraries( testASN1Subscriber PUBLIC ${Boost_LIBRARIES} fmippim )
 
 
