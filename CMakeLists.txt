@@ -84,6 +84,7 @@ include_directories( ${fmipp_PROJECT_DIR} )
 # Configure Network Manager
 AddNetworkManagerPublisher("CompactASN1UDPPublisher" "network/CompactASN1UDPPublisher.h")
 AddNetworkManagerPublisher("CompactASN1TCPClientPublisher" "network/CompactASN1TCPClientPublisher.h")
+AddNetworkManagerSubscriber("CompactASN1TCPClientSubscriber" "network/CompactASN1TCPClientSubscriber.h")
 ConfigureNetworkManager( ${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
 
 # Declare source files per namespace
