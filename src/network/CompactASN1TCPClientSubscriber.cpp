@@ -23,7 +23,7 @@
 using namespace FMITerminalBlock::Network;
 using namespace FMITerminalBlock;
 
-const std::string CompactASN1TCPClientSubscriber::SUBSCRIBER_ID = "CompactASN1TCPClientSubscriber";
+const std::string CompactASN1TCPClientSubscriber::SUBSCRIBER_ID = "CompactASN.1-TCP";
 const std::string CompactASN1TCPClientSubscriber::PROP_ADDR	= "addr";
 const std::string CompactASN1TCPClientSubscriber::PROP_RECON_INTERVALL	= "reconnectionInterval";
 const std::string CompactASN1TCPClientSubscriber::PROP_RETRY_COUNT	= "reconnectionRetryCount";
