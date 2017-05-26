@@ -64,11 +64,12 @@ namespace FMITerminalBlock
 			 * @brief Updates the outputVariables_ based on the given Event
 			 * @details The event pointer must be valid. The function will traverse 
 			 * the event's variables and set the internal state vector accordingly.
-			 * The function of this class won't send any messages but extending
-			 * classes may likely override the behavior.
+			 * The function of this class won't send any message.
 			 * @param ev A valid pointer locating the event to process
+			 * @brief <code>true</code> If the event contains at least one relevant 
+			 * variable
 			 */
-			virtual void eventTriggered(Timing::Event * ev);
+			bool updateOutputVariables(Timing::Event * ev);
 
 			/** 
 			 * @brief Appends the registered output variables and its content to the

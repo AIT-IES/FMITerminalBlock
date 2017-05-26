@@ -40,11 +40,11 @@ void CompactASN1Publisher::init(const Base::TransmissionChannel &channel)
 	initOutputTypes(channel);
 }
 
-void
-CompactASN1Publisher::eventTriggered(Timing::Event * ev)
+bool
+CompactASN1Publisher::updateOutputVariables(Timing::Event * ev)
 {
 	assert(ev != NULL);
-	
+	bool updated = false;
 	std::vector<Timing::Variable> & vars = ev->getVariables();
 	for(unsigned i = 0; i < vars.size(); i++)
 	{
@@ -54,9 +54,11 @@ CompactASN1Publisher::eventTriggered(Timing::Event * ev)
 			{
 				// Update
 				outputVariables_[j].setValue(vars[i].getValue());
+				updated = true;
 			}
 		}
 	}
+	return updated;
 }
 
 void 

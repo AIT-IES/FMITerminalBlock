@@ -81,25 +81,25 @@ CompactASN1UDPPublisher::eventTriggered(Timing::Event * ev)
 {
 	assert(socket_ != NULL);
 
-	// Update local state
-	CompactASN1Publisher::eventTriggered(ev);
-
-	std::vector<uint8_t> buffer;
-	encodeASN1OutputVariables(buffer);
-
-	//encodeValue(buffer, std::string("Ground Control to Major Tom Your" 
-	//	"circuit's dead, there's something wrong"));
-	
-	BOOST_LOG_TRIVIAL(trace) << "Send event " << ev->toString();
-
-	// throws boost::system_error
-	size_t trSize = socket_->send_to(boost::asio::buffer(buffer), destination_);
-	if(trSize != buffer.size())
+	// Update local state, send only if the event encodes some new variables
+	if (updateOutputVariables(ev))
 	{
-		BOOST_LOG_TRIVIAL(warning) << "UDP message of event at " << ev->getTime() 
-			<< " only partly transferred (" << trSize << "/" << buffer.size() 
-			<< " bytes)";
-	}else{
-		BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " << toString(buffer);
+		std::vector<uint8_t> buffer;
+		encodeASN1OutputVariables(buffer);
+	
+		BOOST_LOG_TRIVIAL(trace) << "Send event " << ev->toString();
+
+		// throws boost::system_error
+		size_t trSize;
+		trSize = socket_->send_to(boost::asio::buffer(buffer), destination_);
+		if(trSize != buffer.size())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "UDP message of event at " << ev->getTime() 
+				<< " only partly transferred (" << trSize << "/" << buffer.size() 
+				<< " bytes)";
+		}else{
+			BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " 
+				<< toString(buffer);
+		}
 	}
 }

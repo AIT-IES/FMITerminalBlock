@@ -80,19 +80,21 @@ void CompactASN1TCPClientPublisher::eventTriggered(Timing::Event * ev)
 	assert(socket_->is_open());
 	assert(ev != NULL);
 
-	// Update local state
-	CompactASN1Publisher::eventTriggered(ev);
-
-	std::vector<uint8_t> buffer;
-	encodeASN1OutputVariables(buffer);
-	
-	size_t trSize = socket_->send(boost::asio::buffer(buffer));
-	if(trSize != buffer.size())
+	// Update local state, send only if the event encodes some new variables
+	if (updateOutputVariables(ev))
 	{
-		BOOST_LOG_TRIVIAL(warning) << "TCP message of event at " << ev->getTime() 
-			<< " only partly transferred (" << trSize << "/" << buffer.size() 
-			<< " bytes)";
-	}else{
-		BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " << toString(buffer);
+		std::vector<uint8_t> buffer;
+		encodeASN1OutputVariables(buffer);
+	
+		size_t trSize = socket_->send(boost::asio::buffer(buffer));
+		if(trSize != buffer.size())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "TCP message of event at " 
+				<< ev->getTime() << " was only partly transferred (" << trSize << 
+				"/" << buffer.size() << " bytes)";
+		} else {
+			BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " 
+				<< toString(buffer);
+		}
 	}
 }

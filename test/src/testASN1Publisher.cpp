@@ -345,6 +345,71 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_manual_enc_1, ASN1TCPFixture )
 	BOOST_CHECK_EQUAL(validMessages, 1);
 }
 
+/** @brief tests the ability of ignoring incoming messages */
+BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_Ignore_Message, ASN1TCPFixture )
+{
+
+	// Set-up event values
+	std::vector<Timing::Variable> vars;
+
+	vars.push_back(Timing::Variable( 	// dummy
+			std::make_pair(fmiTypeInteger, INT_MAX), 
+			(fmiInteger) 3));
+	vars.push_back(Timing::Variable( // dummy
+			std::make_pair(fmiTypeReal, 665), 
+			(fmiReal) 43.0));
+	vars.push_back(Timing::Variable( // dummy
+			std::make_pair(fmiTypeString, INT_MAX), 
+			std::string("Nope")));
+	vars.push_back(Timing::Variable( // dummy
+			std::make_pair(fmiTypeBoolean, INT_MAX), 
+			(fmiBoolean) fmiFalse));
+
+	// Set-up reference
+	uint8_t ref[] = {0x4b, 0x3c,0xb0,0x00,0x00,0x00,0x00,0x00,0x00,
+									 0x44, 0x80,0x00,0x00,0x00,
+									 0x41, 
+									 0x50,0x00,0x06,0x48,0x33,0x6c,0x6c,0xf6,0x21};
+	receiveReference.assign(ref, ref+sizeof(ref));
+
+	// Init publisher
+	publisher.init(ports);
+
+	// Let the client connect
+	ioService.run_one();
+
+	// Trigger ignored event
+	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);
+	publisher.eventTriggered(ev); 
+	delete ev;
+
+	// Set-up event values
+	vars.clear();
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeReal, 666), 
+			(fmiReal) DBL_EPSILON));
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeInteger, 0), 
+			(fmiInteger) INT_MIN));
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeBoolean, 0), 
+			(fmiBoolean) fmiTrue));
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeString, 0), 
+			std::string("H3llö!")));
+
+	// Trigger non-ignored event
+	ev = new Timing::StaticEvent(0.0, vars);
+	publisher.eventTriggered(ev); 
+	delete ev;
+
+	// Fetch the IO result
+	ioService.run_one();
+	
+	BOOST_CHECK_EQUAL(validMessages, 1);
+}
+
+
 /** @brief tests the ability of sending correct messages */
 BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_TCP_0, ASN1TCPFixture )
 {
@@ -768,6 +833,67 @@ BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_manual_enc_1, ASN1UDPFixture )
 	ioService.run_one();
 	
 	delete ev;
+	BOOST_CHECK_EQUAL(validMessages, 1);
+}
+
+/** @brief tests the ability of ignoring incoming messages */
+BOOST_FIXTURE_TEST_CASE( test_publish_ASN1_UDP_Ignore_Message, ASN1UDPFixture )
+{
+
+	// Set-up event values
+	std::vector<Timing::Variable> vars;
+
+	vars.push_back(Timing::Variable( 	// dummy
+			std::make_pair(fmiTypeInteger, INT_MAX), 
+			(fmiInteger) 3));
+	vars.push_back(Timing::Variable( // dummy
+			std::make_pair(fmiTypeReal, 665), 
+			(fmiReal) 43.0));
+	vars.push_back(Timing::Variable( // dummy
+			std::make_pair(fmiTypeString, INT_MAX), 
+			std::string("Nope")));
+	vars.push_back(Timing::Variable( // dummy
+			std::make_pair(fmiTypeBoolean, INT_MAX), 
+			(fmiBoolean) fmiFalse));
+
+	// Set-up reference
+	uint8_t ref[] = {0x4b, 0x3c,0xb0,0x00,0x00,0x00,0x00,0x00,0x00,
+									 0x44, 0x80,0x00,0x00,0x00,
+									 0x41, 
+									 0x50,0x00,0x06,0x48,0x33,0x6c,0x6c,0xf6,0x21};
+	receiveReference.assign(ref, ref+sizeof(ref));
+
+	// Init publisher
+	publisher.init(ports);
+
+	// Trigger ignored event
+	Timing::Event * ev = new Timing::StaticEvent(0.0, vars);
+	publisher.eventTriggered(ev); 
+	delete ev;
+
+	// Set-up event values
+	vars.clear();
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeReal, 666), 
+			(fmiReal) DBL_EPSILON));
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeInteger, 0), 
+			(fmiInteger) INT_MIN));
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeBoolean, 0), 
+			(fmiBoolean) fmiTrue));
+	vars.push_back(Timing::Variable(
+			std::make_pair(fmiTypeString, 0), 
+			std::string("H3llö!")));
+
+	// Trigger non-ignored event
+	ev = new Timing::StaticEvent(0.0, vars);
+	publisher.eventTriggered(ev); 
+	delete ev;
+
+	// Fetch the IO result
+	ioService.run_one();
+	
 	BOOST_CHECK_EQUAL(validMessages, 1);
 }
 
