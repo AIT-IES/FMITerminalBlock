@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -49,10 +49,9 @@ namespace FMITerminalBlock
 			 */
 			virtual void init(const Base::TransmissionChannel &channel);
 
-			/**
-			 * @brief Updates the output data and sends the message
-			 */
-			virtual void eventTriggered(Timing::Event * ev);
+		protected:
+			/** @brief Sends the given data */
+			virtual void sendData(const std::vector<uint8_t> &buffer);
 
 		private:
 			/** @brief The service object used to manage the transmission */

@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -74,27 +74,17 @@ CompactASN1TCPClientPublisher::init(const Base::TransmissionChannel &channel)
 		<< addr.substr(0, sepPos) << ":" << socket_->remote_endpoint().port();
 }
 
-void CompactASN1TCPClientPublisher::eventTriggered(Timing::Event * ev)
+void 
+CompactASN1TCPClientPublisher::sendData(const std::vector<uint8_t> &buffer)
 {
-	assert(socket_ != NULL);
-	assert(socket_->is_open());
-	assert(ev != NULL);
-
-	// Update local state, send only if the event encodes some new variables
-	if (updateOutputVariables(ev))
+	size_t trSize = socket_->send(boost::asio::buffer(buffer));
+	if(trSize != buffer.size())
 	{
-		std::vector<uint8_t> buffer;
-		encodeASN1OutputVariables(buffer);
-	
-		size_t trSize = socket_->send(boost::asio::buffer(buffer));
-		if(trSize != buffer.size())
-		{
-			BOOST_LOG_TRIVIAL(warning) << "TCP message of event at " 
-				<< ev->getTime() << " was only partly transferred (" << trSize << 
-				"/" << buffer.size() << " bytes)";
-		} else {
-			BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " 
-				<< toString(buffer);
-		}
+		BOOST_LOG_TRIVIAL(warning) << "TCP message "  << toString(buffer)
+			<< " was only partly transferred (" << trSize << 	"/" << buffer.size() 
+			<< " bytes)";
+	} else {
+		BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " 
+			<< toString(buffer);
 	}
 }

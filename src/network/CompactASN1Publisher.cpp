@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -40,58 +40,17 @@ void CompactASN1Publisher::init(const Base::TransmissionChannel &channel)
 	initOutputTypes(channel);
 }
 
-bool
-CompactASN1Publisher::updateOutputVariables(Timing::Event * ev)
+void CompactASN1Publisher::eventTriggered(Timing::Event * ev)
 {
 	assert(ev != NULL);
-	bool updated = false;
-	std::vector<Timing::Variable> & vars = ev->getVariables();
-	for(unsigned i = 0; i < vars.size(); i++)
+
+	bool updated = updateOutputVariables(ev);
+	if (updated)
 	{
-		for(unsigned j = 0; j < outputVariables_.size(); j++)
-		{
-			if(vars[i].getID() == outputVariables_[j].getID())
-			{
-				// Update
-				outputVariables_[j].setValue(vars[i].getValue());
-				updated = true;
-			}
-		}
+		std::vector<uint8_t> buffer;
+		encodeASN1OutputVariables(buffer);
+		sendData(buffer);
 	}
-	return updated;
-}
-
-void 
-CompactASN1Publisher::encodeASN1OutputVariables(std::vector<uint8_t> &buffer)
-{
-	assert(outputVariables_.size() == outputTypes_.size());
-
-	for(unsigned i = 0; i < outputVariables_.size(); i++)
-	{
-
-		switch(outputTypes_[i])
-		{
-		case ASN1Commons::DataType::LREAL:
-			encodeLREALValue(buffer,outputVariables_[i].getRealValue());
-			break;
-		case ASN1Commons::DataType::REAL:
-			encodeREALValue(buffer, outputVariables_[i].getRealValue());
-			break;
-		case ASN1Commons::DataType::DINT:
-			encodeValue(buffer, outputVariables_[i].getIntegerValue());
-			break;
-		case ASN1Commons::DataType::BOOL:
-			encodeValue(buffer, outputVariables_[i].getBooleanValue());
-			break;
-		case ASN1Commons::DataType::STRING:
-			encodeValue(buffer, outputVariables_[i].getStringValue());
-			break;
-		default:
-			assert(0);
-		}
-
-	}
-
 }
 
 std::string
@@ -209,6 +168,60 @@ CompactASN1Publisher::getDefaultType(FMIType srcType)
 		assert(false);
 	}
 	return type;
+}
+
+bool
+CompactASN1Publisher::updateOutputVariables(Timing::Event * ev)
+{
+	assert(ev != NULL);
+	bool updated = false;
+	std::vector<Timing::Variable> & vars = ev->getVariables();
+	for(unsigned i = 0; i < vars.size(); i++)
+	{
+		for(unsigned j = 0; j < outputVariables_.size(); j++)
+		{
+			if(vars[i].getID() == outputVariables_[j].getID())
+			{
+				// Update
+				outputVariables_[j].setValue(vars[i].getValue());
+				updated = true;
+			}
+		}
+	}
+	return updated;
+}
+
+void 
+CompactASN1Publisher::encodeASN1OutputVariables(std::vector<uint8_t> &buffer)
+{
+	assert(outputVariables_.size() == outputTypes_.size());
+
+	for(unsigned i = 0; i < outputVariables_.size(); i++)
+	{
+
+		switch(outputTypes_[i])
+		{
+		case ASN1Commons::DataType::LREAL:
+			encodeLREALValue(buffer,outputVariables_[i].getRealValue());
+			break;
+		case ASN1Commons::DataType::REAL:
+			encodeREALValue(buffer, outputVariables_[i].getRealValue());
+			break;
+		case ASN1Commons::DataType::DINT:
+			encodeValue(buffer, outputVariables_[i].getIntegerValue());
+			break;
+		case ASN1Commons::DataType::BOOL:
+			encodeValue(buffer, outputVariables_[i].getBooleanValue());
+			break;
+		case ASN1Commons::DataType::STRING:
+			encodeValue(buffer, outputVariables_[i].getStringValue());
+			break;
+		default:
+			assert(0);
+		}
+
+	}
+
 }
 
 void

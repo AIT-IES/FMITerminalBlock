@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -11,6 +11,7 @@
 #ifndef _FMITERMINALBLOCK_NETWORK_COMPACT_ASN1_PUBLISHER
 #define _FMITERMINALBLOCK_NETWORK_COMPACT_ASN1_PUBLISHER
 
+#include "base/environment-helper.h"
 #include "network/Publisher.h"
 #include "network/ASN1Commons.h"
 #include "timing/Event.h"
@@ -61,24 +62,9 @@ namespace FMITerminalBlock
 			virtual void init(const Base::TransmissionChannel &channel);
 
 			/**
-			 * @brief Updates the outputVariables_ based on the given Event
-			 * @details The event pointer must be valid. The function will traverse 
-			 * the event's variables and set the internal state vector accordingly.
-			 * The function of this class won't send any message.
-			 * @param ev A valid pointer locating the event to process
-			 * @brief <code>true</code> If the event contains at least one relevant 
-			 * variable
+			 * @brief Updates the output data and requests sending the message
 			 */
-			bool updateOutputVariables(Timing::Event * ev);
-
-			/** 
-			 * @brief Appends the registered output variables and its content to the
-			 * ASN.1-based message.
-			 * @details The function will use the compact encoding rules presented in
-			 * IEC 61499. It adds the message at the end of the given buffer.
-			 * @param buffer A valid reference to the output buffer
-			 */
-			void encodeASN1OutputVariables(std::vector<uint8_t> &buffer);
+			virtual void eventTriggered(Timing::Event * ev);
 
 		protected:
 
@@ -92,6 +78,16 @@ namespace FMITerminalBlock
 			 * used to check the configuration before issuing the first event.
 			 */
 			static const bool CASTABLE[5][ASN1Commons::DATA_TYPE_SIZE];
+
+			/**
+			 * @brief Requests a CompartASN1Publisher instance to send the packet
+			 * @details The function will be called whenever an event is triggered 
+			 * and the data needs to be published.
+			 * @param buffer The buffer instance which contains the encoded data. 
+			 * The given reference is valid until the function returns.
+			 */
+			virtual void sendData(const std::vector<uint8_t> &buffer) = 0;
+
 
 			/**
 			 * @brief Returns a nicely formatted string of the buffer's content
@@ -143,6 +139,26 @@ namespace FMITerminalBlock
 			 * @return The best fitting ASN.1 type which avoids data loss
 			 */
 			static ASN1Commons::DataType getDefaultType(FMIType type);
+
+			/**
+			 * @brief Updates the outputVariables_ based on the given Event
+			 * @details The event pointer must be valid. The function will traverse 
+			 * the event's variables and set the internal state vector accordingly.
+			 * The function of this class won't send any message.
+			 * @param ev A valid pointer locating the event to process
+			 * @brief <code>true</code> If the event contains at least one relevant 
+			 * variable
+			 */
+			bool updateOutputVariables(Timing::Event * ev);
+
+			/** 
+			 * @brief Appends the registered output variables and its content to the
+			 * ASN.1-based message.
+			 * @details The function will use the compact encoding rules presented in
+			 * IEC 61499. It adds the message at the end of the given buffer.
+			 * @param buffer A valid reference to the output buffer
+			 */
+			void encodeASN1OutputVariables(std::vector<uint8_t> &buffer);
 
 			/**
 			 * @brief Encodes the given value and appends it to the buffer

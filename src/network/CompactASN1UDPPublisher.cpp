@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -71,35 +71,23 @@ void CompactASN1UDPPublisher::init(const Base::TransmissionChannel &channel)
 	socket_ = new udp::socket(service_);
 	socket_->open(destination_.protocol());
 
-	BOOST_LOG_TRIVIAL(trace) << "Just initialized CompactASN.1-UDP publisher sending"
-		" to " << destination_.protocol().type() << ":" << addr.substr(0, sepPos) 
-		<< ":" << destination_.port();
+	BOOST_LOG_TRIVIAL(trace) << "Just initialized CompactASN.1-UDP publisher "
+		"sending to " << destination_.protocol().type() << ":" 
+		<< addr.substr(0, sepPos) << ":" << destination_.port();
 }
 
-void
-CompactASN1UDPPublisher::eventTriggered(Timing::Event * ev)
+void 
+CompactASN1UDPPublisher::sendData(const std::vector<uint8_t> &buffer)
 {
-	assert(socket_ != NULL);
+	size_t trSize = socket_->send_to(boost::asio::buffer(buffer), destination_);
 
-	// Update local state, send only if the event encodes some new variables
-	if (updateOutputVariables(ev))
+	if(trSize != buffer.size())
 	{
-		std::vector<uint8_t> buffer;
-		encodeASN1OutputVariables(buffer);
-	
-		BOOST_LOG_TRIVIAL(trace) << "Send event " << ev->toString();
-
-		// throws boost::system_error
-		size_t trSize;
-		trSize = socket_->send_to(boost::asio::buffer(buffer), destination_);
-		if(trSize != buffer.size())
-		{
-			BOOST_LOG_TRIVIAL(warning) << "UDP message of event at " << ev->getTime() 
-				<< " only partly transferred (" << trSize << "/" << buffer.size() 
-				<< " bytes)";
-		}else{
-			BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " 
-				<< toString(buffer);
-		}
+		BOOST_LOG_TRIVIAL(warning) << "UDP message "  << toString(buffer)
+			<< " was only partly transferred (" << trSize << 	"/" << buffer.size() 
+			<< " bytes)";
+	} else {
+		BOOST_LOG_TRIVIAL(trace) << "Compact ASN.1 message sent: " 
+			<< toString(buffer);
 	}
 }
