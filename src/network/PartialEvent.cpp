@@ -12,6 +12,8 @@
 
 #include <assert.h>
 
+#include <boost/format.hpp>
+
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Network;
 
@@ -30,12 +32,10 @@ std::vector<Timing::Variable> PartialEvent::getVariables()
 
 std::string PartialEvent::toString() const
 {
-	std::string ret = Event::toString();
-	ret += Event::toString(var_);
-	ret += " " + nextTemplateIndex_;
-	ret += " of " + portTemplate_.size();
-	ret += " variables registered";
-	return ret;
+	boost::format strFmt("PartialEvent: %1% -- %2% of %3% variables registered");
+	strFmt % Event::toString(var_) % nextTemplateIndex_;
+	strFmt % portTemplate_.size();
+	return strFmt.str();
 }
 
 bool PartialEvent::hasRemainingElements() const
