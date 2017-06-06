@@ -1,0 +1,6 @@
+/**
+ * @mainpage FMITerminalBlock: An interface program wich sends a model's output to IEC 61499-based controllers
+ * @section License
+ * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.
+ * All rights reserved. See file FMITerminalBlock_LICENSE for details.
+ */

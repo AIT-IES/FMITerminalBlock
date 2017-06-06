@@ -1,0 +1,21 @@
+# -------------------------------------------------------------------
+# Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.
+# All rights reserved. See file FMITerminalBlock_LICENSE for details.
+# -------------------------------------------------------------------
+
+# Adds the given source file to the list of known source files
+# module The module identifier used to generate the source file variable. This
+#        variable ist named <PROJECT_NAME>_<module>_SOURCE
+# file   The path to the source file
+function( add_source_file module file )
+
+	get_filename_component(file ${file} ABSOLUTE)
+
+	if ( DEFINED "${PROJECT_NAME}_${module}_SOURCE" )
+		set("${PROJECT_NAME}_${module}_SOURCE" 
+			${${PROJECT_NAME}_${module}_SOURCE} ${file} PARENT_SCOPE )
+	else ()
+		set("${PROJECT_NAME}_${module}_SOURCE" ${file} PARENT_SCOPE)
+	endif ()
+
+endfunction ()
