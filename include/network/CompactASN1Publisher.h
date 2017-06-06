@@ -138,7 +138,7 @@ namespace FMITerminalBlock
 			 * @param type The FMI source type
 			 * @return The best fitting ASN.1 type which avoids data loss
 			 */
-			static ASN1Commons::DataType getDefaultType(FMIType type);
+			static ASN1Commons::DataType getDefaultType(FMIVariableType type);
 
 			/**
 			 * @brief Updates the outputVariables_ based on the given Event

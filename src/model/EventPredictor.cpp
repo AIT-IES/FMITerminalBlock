@@ -43,25 +43,28 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	std::string path = context.getProperty<std::string>(PROP_FMU_PATH);
 	std::string name = context.getProperty<std::string>(PROP_FMU_NAME);
 
-	// Load The model description, the handler function won't be used directly.
-	BareFMUModelExchangePtr modExBare;
-	modExBare = ModelManager::getModelManager().getModel(path, name, fmiTrue);
+	solver_ = new PredictingFMU(path, name);
 	
-	if(!modExBare){
-		boost::format err("Can't load the ModelExchange FMU \"%1%\" in URL \"%2%\"");
-		err % name % path;
+	if (solver_->getLastStatus() != fmiOK) {
+		boost::format err("Can't load the incremental FMU \"%1%\" in URL \"%2%\""
+			"Got status %3%");
+		err % name % path % solver_->getLastStatus();
 		throw std::invalid_argument(err.str());
 	}
-	assert(modExBare->description != NULL);
-	description_ = modExBare->description;
-
-	solver_ = new PredictingFMU(path, name);
+	description_ = solver_->getModelDescription();
 }
 
 EventPredictor::~EventPredictor()
 {
 	if (solver_ != NULL)
 		delete solver_;
+}
+
+const ModelDescription * 
+EventPredictor::getModelDescription() const
+{
+	assert(description_ != NULL);
+	return description_; 
 }
 
 void 
@@ -287,7 +290,7 @@ EventPredictor::defineOutputs(const Base::ChannelMapping *mapping)
 }
 
 void 
-EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIType type)
+EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIVariableType type)
 {
 	assert(outputIDs_.size() >= 5);
 	assert(solver_ != NULL);
@@ -369,7 +372,7 @@ EventPredictor::fetchOutputs(std::vector<Timing::Variable> &values, fmiTime time
 
 template<typename InputType>
 void EventPredictor::defineInputs(std::vector<InputType> *destinationImage, 
-	FMIType type, InputType defaultValue, 
+	FMIVariableType type, InputType defaultValue, 
 	void(IncrementalFMU::*defineFunction)(const std::string *,std::size_t))
 {
 	assert(destinationImage != NULL);
@@ -419,7 +422,7 @@ void EventPredictor::defineInputs()
 
 template<typename InputType>
 bool EventPredictor::updateInputImage(std::vector<InputType> *destinationImage,
-	Timing::Event *ev, FMIType type)
+	Timing::Event *ev, FMIVariableType type)
 {
 	assert(destinationImage != NULL);
 	assert(ev != NULL);

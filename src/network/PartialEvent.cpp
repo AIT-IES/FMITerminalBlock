@@ -43,7 +43,7 @@ bool PartialEvent::hasRemainingElements() const
 	return nextTemplateIndex_ < portTemplate_.size();
 }
 
-FMIType PartialEvent::getNextPortType() const
+FMIVariableType PartialEvent::getNextPortType() const
 {
 	assert(hasRemainingElements());
 	return portTemplate_[nextTemplateIndex_].first;

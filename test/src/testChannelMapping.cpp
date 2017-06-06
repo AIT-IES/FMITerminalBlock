@@ -159,7 +159,7 @@ BOOST_FIXTURE_TEST_CASE(testEmptyMappingCtor, BasicChannelMappingFixture)
  * @brief Checks the variable list of the mapping object
  * @details Constructs a one element reference list and compares all entries.
  */
-void checkVariableVector(std::shared_ptr<ChannelMapping> mapping, FMIType type, std::string varName)
+void checkVariableVector(std::shared_ptr<ChannelMapping> mapping, FMIVariableType type, std::string varName)
 {
 
 	std::vector<PortID> varIDs;

@@ -146,7 +146,7 @@ CompactASN1Publisher::initOutputTypes(const Base::TransmissionChannel &channel)
 }
 
 ASN1Commons::DataType 
-CompactASN1Publisher::getDefaultType(FMIType srcType)
+CompactASN1Publisher::getDefaultType(FMIVariableType srcType)
 {
 	ASN1Commons::DataType type;
 	// Assign default types

@@ -13,7 +13,7 @@
 
 #include "base/PortID.h"
 
-#include <common/FMIType.h>
+#include <common/FMIVariableType.h>
 #include <vector>
 
 namespace FMITerminalBlock
@@ -37,7 +37,7 @@ namespace FMITerminalBlock
 			/**
 			 * @brief Returns a newly generated unique PortID
 			 */
-			PortID getNextPortID(FMIType type);
+			PortID getNextPortID(FMIVariableType type);
 
 		private:
 			/**

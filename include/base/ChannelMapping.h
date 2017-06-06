@@ -15,7 +15,7 @@
 #include "base/PortIDDrawer.h"
 #include "base/TransmissionChannel.h"
 
-#include <common/FMIType.h>
+#include <common/FMIVariableType.h>
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
 #include <vector>
@@ -84,11 +84,11 @@ namespace FMITerminalBlock
 			 * VariableID vector. The reference will be valid until the ChannelMapping
 			 * object gets destroyed. Every model variable name returned will have the
 			 * given type
-			 * @param type The FMIType to query
+			 * @param type The FMIVariableType to query
 			 * @return A vector which contains every output port name
 			 */
 			const std::vector<std::string> & getVariableNames(
-					FMIType type) const;
+					FMIVariableType type) const;
 
 			/**
 			 * @brief Returns a vector which contains every assigned PortID
@@ -97,11 +97,11 @@ namespace FMITerminalBlock
 			 * the index of the variable name vector. It is guaranteed that the 
 			 * returned PortID stores exactly the same type as the given parameter. The 
 			 * reference remains valid until the channel mapping object is destroyed.
-			 * @param type The FMIType to query
+			 * @param type The FMIVariableType to query
 			 * @return A vector which contains every PortID of a particular type which 
 			 * is managed by the ChannelMapping 
 			 */
-			const std::vector<PortID> & getVariableIDs(FMIType type) const;
+			const std::vector<PortID> & getVariableIDs(FMIVariableType type) const;
 
 			/**
 			 * @brief Returns the number of configured channels
@@ -141,9 +141,9 @@ namespace FMITerminalBlock
 			/** @brief reference to the global PortID source */
 			PortIDDrawer &portIDSource_;
 
-			/** @brief The vector of available variables per FMIType */
+			/** @brief The vector of available variables per FMIVariableType */
 			std::vector<std::vector<std::string>> variableNames_;
-			/** @brief The vector of assigned PortIDs per FMIType */
+			/** @brief The vector of assigned PortIDs per FMIVariableType */
 			std::vector<std::vector<PortID>> variableIDs_;
 
 			/** @brief Vector storing configured variables for each output port */
@@ -177,7 +177,7 @@ namespace FMITerminalBlock
 			 * <FMUunknown, -1> will be returned
 			 * @return The name's PortID or <fmiTypeUnknown, -1>
 			 */
-			PortID getID(const std::string &name, FMIType type);
+			PortID getID(const std::string &name, FMIVariableType type);
 
 		};
 

@@ -29,7 +29,7 @@ ChannelMapping::ChannelMapping(PortIDDrawer &portIDSource,
 }
 
 const std::vector<std::string> & 
-ChannelMapping::getVariableNames(FMIType type) const
+ChannelMapping::getVariableNames(FMIVariableType type) const
 {
 	assert(type < ((int)variableNames_.size()));
 	assert(variableNames_.size() == variableIDs_.size());
@@ -39,7 +39,7 @@ ChannelMapping::getVariableNames(FMIType type) const
 }
 
 const std::vector<PortID> &
-ChannelMapping::getVariableIDs(FMIType type) const
+ChannelMapping::getVariableIDs(FMIVariableType type) const
 {
 	assert(type < ((int)variableIDs_.size()));
 	assert(variableNames_.size() == variableIDs_.size());
@@ -171,7 +171,7 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 				"doesn't specify a variable name");
 		}
 
-		FMIType type = (FMIType) variableProp.get().get<int>(PROP_TYPE, (int) fmiTypeUnknown);
+		FMIVariableType type = (FMIVariableType) variableProp.get().get<int>(PROP_TYPE, (int) fmiTypeUnknown);
 		if(((unsigned) type) >= variableNames_.size())
 		{
 			throw Base::SystemConfigurationException("FMI type code does not exist", 
@@ -194,7 +194,7 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 	}
 }
 
-PortID ChannelMapping::getID(const std::string &name, FMIType type)
+PortID ChannelMapping::getID(const std::string &name, FMIVariableType type)
 {
 	assert(variableNames_.size() >= 5);
 	assert(variableNames_.size() == variableIDs_.size());

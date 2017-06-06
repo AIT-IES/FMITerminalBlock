@@ -29,18 +29,6 @@ PredictingFMU::PredictingFMU(const std::string& fmuPath,
 {
 }
 
-
-PredictingFMU::PredictingFMU(const std::string& xmlPath, 
-														 const std::string& dllPath, 
-														 const std::string& modelName,
-														 const fmiBoolean loggingOn,
-														 const fmiReal timeDiffResolution, 
-														 const IntegratorType type):
-	IncrementalFMU(xmlPath, dllPath, modelName, loggingOn, timeDiffResolution, type),
-	timeDiffResolution_(timeDiffResolution)
-{
-}
-
 PredictingFMU::~PredictingFMU()
 {
 }

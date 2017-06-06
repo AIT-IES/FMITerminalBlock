@@ -17,7 +17,7 @@
 #include <boost/any.hpp>
 
 #include <common/fmi_v1.0/fmiModelTypes.h>
-#include <common/FMIType.h>
+#include <common/FMIVariableType.h>
 
 #include "base/PortID.h"
 

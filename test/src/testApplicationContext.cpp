@@ -350,8 +350,8 @@ BOOST_AUTO_TEST_CASE(test_Port_id_drawer)
 	PortIDDrawer idStore;
 
 	for (int i = 0; i < 5; i++) {
-		PortID id1 = idStore.getNextPortID((FMIType) i);
-		PortID id2 = idStore.getNextPortID((FMIType) i);
+		PortID id1 = idStore.getNextPortID((FMIVariableType) i);
+		PortID id2 = idStore.getNextPortID((FMIVariableType) i);
 
 		BOOST_CHECK_EQUAL(id1.first, id2.first);
 		BOOST_CHECK_NE(id1.second, id2.second);

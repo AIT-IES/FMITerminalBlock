@@ -190,6 +190,24 @@ BOOST_AUTO_TEST_CASE(test_init_defaults_2_0)
 	pred.init();
 }
 
+/** @brief Tests the getModelDescription() function */
+BOOST_AUTO_TEST_CASE(test_getModelDescription)
+{
+	Base::ApplicationContext appContext;
+	const char * argv[] = {"testEventPredictor",
+			"fmu.path=" FMU_URI_PRE "zigzag", "fmu.name=zigzag", 
+			"app.startTime=0.0", "app.lookAheadTime=1.1",
+			"out.0.0=x", "out.0.0.type=0", NULL};
+	appContext.addCommandlineProperties(7, argv);
+
+	EventPredictor pred(appContext);
+	const ModelDescription* desc = pred.getModelDescription();
+	BOOST_REQUIRE(desc != NULL);
+	BOOST_CHECK_EQUAL(
+		desc->getModelAttributes().get<std::string>("modelName"), 
+		"zigzag");
+}
+
 /** @brief Tests the event detection and fmiReal-typed outputs*/
 BOOST_FIXTURE_TEST_CASE(test_fmireal_events, EventPredictorZigzagFixture)
 {

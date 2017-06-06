@@ -159,7 +159,7 @@ public:
 	/** 
 	 * @brief Adds another port of the given type 
 	 */
-	void addPortConfig(FMIType type)
+	void addPortConfig(FMIVariableType type)
 	{
 		assert(channel_);
 
@@ -225,9 +225,9 @@ PrintableFactory<RawTestDataSource> RAW_SOURCE_GENERATOR[] = {
 };
 
 /** @brief Provides print functionality of fmiTypes vectors */
-std::ostream& operator << (std::ostream& stream,	const FMIType& type)
+std::ostream& operator << (std::ostream& stream,	const FMIVariableType& type)
 {
-	stream << "FMIType: " << (int) type;
+	stream << "FMIVariableType: " << (int) type;
 	return stream;
 }
 
@@ -376,7 +376,7 @@ const RawTestData NON_CONVERTIBLE_STRING_PACKETS[] = {
 	(RAW_TEST_BOOL_TRUE() + RAW_TEST_STRING_EMPTY() + RAW_TEST_BOOL_FALSE())
 };
 
-const FMIType NON_STRING_TYPES[] = {fmiTypeReal, fmiTypeInteger, 
+const FMIVariableType NON_STRING_TYPES[] = {fmiTypeReal, fmiTypeInteger, 
 	fmiTypeBoolean};
 
 /** 

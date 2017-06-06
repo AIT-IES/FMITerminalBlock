@@ -11,7 +11,7 @@
 #ifndef _FMITERMINALBLOCK_BASE_PORT_ID
 #define _FMITERMINALBLOCK_BASE_PORT_ID
 
-#include <common/FMIType.h>
+#include <common/FMIVariableType.h>
 #include <utility>
 
 namespace FMITerminalBlock
@@ -19,14 +19,13 @@ namespace FMITerminalBlock
 	namespace Base
 	{
 
-
 		 /**
   		* @brief Defines a port identifier type
 		  * @details The FMIType specifies the type of the port and the integer
 		  * stores a type-unique identifier. The identifier may not be densely
 		  * assigned by channel mapping and may not start at zero.
 		  */
-		typedef std::pair<FMIType, int> PortID;
+		typedef std::pair<FMIVariableType, int> PortID;
 
 	}
 }

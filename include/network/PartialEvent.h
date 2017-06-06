@@ -64,7 +64,7 @@ namespace FMITerminalBlock
 			 * @brief Returns the fmiType of the next PortID 
 			 * @details It is assumed that there are sill remaining elements left.
 			 */
-			FMIType getNextPortType() const;
+			FMIVariableType getNextPortType() const;
 
 			/**
 			 * @brief Appends the value to the list of variables

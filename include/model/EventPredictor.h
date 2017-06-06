@@ -85,8 +85,7 @@ namespace FMITerminalBlock
 			 * undesired behavior.
 			 * @return a pointer to the model's description
 			 */
-			const ModelDescription * getModelDescription() const
-				{ return description_; }
+			const ModelDescription* getModelDescription() const;
 
 			/**
 			 * @brief Initializes the model
@@ -168,7 +167,7 @@ namespace FMITerminalBlock
 			 * populated in the C'tor and references the FMU which is also
 			 * encapsulated in solver_.
 			 */
-			ModelDescription * description_;
+			const ModelDescription * description_;
 
 			/**
 			 * @brief Stores the ID of each registered output.
@@ -289,7 +288,7 @@ namespace FMITerminalBlock
 			 * @param mapping The channel mapping used to fetch needed output channels
 			 * @param type The output variable's type
 			 */
-			void defineOutput(const Base::ChannelMapping *mapping, FMIType type);
+			void defineOutput(const Base::ChannelMapping *mapping, FMIVariableType type);
 
 			/**
 			 * @brief Fetches the solver's outputs at the current instant of time and 
@@ -320,8 +319,8 @@ namespace FMITerminalBlock
 			 * to register the inputs at the solver_ instance.
 			 */
 			template<typename InputType>
-			void defineInputs(std::vector<InputType> *destinationImage, FMIType type, 
-				InputType defaultValue, 
+			void defineInputs(std::vector<InputType> *destinationImage, 
+				FMIVariableType type, InputType defaultValue, 
 				void(IncrementalFMU::*defineFunction)(const std::string *, std::size_t));
 
 			/**
@@ -338,7 +337,7 @@ namespace FMITerminalBlock
 			 */
 			template<typename InputType>
 			bool updateInputImage(std::vector<InputType> *destinationImage,
-				Timing::Event *ev, FMIType type);
+				Timing::Event *ev, FMIVariableType type);
 
 			/**
  			 * @brief Updates the input image variables
