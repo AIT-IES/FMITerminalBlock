@@ -32,8 +32,9 @@ std::vector<Timing::Variable> PartialEvent::getVariables()
 
 std::string PartialEvent::toString() const
 {
-	boost::format strFmt("PartialEvent: %1% -- %2% of %3% variables registered");
-	strFmt % Event::toString(var_) % nextTemplateIndex_;
+	boost::format strFmt("PartialEvent: %1%%2% -- %3% of %4% variables "
+		"registered");
+	strFmt % Event::toString() % Event::toString(var_) % nextTemplateIndex_;
 	strFmt % portTemplate_.size();
 	return strFmt.str();
 }
