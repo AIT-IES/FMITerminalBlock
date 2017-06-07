@@ -47,7 +47,7 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	
 	if (solver_->getLastStatus() != fmiOK) {
 		boost::format err("Can't load the incremental FMU \"%1%\" in URL \"%2%\""
-			"Got status %3%");
+			" Got status %3%");
 		err % name % path % solver_->getLastStatus();
 		throw std::invalid_argument(err.str());
 	}

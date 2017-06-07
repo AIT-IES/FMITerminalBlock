@@ -192,11 +192,13 @@ std::string
 TimedEventQueue::toString()
 {
 	std::string ret("TimedEventQueue: [");
-	for (auto it = queue_.begin(); it != queue_.end(); ++it)
+	auto it = queue_.begin();
+	while ( it != queue_.end() )
 	{
 		ret += it->first->toString();
 		ret += it->second ? " (predicted)" : " (external)";
-		ret += ", ";
+		++it;
+		if (it != queue_.end())	ret += ", ";
 	}
 	ret += "]";
 	return ret;
