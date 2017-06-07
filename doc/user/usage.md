@@ -64,3 +64,4 @@ The operation of the solver and the prediction logic may be adjusted by the foll
 
 **app.timingFile**: If the parameter is set, a timing file will be written which may be used to analyze the performance of FMITerminalBlock and its latencies.
 
+**in.default.-variable-name-**: The initial value of the input variable with the name *-variable-name-*. The value will be interpreted according to the variable type. I.e. if the variable is an fmiInteger, it will be converted to an integer variable. Unknown or unused inputs will be gracefully ignored.
