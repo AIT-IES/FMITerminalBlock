@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -73,7 +73,7 @@ namespace FMITerminalBlock
 
 
 			/** @brief Copy C'tor */
-			SystemConfigurationException(SystemConfigurationException &ex): 
+			SystemConfigurationException(const SystemConfigurationException &ex):
 				std::invalid_argument(ex), configSet(ex.configSet),
 				configKey(ex.configKey), configValue(ex.configValue) {}
 
@@ -138,7 +138,7 @@ namespace FMITerminalBlock
 				std::invalid_argument(msg), time_(time) {}
 
 			/** @brief Copy C'tor */
-			SolverException(SolverException &ex): 
+			SolverException(const SolverException &ex):
 				std::invalid_argument(ex), time_(ex.time_) {}
 
 			/**
