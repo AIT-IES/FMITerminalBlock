@@ -428,7 +428,7 @@ bool EventPredictor::updateInputImage(std::vector<InputType> *destinationImage,
 	assert(ev != NULL);
 	assert(((unsigned int) type) < inputIDs_.size());
 
-	std::vector<Timing::Variable> &vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	std::vector<Base::PortID> &ports = inputIDs_[type];
 	bool found = false;
 	for (auto varIt = vars.begin(); varIt != vars.end(); ++varIt)
