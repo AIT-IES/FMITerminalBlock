@@ -11,7 +11,7 @@
 #ifndef _FMITERMINALBLOCK_TIMING_STATIC_EVENT
 #define _FMITERMINALBLOCK_TIMING_STATIC_EVENT
 
-#include "timing\Event.h"
+#include "timing/Event.h"
 
 #include <vector>
 
