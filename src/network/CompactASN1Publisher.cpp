@@ -175,7 +175,7 @@ CompactASN1Publisher::updateOutputVariables(Timing::Event * ev)
 {
 	assert(ev != NULL);
 	bool updated = false;
-	std::vector<Timing::Variable> & vars = ev->getVariables();
+	std::vector<Timing::Variable> vars = ev->getVariables();
 	for(unsigned i = 0; i < vars.size(); i++)
 	{
 		for(unsigned j = 0; j < outputVariables_.size(); j++)

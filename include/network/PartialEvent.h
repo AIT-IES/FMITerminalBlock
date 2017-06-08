@@ -11,7 +11,7 @@
 #ifndef _FMITERMINALBLOCK_NETWORK_PARTIAL_EVENT
 #define _FMITERMINALBLOCK_NETWORK_PARTIAL_EVENT
 
-#include "timing\Event.h"
+#include "timing/Event.h"
 
 #include <vector>
 
