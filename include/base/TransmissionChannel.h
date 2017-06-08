@@ -11,7 +11,7 @@
 #ifndef _FMITERMINALBLOCK_BASE_TRANSMISSION_CHANNEL
 #define _FMITERMINALBLOCK_BASE_TRANSMISSION_CHANNEL
 
-#include "base\PortID.h"
+#include "base/PortID.h"
 
 #include <vector>
 

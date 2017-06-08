@@ -12,7 +12,7 @@
 #define _FMITERMINALBLOCK_TIMING_EVENT_DISPATCHER
 
 #include "model/AbstractEventPredictor.h"
-#include "base/Applicationcontext.h"
+#include "base/ApplicationContext.h"
 #include "timing/EventQueue.h"
 #include "timing/EventListener.h"
 #include "timing/EventLogger.h"
