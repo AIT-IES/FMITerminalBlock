@@ -134,8 +134,8 @@ ApplicationContext::getPositiveDoubleProperty(const std::string &path, double de
 	try
 	{
 		ret = getProperty<double>(path, def);
-	}catch(std::invalid_argument){
-		throw Base::SystemConfigurationException("The Property is not a floating point number", 
+	}catch(std::invalid_argument&){
+		throw Base::SystemConfigurationException("The Property is not a floating point number",
 			path,	getProperty<std::string>(path));
 	}
 
