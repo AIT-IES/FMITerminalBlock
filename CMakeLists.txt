@@ -1,15 +1,17 @@
 # -------------------------------------------------------------------
-# Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.
+# Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.
 # All rights reserved. See file FMITerminalBlock_LICENSE for details.
 # -------------------------------------------------------------------
 
-cmake_minimum_required( VERSION 2.8.12 )
+cmake_minimum_required( VERSION 3.1.0 )
 
 project( FMITerminalBlock )
 
 # Include custom functions
 include( cmake/CMakeAddSourceFile.txt )
 include( cmake/ConfigureNetworkManager.cmake )
+include( cmake/SetDefaultCompilerSettings.cmake )
+include( cmake/AddTests.cmake )
 
 # add a target to generate documentation with Doxygen
 # The statements were taken from FMI++
@@ -17,36 +19,6 @@ find_package( Doxygen )
 if ( DOXYGEN_FOUND )
    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile @ONLY )
    add_custom_target( FMITerminalBlock-doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM )
-endif ()
-
-
-# OS-specific compiler settings
-# The if-statement was taken from FMI++
-if ( WIN32 ) # windows-specific
-   set( PATH_SEPARATOR ";" )
-   set( CMAKE_SHARED_LIBRARY_PREFIX "" )
-   set( CMAKE_SHARED_MODULE_PREFIX "" )
-   add_definitions( -DWIN32 )
-   if ( MINGW )
-      add_definitions( -DMINGW -Wall ) # -O1
-      if ( CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.7.0" )
-         set( CMAKE_CXX_FLAGS "-std=c++0x" )
-      else ()
-         set( CMAKE_CXX_FLAGS "-std=c++11" )
-      endif ()
-   endif ()
-   if ( MSVC )
-      # disable auto-linking and use cmake's dependency handling
-      add_definitions( -DBOOST_ALL_NO_LIB /W3 )
-   endif ()
-else () # linux-specific
-   set( PATH_SEPARATOR ":" )
-   add_definitions( -Wall ) # -O1
-      if ( CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.7.0" )
-         set( CMAKE_CXX_FLAGS "-std=c++0x" )
-      else ()
-         set( CMAKE_CXX_FLAGS "-std=c++11" )
-      endif ()
 endif ()
 
 # Boost dependencies
@@ -122,6 +94,7 @@ add_executable(FMITerminalBlock src/main.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
 
 target_link_libraries(FMITerminalBlock ${Boost_LIBRARIES} fmippim )
+set_default_compiler_settings(FMITerminalBlock)
 
 # Configure test cases
 option(FMITerminalBlock_BUILD_TESTS 
@@ -133,15 +106,15 @@ if (FMITerminalBlock_BUILD_TESTS)
 			"Require FMI++ test cases (BUILD_TESTS=ON) to build the FMITerminalBlock test cases")
 	endif ()
 
-	enable_testing()
+	#enable_testing()
 	add_subdirectory(test)
-	add_test( NAME ASN1Publisher COMMAND testASN1Publisher )
-	add_test( NAME ASN1Subscriber COMMAND testASN1Subscriber )
-	add_test( NAME NetworkManager COMMAND testNetworkManager )
-	add_test( NAME EventPredictor COMMAND testEventPredictor )
-	add_test( NAME EventHandling COMMAND testEventHandling )
-	add_test( NAME ApplicationContext COMMAND testApplicationContext )
-	add_test( NAME ChannelMapping COMMAND testChannelMapping )
+	#add_test( NAME ASN1Publisher COMMAND testASN1Publisher )
+	#add_test( NAME ASN1Subscriber COMMAND testASN1Subscriber )
+	#add_test( NAME NetworkManager COMMAND testNetworkManager )
+	#add_test( NAME EventPredictor COMMAND testEventPredictor )
+	#add_test( NAME EventHandling COMMAND testEventHandling )
+	#add_test( NAME ApplicationContext COMMAND testApplicationContext )
+	#add_test( NAME ChannelMapping COMMAND testChannelMapping )
 endif ()
 
 
