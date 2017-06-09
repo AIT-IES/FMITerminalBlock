@@ -44,7 +44,6 @@ if ( NOT IS_DIRECTORY ${fmipp_PROJECT_DIR} )
 			"accordingly." )
 endif ()
 
-#set( fmippim_LIBRARIES U:/Development/fmipp/build/import/Release/fmippim.lib )
 add_subdirectory(${fmipp_PROJECT_DIR} fmipp)
 
 # List of include directories
@@ -106,15 +105,8 @@ if (FMITerminalBlock_BUILD_TESTS)
 			"Require FMI++ test cases (BUILD_TESTS=ON) to build the FMITerminalBlock test cases")
 	endif ()
 
-	#enable_testing()
+	enable_testing()
 	add_subdirectory(test)
-	#add_test( NAME ASN1Publisher COMMAND testASN1Publisher )
-	#add_test( NAME ASN1Subscriber COMMAND testASN1Subscriber )
-	#add_test( NAME NetworkManager COMMAND testNetworkManager )
-	#add_test( NAME EventPredictor COMMAND testEventPredictor )
-	#add_test( NAME EventHandling COMMAND testEventHandling )
-	#add_test( NAME ApplicationContext COMMAND testApplicationContext )
-	#add_test( NAME ChannelMapping COMMAND testChannelMapping )
 endif ()
 
 

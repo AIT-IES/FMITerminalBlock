@@ -15,5 +15,10 @@ macro(add_test_target test_name)
     add_executable( test${test_name} ${ARGN} )
     target_link_libraries( test${test_name} ${Boost_LIBRARIES} fmippim )
 	set_default_compiler_settings( test${test_name} )
+	add_custom_command( 
+		TARGET test${test_name} POST_BUILD 
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+			$<TARGET_FILE:fmippim> $<TARGET_FILE_DIR:test${test_name}> 
+		COMMENT "Make fmippim available" VERBATIM)
     add_test( NAME ${test_name} COMMAND test${test_name} )
 endmacro()

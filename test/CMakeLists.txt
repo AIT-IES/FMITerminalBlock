@@ -25,8 +25,6 @@ include_directories( ${FMITerminalBlock_SOURCE_DIR}/include )
 include_directories( ${Boost_INCLUDE_DIRS} )
 include_directories( ${fmipp_INCLUDE_DIRS} )
 
-enable_testing()
-
 # Generate test programs
 add_test_target( ASN1Publisher src/testASN1Publisher.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 
