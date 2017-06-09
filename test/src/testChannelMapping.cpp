@@ -76,7 +76,7 @@ BOOST_FIXTURE_TEST_CASE(testMissingType, BasicChannelMappingFixture)
 
 
 	std::unique_ptr<ChannelMapping> mapping =
-		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
 	
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 1);
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown)[0], "b");
@@ -107,7 +107,7 @@ BOOST_FIXTURE_TEST_CASE(testNoVariables, BasicChannelMappingFixture)
 	configRoot_.put("1.addr", "addr"); // OK, but no variables
 
 	std::unique_ptr<ChannelMapping> mapping = 
-		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
 	
 	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
 	BOOST_CHECK_EQUAL(mapping->getPorts(0).size(), 1);
@@ -118,7 +118,7 @@ BOOST_FIXTURE_TEST_CASE(testNoVariables, BasicChannelMappingFixture)
 BOOST_FIXTURE_TEST_CASE(testEmptyConfig, BasicChannelMappingFixture)
 {
 	std::unique_ptr<ChannelMapping> mapping =
-		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
 
 	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeReal).size(), 0);
@@ -138,7 +138,7 @@ BOOST_FIXTURE_TEST_CASE(testEmptyConfig, BasicChannelMappingFixture)
 BOOST_FIXTURE_TEST_CASE(testEmptyMappingCtor, BasicChannelMappingFixture)
 {
 	std::unique_ptr<ChannelMapping> mapping =
-		std::make_unique<ChannelMapping>(idSource_);
+		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_));
 
 	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeReal).size(), 0);
@@ -215,7 +215,7 @@ BOOST_FIXTURE_TEST_CASE(testChannelStructure, InitializedChannelMappingFixture)
 {
 
 	std::unique_ptr<ChannelMapping> mapping =
-		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
 
 	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
 
@@ -241,7 +241,7 @@ BOOST_FIXTURE_TEST_CASE(testTransmissionChannel, InitializedChannelMappingFixtur
 {
 
 	std::unique_ptr<ChannelMapping> mapping =
-		std::make_unique<ChannelMapping>(idSource_, configRoot_);
+		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
 
 	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
 

@@ -32,7 +32,8 @@ RawTCPServerTestDataSource::RawTCPServerTestDataSource()
 	socket_ = std::make_shared<ip::tcp::socket>(service_);
 
 	// Prevents the thread from exiting since no work is scheduled yet.
-	busyKeeper_ = std::make_unique<boost::asio::io_service::work>(service_);
+	busyKeeper_ = std::unique_ptr<boost::asio::io_service::work>(
+			new boost::asio::io_service::work(service_));
 	ioThread_ = std::thread(&RawTCPServerTestDataSource::runIOService, this);
 }
 

@@ -17,6 +17,7 @@
 
 #include <thread>
 #include <mutex>
+#include <memory>
 
 namespace FMITerminalBlock
 {

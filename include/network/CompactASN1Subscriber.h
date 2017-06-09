@@ -20,6 +20,7 @@
 #include <vector>
 #include <stdint.h>
 #include <functional>
+#include <memory>
 
 #include "timing/Event.h"
 #include "network/PartialEvent.h"

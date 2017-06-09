@@ -44,7 +44,8 @@ void CompactASN1Subscriber::init(const Base::TransmissionChannel &settings,
 
 	clearUnprocessedData();
 
-	busyKeeper_ = std::make_unique<boost::asio::io_service::work>(service_);
+	busyKeeper_ = std::unique_ptr<boost::asio::io_service::work>(
+			new boost::asio::io_service::work(service_));
 
 	// Initialize the timer
 	uint32_t packetTimeout;
