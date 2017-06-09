@@ -26,7 +26,7 @@ using namespace FMITerminalBlock;
 
 const std::string CompactASN1Subscriber::PROP_PACKET_TIMEOUT = "packetTimeout";
 
-CompactASN1Subscriber::CompactASN1Subscriber()
+CompactASN1Subscriber::CompactASN1Subscriber(): channelConfig_(NULL)
 {
 }
 

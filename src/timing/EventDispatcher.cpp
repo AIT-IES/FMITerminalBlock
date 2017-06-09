@@ -22,7 +22,7 @@ const std::string EventDispatcher::PROP_STOP_TIME = "app.stopTime";
 EventDispatcher::EventDispatcher(Base::ApplicationContext &context, 
 																 Model::AbstractEventPredictor &predictor):
 	context_(context), predictor_(predictor), theEnd_(0.0), queue_(), 
-	listener_(NULL), timingLogger_()
+	listener_(), timingLogger_()
 {
 	
 	// The default value may take a time but that ok. In this case the program 
