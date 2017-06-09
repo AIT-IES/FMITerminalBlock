@@ -34,6 +34,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <functional>
+#include <cfloat>
 #include <vector>
 #include <list>
 #include <ostream>
