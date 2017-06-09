@@ -12,5 +12,5 @@ macro(set_default_compiler_settings target)
     target_compile_features(${target} PRIVATE cxx_lambdas)
 	
 	# Disable automatic linking -> Use CMake dependency mechanism instead
-	add_definitions( -DBOOST_ALL_NO_LIB /W3 )
+	add_definitions( -DBOOST_ALL_NO_LIB )
 endmacro ()
