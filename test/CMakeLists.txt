@@ -34,7 +34,7 @@ add_test_target( ASN1Publisher src/testASN1Publisher.cpp
 	${FMITerminalBlock_TIMING_SOURCE} 
 	${FMITerminalBlock_NETWORK_SOURCE} )
 
-add_test_target( testASN1Subscriber src/testASN1Subscriber.cpp 
+add_test_target( ASN1Subscriber src/testASN1Subscriber.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} 
@@ -52,7 +52,7 @@ AddNetworkManagerPublisher(
 	"MockupPublisher.h")
 
 ConfigureNetworkManager( ${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
-add_test_target( testNetworkManager src/testNetworkManager.cpp
+add_test_target( NetworkManager src/testNetworkManager.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ConcurrentMockupSubscriber.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/MockupPublisher.cpp
@@ -61,19 +61,19 @@ add_test_target( testNetworkManager src/testNetworkManager.cpp
 	${FMITerminalBlock_TIMING_SOURCE} 
 	${FMITerminalBlock_NETWORK_SOURCE} )
 
-add_test_target( testEventPredictor src/testEventPredictor.cpp 
+add_test_target( EventPredictor src/testEventPredictor.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} )
 
-add_test_target( testEventHandling src/testEventHandling.cpp 
+add_test_target( EventHandling src/testEventHandling.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} )
 
-add_test_target( testApplicationContext src/testApplicationContext.cpp 
+add_test_target( ApplicationContext src/testApplicationContext.cpp 
 	${FMITerminalBlock_BASE_SOURCE} )
 
-add_test_target( testChannelMapping src/testChannelMapping.cpp 
+add_test_target( ChannelMapping src/testChannelMapping.cpp 
 	${FMITerminalBlock_BASE_SOURCE} )
 

@@ -13,6 +13,7 @@
 # are necessary to compile the test set.
 macro(add_test_target test_name)
     add_executable( test${test_name} ${ARGN} )
-    target_link_libraries( test${test_name} PUBLIC ${Boost_LIBRARIES} fmippim )
+    target_link_libraries( test${test_name} ${Boost_LIBRARIES} fmippim )
+	set_default_compiler_settings( test${test_name} )
     add_test( NAME ${test_name} COMMAND test${test_name} )
 endmacro()
