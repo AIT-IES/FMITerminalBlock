@@ -91,6 +91,15 @@ namespace FMITerminalBlock
 					FMIVariableType type) const;
 
 			/**
+			 * @brief Returns a vector of all managed variable names
+			 * @details Since the vector is constructed on demand and not stored 
+			 * internally, it will be returned by value. The order of the ports 
+			 * corresponds to the order of the variable names which are returned by 
+			 * getAllVariableIDs().
+			 */
+			std::vector<std::string> getAllVariableNames() const;
+
+			/**
 			 * @brief Returns a vector which contains every assigned PortID
 			 * @details The function returns a vector of assigned port IDs which is 
 			 * filtered by a particular type. The index in the vector corresponds to 
@@ -102,6 +111,15 @@ namespace FMITerminalBlock
 			 * is managed by the ChannelMapping 
 			 */
 			const std::vector<PortID> & getVariableIDs(FMIVariableType type) const;
+
+			/**
+			 * @brief Returns a vector of all managed variable IDs
+			 * @details Since the vector is constructed on demand and not stored 
+			 * internally, it will be returned by value. The order of the ports 
+			 * corresponds to the order of the variable names which are returned by 
+			 * getAllVariableNames().
+			 */
+			std::vector<PortID> getAllVariableIDs() const;
 
 			/**
 			 * @brief Returns the number of configured channels

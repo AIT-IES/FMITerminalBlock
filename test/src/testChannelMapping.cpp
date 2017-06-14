@@ -1,13 +1,13 @@
 /* ------------------------------------------------------------------- *
-* Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
-* All rights reserved. See file FMITerminalBlock_LICENSE for details. *
-* ------------------------------------------------------------------- */
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
+ * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
+ * ------------------------------------------------------------------- */
 
 /**
-* @file testApplicationContext.cpp
-* @brief Tests the ChannelMapping classes
-* @author Michael Spiegel, michael.spiegel@ait.ac.at
-*/
+ * @file testChannelMapping.cpp
+ * @brief Tests the ChannelMapping classes
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
+ */
 
 #define BOOST_TEST_MODULE testChannelMapping
 #include <boost/test/unit_test.hpp>
@@ -132,6 +132,9 @@ BOOST_FIXTURE_TEST_CASE(testEmptyConfig, BasicChannelMappingFixture)
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeBoolean).size(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeString).size(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 0);
+
+	BOOST_CHECK_EQUAL(mapping->getAllVariableIDs().size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getAllVariableNames().size(), 0);
 }
 
 /** @brief Creates an empty ChannelMapping Object and tests it */
@@ -152,6 +155,9 @@ BOOST_FIXTURE_TEST_CASE(testEmptyMappingCtor, BasicChannelMappingFixture)
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeBoolean).size(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeString).size(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 0);
+
+	BOOST_CHECK_EQUAL(mapping->getAllVariableIDs().size(), 0);
+	BOOST_CHECK_EQUAL(mapping->getAllVariableNames().size(), 0);
 }
 
 
@@ -186,6 +192,27 @@ BOOST_FIXTURE_TEST_CASE(testVariableList, InitializedChannelMappingFixture)
 
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown).size(), 0);
+}
+
+/** @brief Tests a standard population of the list elements */
+BOOST_FIXTURE_TEST_CASE(testAllVariableList, InitializedChannelMappingFixture)
+{
+	std::shared_ptr<ChannelMapping> mapping =
+		std::make_shared<ChannelMapping>(idSource_, configRoot_);
+
+	std::vector<PortID> allVarIDsRef = {
+		PortID(fmiTypeReal, 0), PortID(fmiTypeInteger, 0), 
+		PortID(fmiTypeBoolean, 0), PortID(fmiTypeString, 0)
+	};
+	std::vector<std::string> allVarNamesRef = {"a", "b", "c", "d"};
+
+	auto allVarIDs = mapping->getAllVariableIDs();
+	auto allVarNames = mapping->getAllVariableNames();
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(allVarIDs.begin(), allVarIDs.end(), 
+		allVarIDsRef.begin(), allVarIDsRef.end());
+	BOOST_CHECK_EQUAL_COLLECTIONS(allVarNames.begin(), allVarNames.end(), 
+		allVarNamesRef.begin(), allVarNamesRef.end());
 }
 
 /** @brief Debugging aid to present PortIDs */

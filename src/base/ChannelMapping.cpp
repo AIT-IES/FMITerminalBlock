@@ -38,6 +38,17 @@ ChannelMapping::getVariableNames(FMIVariableType type) const
 	return variableNames_[(int) type];
 }
 
+std::vector<std::string> 
+ChannelMapping::getAllVariableNames() const
+{
+	std::vector<std::string> ret;
+	for (unsigned int i = 0; i < variableNames_.size(); i++)
+	{
+		ret.insert(ret.end(), variableNames_[i].begin(), variableNames_[i].end());
+	}
+	return ret;
+}
+
 const std::vector<PortID> &
 ChannelMapping::getVariableIDs(FMIVariableType type) const
 {
@@ -46,6 +57,17 @@ ChannelMapping::getVariableIDs(FMIVariableType type) const
 	assert(variableNames_[(int)type].size() ==
 		variableIDs_[(int)type].size());
 	return variableIDs_[(int)type];
+}
+
+std::vector<PortID> 
+ChannelMapping::getAllVariableIDs() const
+{
+	std::vector<PortID> ret;
+	for (unsigned int i = 0; i < variableIDs_.size(); i++)
+	{
+		ret.insert(ret.end(), variableIDs_[i].begin(), variableIDs_[i].end());
+	}
+	return ret;
 }
 
 int 
