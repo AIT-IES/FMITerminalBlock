@@ -83,6 +83,7 @@ add_source_file(TIMING src/timing/StaticEvent.cpp )
 add_source_file(TIMING src/timing/EventDispatcher.cpp )
 add_source_file(TIMING src/timing/TimedEventQueue.cpp )
 add_source_file(TIMING src/timing/EventLogger.cpp )
+add_source_file(TIMING src/timing/CSVDataLogger.cpp )
 
 # State the main executable file
 add_executable(FMITerminalBlock src/main.cpp 

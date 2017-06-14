@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -8,7 +8,7 @@
  * @brief Instantiates the main program components and starts the operation
  * @details The Main file currently also handles exceptions and prints an
  * appropriate error message.
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #include "base/environment-helper.h"
@@ -29,6 +29,7 @@
 #include "model/EventPredictor.h"
 #include "timing/EventDispatcher.h"
 #include "timing/EventLogger.h"
+#include "timing/CSVDataLogger.h"
 #include "network/NetworkManager.h"
 
 using namespace FMITerminalBlock;
@@ -47,7 +48,7 @@ int main (int argc, const char *argv[])
 	initTerminalLogger();
 
 	// Print copyright notice
-	BOOST_LOG_TRIVIAL(info) << "Copyright (c) 2015, AIT Austrian Institute of "
+	BOOST_LOG_TRIVIAL(info) << "Copyright (c) 2017, AIT Austrian Institute of "
 		<< "Technology GmbH.";
 	BOOST_LOG_TRIVIAL(info) << "All rights reserved.";
 	BOOST_LOG_TRIVIAL(info) << "----------------------------------------------"
@@ -67,6 +68,9 @@ int main (int argc, const char *argv[])
 
 		Timing::EventDispatcher dispatcher(context, predictor);
 		Network::NetworkManager nwManager(context, dispatcher);
+		
+		Timing::CSVDataLogger dataLogger(context);
+		dispatcher.addEventListener(&dataLogger);
 
 		// Run the simulation
 		dispatcher.run();
@@ -88,7 +92,7 @@ int main (int argc, const char *argv[])
 			<< ex.what() << " (At time " << ex.getTimestamp() << ")"; 
 		return 4;
 	}catch(std::invalid_argument &ex){
-		BOOST_LOG_TRIVIAL(fatal) << "Invalid commandline argument detected: " 
+		BOOST_LOG_TRIVIAL(fatal) << "Invalid command line argument detected: " 
 			<< ex.what();
 		BOOST_LOG_TRIVIAL(info) << "Usage: " 
 			<< context.getProperty<std::string>(
@@ -101,8 +105,8 @@ int main (int argc, const char *argv[])
 		BOOST_LOG_TRIVIAL(fatal) << "A runtime error occurred: " << ex.what();
 		return 3;
 	}catch(...){
-		BOOST_LOG_TRIVIAL(fatal) << "Oops: Unspecified error happened (Sorry, I know"
-			" that this isn't very helpful)";
+		BOOST_LOG_TRIVIAL(fatal) << "Oops: Unspecified error happened (Sorry, I "
+			"know that this isn't very helpful)";
 		return 125;
 
 	}

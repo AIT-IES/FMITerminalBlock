@@ -75,3 +75,6 @@ add_test_target( ApplicationContext src/testApplicationContext.cpp
 add_test_target( ChannelMapping src/testChannelMapping.cpp 
 	${FMITerminalBlock_BASE_SOURCE} )
 
+add_test_target( CSVDataLogger src/testCSVDataLogger.cpp 
+	${FMITerminalBlock_BASE_SOURCE} 
+	${FMITerminalBlock_TIMING_SOURCE} )
