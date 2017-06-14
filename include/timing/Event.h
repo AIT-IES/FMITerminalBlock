@@ -90,6 +90,13 @@ namespace FMITerminalBlock
 
 		};
 
+		/**
+		 * @brief Prints the content of the Event
+		 * @details The operator invokes the Event::toString() function and appends
+		 * the result
+		 */
+		std::ostream& operator<<(std::ostream& stream, 
+			const Event& ev);
 	}
 }
 

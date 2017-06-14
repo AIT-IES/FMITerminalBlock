@@ -70,3 +70,10 @@ Event::toString(const std::vector<Variable> &vars)
 
 	return ret;
 }
+
+std::ostream& FMITerminalBlock::Timing::operator<<(std::ostream& stream,
+	const Event& ev)
+{
+	stream << ev.toString();
+	return stream;
+}
