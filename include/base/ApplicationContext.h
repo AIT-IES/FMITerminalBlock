@@ -226,6 +226,14 @@ namespace FMITerminalBlock
 			 */
 			const ChannelMapping * getInputChannelMapping(void);
 
+			/**
+			 * @brief Returns a human readable string representation
+			 * @details The function will not construct a channel mapping. In case 
+			 * the channel mapping was not constructed beforehand, it will not be 
+			 * included in the output.
+			 */
+			std::string toString() const;
+
 		private:
 
 			/** @brief Size of the internal error message buffers */
@@ -285,6 +293,13 @@ namespace FMITerminalBlock
 
 		};
 
+		/**
+		 * @brief Prints the content of the ApplicationContext
+		 */
+		// Must be declared in the namespace of the argument! 
+		// -> Otherwise some boost macros cannot resolve it
+		std::ostream& operator<<(std::ostream& stream, 
+			const ApplicationContext& appContext);
 	}
 }
 

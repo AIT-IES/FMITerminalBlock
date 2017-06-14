@@ -14,10 +14,12 @@
 #include <assert.h>
 #include <stdexcept>
 #include <string>
+#include <sstream>
 
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/property_tree/info_parser.hpp>
 
 using namespace FMITerminalBlock::Base;
 
@@ -231,6 +233,26 @@ const ChannelMapping * ApplicationContext::getInputChannelMapping()
 	return inputChannelMap_;
 }
 
+std::string ApplicationContext::toString() const
+{
+	std::string ret("ApplicationContext:");
+	
+	std::ostringstream stream;
+	boost::property_tree::info_parser::write_info(stream, config_);
+	
+	ret += " Configuration: ";
+	ret += stream.str();
+
+	ret += " InputChannelMapping: ";
+	ret += inputChannelMap_ ? 
+		inputChannelMap_->toString() : "<not-constructed>";
+
+	ret += " OutputChannelMapping: ";
+	ret += outputChannelMap_ ? 
+		outputChannelMap_->toString() : "<not-constructed>";
+
+	return ret;
+}
 
 ChannelMapping * ApplicationContext::newChannelMapping(const std::string &propertyPrefix)
 {
@@ -245,4 +267,11 @@ ChannelMapping * ApplicationContext::newChannelMapping(const std::string &proper
 	}
 
 	return channelMap;
+}
+
+std::ostream& FMITerminalBlock::Base::operator<<(std::ostream& stream, 
+			const ApplicationContext& appContext)
+{
+	stream << appContext.toString();
+	return stream;
 }
