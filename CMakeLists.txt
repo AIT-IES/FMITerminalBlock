@@ -44,7 +44,10 @@ if ( NOT IS_DIRECTORY ${fmipp_PROJECT_DIR} )
 			"accordingly." )
 endif ()
 
+# SWIG is not needed by FMITerminalBlock - Set the default value to OFF
+option( BUILD_SWIG "SWIG - Simplified Wrapper and Interface Generator stuff." OFF )
 add_subdirectory(${fmipp_PROJECT_DIR} fmipp)
+
 
 # List of include directories
 include_directories( ${FMITerminalBlock_SOURCE_DIR} )
