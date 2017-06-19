@@ -47,6 +47,10 @@ public:
 	}
 
 	/** @brief Does nothing */
+	virtual void configureDefaultApplicationContext(
+		Base::ApplicationContext *appContext) {}
+
+	/** @brief Does nothing */
 	virtual void init(void) {}
 
 	/** @brief Returns the next event */

@@ -35,6 +35,8 @@ class NoEventPredictor: public Model::AbstractEventPredictor
 {
 public:
   NoEventPredictor() {}
+	virtual void configureDefaultApplicationContext(
+		Base::ApplicationContext *appContext) {}
   virtual void eventTriggered(Timing::Event * ev) {}
   virtual void init(void) {}
   virtual Timing::Event * predictNext(void)

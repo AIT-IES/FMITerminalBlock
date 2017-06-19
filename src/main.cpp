@@ -61,7 +61,7 @@ int main (int argc, const char *argv[])
 		context.addCommandlineProperties(argc,argv);
 		Model::EventPredictor predictor(context);
 
-		context.addSensitiveDefaultProperties(predictor.getModelDescription());
+		predictor.configureDefaultApplicationContext(&context);
 		Timing::EventLogger::addEventFileSink(context);
 
 		predictor.init();

@@ -33,7 +33,7 @@ const std::string EventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
 const std::string EventPredictor::PROP_DEFAULT_INPUT = Base::ApplicationContext::PROP_IN + ".default.%1%";
 
 EventPredictor::EventPredictor(Base::ApplicationContext &context):
-	context_(context), solver_(NULL), description_(NULL), 
+	context_(context), solver_(NULL), 
 	outputIDs_(5,std::vector<Base::PortID>()), 
 	lastPredictedEventTime_(0.0), currentTime_(0.0), outputEventVariables_(), 
 	outputEventVariablesPopulated_(false),
@@ -51,7 +51,6 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 		err % name % path % solver_->getLastStatus();
 		throw std::invalid_argument(err.str());
 	}
-	description_ = solver_->getModelDescription();
 }
 
 EventPredictor::~EventPredictor()
@@ -60,11 +59,12 @@ EventPredictor::~EventPredictor()
 		delete solver_;
 }
 
-const ModelDescription * 
-EventPredictor::getModelDescription() const
+void 
+EventPredictor::configureDefaultApplicationContext(
+	Base::ApplicationContext *appContext)
 {
-	assert(description_ != NULL);
-	return description_; 
+	assert(appContext != NULL);
+	appContext->addSensitiveDefaultProperties(solver_->getModelDescription());
 }
 
 void 

@@ -78,14 +78,12 @@ namespace FMITerminalBlock
 			virtual ~EventPredictor();
 
 			/**
-			 * @brief Returns a pointer to the model's description
-			 * @details The model's description contains the XML file's data. It is
-			 * guaranteed that the pointer is valid as long as the object exist. Do
-			 * not modify the model description! Any modification may result in
-			 * undesired behavior.
-			 * @return a pointer to the model's description
+			 * @brief Implements 
+			 * AbstractEventPredictor::configureDefaultApplicationContext(\
+					Base::ApplicationContext)
 			 */
-			const ModelDescription* getModelDescription() const;
+			virtual void configureDefaultApplicationContext(
+				Base::ApplicationContext *appContext);
 
 			/**
 			 * @brief Initializes the model
@@ -158,16 +156,6 @@ namespace FMITerminalBlock
 			 * initialized in the C'tor and deleted if the object's lifetime expires
 			 */
 			PredictingFMU * solver_;
-
-			/**
-			 * @brief A pointer to the descriptive object returned by FMI++'s
-			 * ModelManager
-			 * @details The Object will be managed by the ModelManager singelton 
-			 * instance and must not be freed by this object. The pointer will be
-			 * populated in the C'tor and references the FMU which is also
-			 * encapsulated in solver_.
-			 */
-			const ModelDescription * description_;
 
 			/**
 			 * @brief Stores the ID of each registered output.

@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
@@ -190,22 +190,19 @@ BOOST_AUTO_TEST_CASE(test_init_defaults_2_0)
 	pred.init();
 }
 
-/** @brief Tests the getModelDescription() function */
-BOOST_AUTO_TEST_CASE(test_getModelDescription)
+/** @brief Tests the configureDefaultApplicationContext(...) function */
+BOOST_AUTO_TEST_CASE(test_configureDefaultApplicationContext)
 {
 	Base::ApplicationContext appContext;
 	const char * argv[] = {"testEventPredictor",
-			"fmu.path=" FMU_URI_PRE "zigzag", "fmu.name=zigzag", 
-			"app.startTime=0.0", "app.lookAheadTime=1.1",
-			"out.0.0=x", "out.0.0.type=0", NULL};
-	appContext.addCommandlineProperties(7, argv);
+			"fmu.path=" FMU_URI_PRE "zerocrossing", "fmu.name=zerocrossing", 
+			"app.lookAheadTime=1.1", "out.0.0=x", "out.0.0.type=0"};
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
 
 	EventPredictor pred(appContext);
-	const ModelDescription* desc = pred.getModelDescription();
-	BOOST_REQUIRE(desc != NULL);
-	BOOST_CHECK_EQUAL(
-		desc->getModelAttributes().get<std::string>("modelName"), 
-		"zigzag");
+	pred.configureDefaultApplicationContext(&appContext);
+
+	BOOST_CHECK_EQUAL(appContext.getProperty<fmiReal>("app.startTime"), 0.0);
 }
 
 /** @brief Tests the event detection and fmiReal-typed outputs*/
