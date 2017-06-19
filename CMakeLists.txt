@@ -79,6 +79,7 @@ add_source_file(BASE src/base/TransmissionChannel.cpp )
 add_source_file(MODEL src/model/EventPredictor.cpp )
 add_source_file(MODEL src/model/LazyEvent.cpp )
 add_source_file(MODEL src/model/PredictingFMU.cpp )
+add_source_file(MODEL src/model/EventPredictorFactory.cpp )
 
 add_source_file(TIMING src/timing/Variable.cpp )
 add_source_file(TIMING src/timing/Event.cpp )

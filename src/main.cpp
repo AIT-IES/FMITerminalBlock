@@ -26,7 +26,8 @@
 
 #include "base/ApplicationContext.h"
 #include "base/BaseExceptions.h"
-#include "model/EventPredictor.h"
+#include "model/AbstractEventPredictor.h"
+#include "model/EventPredictorFactory.h"
 #include "timing/EventDispatcher.h"
 #include "timing/EventLogger.h"
 #include "timing/CSVDataLogger.h"
@@ -59,14 +60,15 @@ int main (int argc, const char *argv[])
 	{
 		// Initialize the application
 		context.addCommandlineProperties(argc,argv);
-		Model::EventPredictor predictor(context);
+		std::shared_ptr<Model::AbstractEventPredictor> predictor;
+		predictor = Model::EventPredictorFactory::makeEventPredictor(context);
 
-		predictor.configureDefaultApplicationContext(&context);
+		predictor->configureDefaultApplicationContext(&context);
 		Timing::EventLogger::addEventFileSink(context);
 
-		predictor.init();
+		predictor->init();
 
-		Timing::EventDispatcher dispatcher(context, predictor);
+		Timing::EventDispatcher dispatcher(context, *predictor);
 		Network::NetworkManager nwManager(context, dispatcher);
 		
 		Timing::CSVDataLogger dataLogger(context);
@@ -97,9 +99,9 @@ int main (int argc, const char *argv[])
 		BOOST_LOG_TRIVIAL(info) << "Usage: " 
 			<< context.getProperty<std::string>(
 				Base::ApplicationContext::PROP_PROGRAM_NAME, "FMITerminalBlock")
-			<< " " << Model::EventPredictor::PROP_FMU_PATH << "=<path> "
-			<< Model::EventPredictor::PROP_FMU_NAME
-			<< "=<name> { <property>=<value> }";
+			<< " { <property>=<value> }";
+		BOOST_LOG_TRIVIAL(info) << "Please consult the user documentation for "
+			<< "more details on the usage of the program.";
 		return 1;
 	}catch(std::runtime_error &ex){
 		BOOST_LOG_TRIVIAL(fatal) << "A runtime error occurred: " << ex.what();
