@@ -13,6 +13,7 @@
 #include <assert.h>
 
 #include "model/EventPredictor.h"
+#include "model/OneStepEventPredictor.h"
 #include "base/BaseExceptions.h"
 
 using namespace FMITerminalBlock::Model;
@@ -29,6 +30,8 @@ EventPredictorFactory::makeEventPredictor(Base::ApplicationContext &appContext)
 	if (predictorName == "multistep-prediction")
 	{
 		return std::make_shared<EventPredictor>(appContext);
+	} else if (predictorName == "singlestep-delayed") {
+		return std::make_shared<OneStepEventPredictor>(appContext);
 	} else {
 		throw Base::SystemConfigurationException("Invalid simulation method "
 			"property", PROP_EVENT_PREDICTOR, predictorName);

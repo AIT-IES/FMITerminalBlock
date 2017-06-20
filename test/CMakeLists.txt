@@ -64,6 +64,11 @@ add_test_target( EventPredictor src/testEventPredictor.cpp
 	${FMITerminalBlock_MODEL_SOURCE} 
 	${FMITerminalBlock_TIMING_SOURCE} )
 
+add_test_target( OneStepEventPredictor src/testOneStepEventPredictor.cpp 
+	${FMITerminalBlock_BASE_SOURCE} 
+	${FMITerminalBlock_MODEL_SOURCE} 
+	${FMITerminalBlock_TIMING_SOURCE} )
+	
 add_test_target( EventPredictorFactory src/testEventPredictorFactory.cpp 
 	${FMITerminalBlock_BASE_SOURCE} 
 	${FMITerminalBlock_MODEL_SOURCE} 

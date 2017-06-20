@@ -13,6 +13,7 @@
 
 #include <common/FMIVariableType.h>
 #include <utility>
+#include <functional>
 
 namespace FMITerminalBlock
 {
@@ -27,6 +28,16 @@ namespace FMITerminalBlock
 		  */
 		typedef std::pair<FMIVariableType, int> PortID;
 
+		/** @brief Defines a function type which hashed a PortID */
+		typedef std::function<unsigned int(PortID)> PortIDHashFunction;
+
+		/** @brief Returns a hash value of the given PortID */
+		unsigned int hashPortID(PortID id);
+
+		/** @brief Returns <code>true</code> iff both PortIDs are equal. */
+		bool operator==(PortID a, PortID b);
+		/** @brief Returns <code>false</code> iff both PortIDs are equal. */
+		bool operator!=(PortID a, PortID b);
 	}
 }
 
