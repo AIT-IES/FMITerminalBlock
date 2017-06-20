@@ -9,11 +9,12 @@
  * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
-#define BOOST_TEST_MODULE testEventHandling
+#define BOOST_TEST_MODULE testEventPredictorFactory
 #include <boost/test/unit_test.hpp>
 
 #include "model/EventPredictorFactory.h"
 #include "model/EventPredictor.h"
+#include "model/OneStepEventPredictor.h"
 #include "base/BaseExceptions.h"
 
 using namespace FMITerminalBlock;
@@ -54,6 +55,25 @@ BOOST_AUTO_TEST_CASE( testExplicitEventPredictorConstruction )
 
 	BOOST_CHECK(pred);
 	BOOST_CHECK(std::dynamic_pointer_cast<EventPredictor>(pred));
+}
+
+/** @brief Tests the explicit construction of EventPredictor */
+BOOST_AUTO_TEST_CASE( testExplicitOneStepEventPredictorConstruction )
+{
+	Base::ApplicationContext appContext;
+	const char* props[] = {
+		"testEventPredictorFactory", 
+		"fmu.path=" FMU_URI_PRE "zerocrossing", "fmu.name=zerocrossing", 
+		"app.lookAheadTime=1.1", "out.0.0=x", "out.0.0.type=0",
+		"app.simulationMethod=singlestep-delayed"
+	};
+	appContext.addCommandlineProperties(sizeof(props) / sizeof(props[0]), props);
+
+	std::shared_ptr<AbstractEventPredictor> pred;
+	pred = EventPredictorFactory::makeEventPredictor(appContext);
+
+	BOOST_CHECK(pred);
+	BOOST_CHECK(std::dynamic_pointer_cast<OneStepEventPredictor>(pred));
 }
 
 /** @brief Assesses the error handling of invalid predictor name properties */
