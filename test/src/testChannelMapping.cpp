@@ -213,6 +213,8 @@ BOOST_FIXTURE_TEST_CASE(testAllVariableList, InitializedChannelMappingFixture)
 		allVarIDsRef.begin(), allVarIDsRef.end());
 	BOOST_CHECK_EQUAL_COLLECTIONS(allVarNames.begin(), allVarNames.end(), 
 		allVarNamesRef.begin(), allVarNamesRef.end());
+
+	BOOST_CHECK_EQUAL(mapping->getTotalNumberOfVariables(), allVarIDsRef.size());
 }
 
 /** @brief Debugging aid to present PortIDs */

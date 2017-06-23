@@ -71,6 +71,17 @@ ChannelMapping::getAllVariableIDs() const
 }
 
 int 
+ChannelMapping::getTotalNumberOfVariables() const
+{
+	int ret = 0;
+	for (unsigned int i = 0; i < variableIDs_.size(); i++)
+	{
+		ret += variableIDs_[i].size();
+	}
+	return ret;
+}
+
+int 
 ChannelMapping::getNumberOfChannels() const
 {
 	return channels_.size();

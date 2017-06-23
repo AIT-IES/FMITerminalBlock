@@ -122,6 +122,16 @@ namespace FMITerminalBlock
 			std::vector<PortID> getAllVariableIDs() const;
 
 			/**
+			 * @brief Returns the total amount of variables which are managed by the 
+			 * channel mapping object
+			 * @details If a variable is used in multiple channels, it will be 
+			 * counted once anyway. Hence, the function returns the size of the 
+			 * vectors which are returned by getAllVariableIDs() and 
+			 * getAllVariableNames().
+			 */
+			int getTotalNumberOfVariables() const;
+
+			/**
 			 * @brief Returns the number of configured channels
 			 * @details Configured channel IDs will range from zero to the return
 			 * value minus one.
