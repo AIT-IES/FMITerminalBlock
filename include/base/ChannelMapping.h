@@ -132,6 +132,15 @@ namespace FMITerminalBlock
 			int getTotalNumberOfVariables() const;
 
 			/**
+			 * @brief Tries to resolve the given name
+			 * @details The function will return the PortID to the given name. In 
+			 * case the ChannelMapping object does not manage the given name, a 
+			 * Base::SystemConfigurationException will be thrown.
+			 * @param name The variable name to resolve
+			 */
+			PortID getPortID(const std::string &name);
+
+			/**
 			 * @brief Returns the number of configured channels
 			 * @details Configured channel IDs will range from zero to the return
 			 * value minus one.

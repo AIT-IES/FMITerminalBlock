@@ -217,6 +217,38 @@ BOOST_FIXTURE_TEST_CASE(testAllVariableList, InitializedChannelMappingFixture)
 	BOOST_CHECK_EQUAL(mapping->getTotalNumberOfVariables(), allVarIDsRef.size());
 }
 
+/** @brief Tests the getPortID() function */
+BOOST_FIXTURE_TEST_CASE(testGetPortID, InitializedChannelMappingFixture)
+{
+	std::shared_ptr<ChannelMapping> mapping =
+		std::make_shared<ChannelMapping>(idSource_, configRoot_);
+
+	std::vector<PortID> allVarIDsRef = {
+		PortID(fmiTypeReal, 0), PortID(fmiTypeInteger, 0), 
+		PortID(fmiTypeBoolean, 0), PortID(fmiTypeString, 0)
+	};
+	std::vector<std::string> allVarNamesRef = {"a", "b", "c", "d"};
+
+	PortID aID = mapping->getPortID("a");
+	BOOST_CHECK_EQUAL(aID.first, fmiTypeReal);
+	BOOST_CHECK_EQUAL(aID.second, 0);
+
+	PortID bID = mapping->getPortID("b");
+	BOOST_CHECK_EQUAL(bID.first, fmiTypeInteger);
+	BOOST_CHECK_EQUAL(bID.second, 0);
+
+	BOOST_CHECK_THROW(mapping->getPortID("abcd"), 
+		Base::SystemConfigurationException);
+
+	PortID cID = mapping->getPortID("c");
+	BOOST_CHECK_EQUAL(cID.first, fmiTypeBoolean);
+	BOOST_CHECK_EQUAL(cID.second, 0);
+
+	PortID dID = mapping->getPortID("d");
+	BOOST_CHECK_EQUAL(dID.first, fmiTypeString);
+	BOOST_CHECK_EQUAL(dID.second, 0);
+}
+
 /** @brief Debugging aid to present PortIDs */
 std::ostream& operator<< (std::ostream& stream, const PortID& portID)
 {

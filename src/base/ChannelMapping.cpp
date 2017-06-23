@@ -81,6 +81,24 @@ ChannelMapping::getTotalNumberOfVariables() const
 	return ret;
 }
 
+PortID 
+ChannelMapping::getPortID(const std::string &name)
+{
+	assert(variableNames_.size() == variableIDs_.size());
+	for (unsigned int i = 0; i < variableNames_.size(); i++)
+	{
+		assert(variableNames_[i].size() == variableIDs_[i].size());
+		for (unsigned int j = 0; j < variableNames_[i].size(); j++)
+		{
+			if (variableNames_[i][j] == name) return variableIDs_[i][j];
+		}
+	}
+
+	boost::format fmt("The variable \"%1%\" could not be resolved.");
+	fmt % name;
+	throw Base::SystemConfigurationException(fmt.str());
+}
+
 int 
 ChannelMapping::getNumberOfChannels() const
 {
