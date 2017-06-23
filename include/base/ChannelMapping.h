@@ -138,7 +138,7 @@ namespace FMITerminalBlock
 			 * Base::SystemConfigurationException will be thrown.
 			 * @param name The variable name to resolve
 			 */
-			PortID getPortID(const std::string &name);
+			PortID getPortID(const std::string &name) const;
 
 			/**
 			 * @brief Returns the number of configured channels

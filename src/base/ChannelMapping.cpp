@@ -82,7 +82,7 @@ ChannelMapping::getTotalNumberOfVariables() const
 }
 
 PortID 
-ChannelMapping::getPortID(const std::string &name)
+ChannelMapping::getPortID(const std::string &name) const
 {
 	assert(variableNames_.size() == variableIDs_.size());
 	for (unsigned int i = 0; i < variableNames_.size(); i++)
