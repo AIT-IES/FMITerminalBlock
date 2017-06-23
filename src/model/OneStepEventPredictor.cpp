@@ -413,6 +413,9 @@ OneStepEventPredictor::updateOutputImage(
 	assert(referenceVector.size() == destinationImage->size());
 	assert(fmu_);
 
+	// Some FMUs issue a warning in case no output should be fetched
+	if (destinationImage->size() <= 0) return false;
+
 	// Fetch the outputs
 	std::unique_ptr<valType[]> tmpVal(new valType[referenceVector.size()]);
 	fmiStatus err = fmu_->getValue(referenceVector.data(), tmpVal.get(), 
