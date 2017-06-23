@@ -169,7 +169,7 @@ OneStepEventPredictor::initOutputValueReferences(
 			fmt % *it;
 			throw Base::SystemConfigurationException(fmt.str());
 		}
-		outputValueReference_[(unsigned int) fmiTypeReal].push_back(ref);
+		outputValueReference_[(unsigned int) type].push_back(ref);
 	}
 }
 
@@ -410,6 +410,7 @@ OneStepEventPredictor::updateOutputImage(
 	std::vector<fmiValueReference> &referenceVector)
 {
 	assert(destinationImage);
+	assert(referenceVector.size() == destinationImage->size());
 	assert(fmu_);
 
 	// Fetch the outputs

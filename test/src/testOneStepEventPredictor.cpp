@@ -307,6 +307,9 @@ BOOST_AUTO_TEST_CASE(testMultipleInputEvents)
 	delete ev;
 }
 
+/** TODO: Test applying integer, real, boolean and string outputs */
+/** TODO: Test applying integer, real, boolean and string inputs */
+
 /** @brief Test an invalid model name */
 BOOST_DATA_TEST_CASE(testInvalidModelName, data::make(ZIGZAG_FMU_NAMES), name)
 {
