@@ -11,6 +11,7 @@
 #include "model/OneStepEventPredictor.h"
 
 #include <cassert>
+#include <cmath>
 
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
@@ -86,13 +87,39 @@ OneStepEventPredictor::init()
 Timing::Event * 
 OneStepEventPredictor::predictNext()
 {
-	return NULL; // TODO: Implement
+	assert(fmu_);
+
+	if (!currentPrediction_)
+	{
+		predictOneStep();
+		bool valuesChanged = updateOutputImage();
+		if (valuesChanged)
+		{
+			currentPrediction_ = getOutputEvent();
+		} else {
+			// Set an empty event, nothing has changed significantly.
+			std::vector<Timing::Variable> emptyVector;
+			currentPrediction_ = std::unique_ptr<Timing::StaticEvent>(
+				new Timing::StaticEvent(fmu_->getTime(), emptyVector));
+		}
+	}
+
+	return new Timing::StaticEvent(*currentPrediction_);
 }
 
 void 
 OneStepEventPredictor::eventTriggered(Timing::Event * ev)
 {
-	// TODO: Implement
+	assert(ev);
+
+	bool updated = updateInputVariables(ev);
+	if (updated)
+	{
+		BOOST_LOG_TRIVIAL(debug) << "Event " << ev->toString() 
+			<< " was applied to the model at time " << fmu_->getTime();
+	} else {
+		currentPrediction_.reset();
+	}
 }
 
 void 
@@ -119,8 +146,9 @@ OneStepEventPredictor::initOutputStructures(
 
 	if (outputMapping_->getVariableNames(fmiTypeUnknown).size() > 0)
 	{
-		throw Base::SystemConfigurationException("An output variable of unknown"
-			" type was defined");
+		boost::format fmt("An output variable (%1%) of unknown type was defined");
+		fmt % outputMapping_->getVariableNames(fmiTypeUnknown)[0];
+		throw Base::SystemConfigurationException(fmt.str());
 	}
 }
 
@@ -194,6 +222,8 @@ OneStepEventPredictor::initSimulationProperties(
 
 	simulationProperties_.variableStepSizeOnModelEvent =
 		appContext.getProperty<bool>(PROP_VARIABLE_STEP_SIZE, false);
+
+	simulationProperties_.timingPrecision = 1e-4;
 }
 
 std::unique_ptr<FMUModelExchangeBase>
@@ -352,23 +382,173 @@ OneStepEventPredictor::setDefaultValue(
 	}
 }
 
+void 
+OneStepEventPredictor::predictOneStep()
+{
+	assert(fmu_);
+
+	fmiTime nextCompleteStep;
+	nextCompleteStep = fmu_->getTime() + simulationProperties_.lookAheadStepSize;
+	do {
+		fmiTime nextTime = fmu_->integrate(nextCompleteStep, 
+			simulationProperties_.integratorStepSize);
+		if (isnan(nextTime) || fmu_->getLastStatus() != fmiOK)
+		{
+			boost::format fmt("Could not integrate FMU to %1% (%2%, %3%)");
+			fmt % nextCompleteStep % nextTime % (int) fmu_->getLastStatus();
+			throw Base::SolverException(fmt.str(), fmu_->getTime());
+		}
+	} while (!simulationProperties_.variableStepSizeOnModelEvent && 
+			fabs(fmu_->getTime() - nextCompleteStep) > 
+				simulationProperties_.timingPrecision);
+}
+
 template<typename valType>
 bool 
 OneStepEventPredictor::updateOutputImage(
 	std::vector<valType> *destinationImage,
-	const std::vector<fmiValueReference> &referenceVector)
+	std::vector<fmiValueReference> &referenceVector)
 {
-	return true; // TODO: Implement
+	assert(destinationImage);
+	assert(fmu_);
+
+	// Fetch the outputs
+	std::unique_ptr<valType[]> tmpVal(new valType[referenceVector.size()]);
+	fmiStatus err = fmu_->getValue(referenceVector.data(), tmpVal.get(), 
+		referenceVector.size());
+	if (err != fmiOK)
+	{
+		boost::format fmt("Could not fetch the outputs of the model (%1%)");
+		fmt % (int) err;
+		throw Base::SolverException(fmt.str(), fmu_->getTime());
+	}
+
+	// Compare and update
+	bool significantChange = false;
+	for (unsigned int i = 0; i < referenceVector.size(); i++)
+	{
+		if (destinationImage->operator[](i) != tmpVal[i])
+		{
+			significantChange = true;
+		}
+		destinationImage->operator[](i) = tmpVal[i];
+	}
+	return significantChange;
 }
 
 bool 
 OneStepEventPredictor::updateOutputImage()
 {
-	return true;// TODO: Implement
+	bool significantChange = false;
+
+	significantChange |= updateOutputImage(&outputRealImage_, 
+		outputValueReference_[fmiTypeReal]);
+	significantChange |= updateOutputImage(&outputIntegerImage_, 
+		outputValueReference_[fmiTypeInteger]);
+	significantChange |= updateOutputImage(&outputBooleanImage_, 
+		outputValueReference_[fmiTypeBoolean]);
+	significantChange |= updateOutputImage(&outputStringImage_, 
+		outputValueReference_[fmiTypeString]);
+
+	return significantChange;
 }
 
 std::unique_ptr<Timing::StaticEvent>
 OneStepEventPredictor::getOutputEvent()
 {
-	return std::unique_ptr<Timing::StaticEvent>(); // TODO: Implement
+	assert(outputMapping_);
+	assert(fmu_);
+
+	std::vector<Timing::Variable> vars;
+	vars.reserve(outputMapping_->getTotalNumberOfVariables());
+	
+	appendOutputVariables(&vars, outputMapping_->getVariableIDs(fmiTypeReal), 
+		outputRealImage_);
+	appendOutputVariables(&vars, outputMapping_->getVariableIDs(fmiTypeInteger), 
+		outputIntegerImage_);
+	appendOutputVariables(&vars, outputMapping_->getVariableIDs(fmiTypeBoolean), 
+		outputBooleanImage_);
+	appendOutputVariables(&vars, outputMapping_->getVariableIDs(fmiTypeString), 
+		outputStringImage_);
+
+	return std::unique_ptr<Timing::StaticEvent>(
+		new Timing::StaticEvent(fmu_->getTime(), vars));
+}
+
+template<typename valType>
+void 
+OneStepEventPredictor::appendOutputVariables(
+	std::vector<Timing::Variable> *destination,
+	const std::vector<Base::PortID> &ids,
+	const std::vector<valType> &values) const
+{
+	assert(ids.size() == values.size());
+	assert(destination);
+
+	for (unsigned int i = 0; i < ids.size(); i++)
+	{
+		destination->push_back(Timing::Variable(ids[i], values[i]));
+	}
+}
+
+bool 
+OneStepEventPredictor::updateInputVariables(Timing::Event *ev)
+{
+	assert(ev);
+	bool inputVariableSet = false;
+
+	auto vars = ev->getVariables();
+	for (auto it = vars.begin(); it != vars.end(); ++it)
+	{
+		inputVariableSet |= updateInputVariable(*it);
+	}
+	return inputVariableSet;
+}
+
+bool
+OneStepEventPredictor::updateInputVariable(const Timing::Variable &variable)
+{
+	assert(variable.isValid());
+	assert(fmu_);
+	auto varID = variable.getID();
+	if (inputValueReference_.count(varID) > 0)
+	{
+		fmiStatus err = fmiFatal;
+		auto varRef = inputValueReference_[varID];
+		switch (varID.first)
+		{
+			case fmiTypeReal:
+			{
+				auto rVal = variable.getRealValue();
+				err = fmu_->setValue(varRef, rVal);
+			}	break;
+			case fmiTypeInteger:
+			{
+				auto iVal = variable.getIntegerValue();
+				err = fmu_->setValue(varRef, iVal);
+			}	break;
+			case fmiTypeBoolean:
+			{
+				auto bVal = variable.getBooleanValue();
+				err = fmu_->setValue(varRef, bVal);
+			}	break;
+			case fmiTypeString:
+			{
+				auto sVal = variable.getStringValue();
+				err = fmu_->setValue(varRef, sVal);
+			}	break;
+			default: assert(0);
+		}
+
+		if (err != fmiOK)
+		{
+			boost::format fmt("Unable to set input value %1% (%2%)");
+			fmt % variable.toString() % (int) err;
+			throw Base::SolverException(fmt.str(), fmu_->getTime());
+		}
+
+		return true;
+	} else {
+		return false;
+	}
 }

@@ -177,6 +177,8 @@ namespace FMITerminalBlock
 				 * synchronization point
 				 */
 				bool variableStepSizeOnModelEvent;
+				/// The absolute precision to compare simulation time
+				fmiTime timingPrecision;
 			} simulationProperties_;
 
 			/**
@@ -251,6 +253,15 @@ namespace FMITerminalBlock
 				const std::string &varName);
 
 			/**
+			 * @brief Advances the FMU by exactly one step.
+			 * @details The function does not set any in- or outputs. The exact 
+			 * behavior depends on the simulation properties. In case 
+			 * variableStepSizeOnModelEvent is set, the function will return as 
+			 * soon as an event is detected.
+			 */
+			void predictOneStep();
+
+			/**
 			 * @brief Fetches the model outputs of a particular type and updates the
 			 * given image vector accordingly
 			 * @return <code>true</code> iff the destinationImage was changed
@@ -258,11 +269,12 @@ namespace FMITerminalBlock
 			 * @param destinationImage the image vector to update. It is assumed that
 			 * the given pointer is always valid.
 			 * @param referenceVector The vector of FMI value references which is 
-			 * used to fetch the variables of a particular type.
+			 * used to fetch the variables of a particular type. The parameter should
+			 * be constant but FMI++ prevents it from being constant.
 			 */
 			template<typename valType>
 			bool updateOutputImage(std::vector<valType> *destinationImage, 
-				const std::vector<fmiValueReference> &referenceVector);
+				std::vector<fmiValueReference> &referenceVector);
 
 			/**
 			 * @brief Queries all outputs and updates the image vectors accordingly.
@@ -276,6 +288,44 @@ namespace FMITerminalBlock
 			 * @return The newly constructed event
 			 */
 			std::unique_ptr<Timing::StaticEvent> getOutputEvent();
+
+			/**
+			 * @brief Appends the output values of a particular type to the given 
+			 * variable vector
+			 * @param destination A valid pointer to the destination which will 
+			 * contain the appended variables.
+			 * @param ids A vector with all PortIDs of the particular variable type
+			 * @param values The vector with all variable values. It must have the 
+			 * same size as the ids vector. Each element must match the appropriate 
+			 * element in the ids vector.
+			 * @param valType The template parameter specifies the data type of the 
+			 * variable and the data to append
+			 */
+			template<typename valType>
+			void appendOutputVariables(std::vector<Timing::Variable> *destination, 
+				const std::vector<Base::PortID> &ids, 
+				const std::vector<valType> &values) const;
+
+			/**
+			 * @brief Sets the input variables of the event at the managed FMU
+			 * @details It is assumed that the FMU as well as inputValueReference is 
+			 * properly initialized. The function will not check or set the time of 
+			 * the event nor the FMU.
+			 * @return <code>true</code> iff at leas one input variable was set. In 
+			 * case no input variable is set, the event is most likely an output 
+			 * event triggered by the predictor itself.
+			 */
+			bool updateInputVariables(Timing::Event *ev);
+
+			/**
+			  * @brief Tries to update the given input variable
+				* @param variable The variable to check. The given reference may point 
+				* to an arbitrary variable. In case the variable is not an input 
+				* variable <code>false</code> will be returned. Otherwise 
+				* <code>true</code> is returned and the model is updated accordingly.
+				* @return <code>true</code> if the variable is a known input variable.
+			  */
+			bool updateInputVariable(const Timing::Variable &variable);
 
 		};
 	}

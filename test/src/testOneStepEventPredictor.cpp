@@ -113,14 +113,199 @@ BOOST_AUTO_TEST_CASE(test_configureDefaultApplicationContext)
 	BOOST_CHECK_EQUAL(appContext.getProperty<fmiReal>("app.startTime"), 0.0);
 }
 
-/** TODO: Test multiple events in one prediction step (fixed step size mode) */
+/** @brief Test multiple events in one prediction step (fixed step size mode)*/
+BOOST_DATA_TEST_CASE(testMultipleEventsPerPredictionStep, 
+	data::make(ZIGZAG_FMU_NAMES), name)
+{
+	Base::ApplicationContext appContext;
+	addModelBaseProperties(&appContext, name);
+
+	const char * argv[] = {"testOneStepEventPredictor", 
+		"app.startTime=0.0", "app.lookAheadTime=3.5", "app.variableStepSize=false",
+		"out.0.0=x", "out.0.0.type=0", "out.0.1=der(x)", "out.0.1.type=0"};
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+
+	OneStepEventPredictor pred(appContext);
+	pred.init();
+
+	Timing::Event *ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 3.5, 1e-4);
+
+	auto vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), -0.5, 1.0);
+	BOOST_CHECK_CLOSE(vars[1].getRealValue(), 1.0, 1.0);
+	delete ev;
+
+	ev = pred.predictNext(); // Still the same event
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 3.5, 1e-4);
+	delete ev;
+}
+
 /** 
- * TODO: Test event detection in variable step size mode 
+ * @brief Test event detection in variable step size mode 
  * @details The next step will also be simulated in order to test the time 
  * management
  */
-/** TODO: Test setting external default values for inputs and parameters */
-/** TODO: Test the occurrence of multiple input events in one step */
+BOOST_DATA_TEST_CASE(testEventDetection, 
+	data::make(ZIGZAG_FMU_NAMES), name)
+{
+	Base::ApplicationContext appContext;
+	addModelBaseProperties(&appContext, name);
+
+	const char * argv[] = {"testOneStepEventPredictor", 
+		"app.startTime=0.0", "app.lookAheadTime=1.5", "app.variableStepSize=true",
+		"out.0.0=x", "out.0.0.type=0", "out.0.1=der(x)", "out.0.1.type=0"};
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+
+	OneStepEventPredictor pred(appContext);
+	pred.init();
+
+	Timing::Event *ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 1.0, 1e-3);
+
+	auto vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 1.0);
+	BOOST_CHECK_CLOSE(vars[1].getRealValue(), -1.0, 1.0);
+
+	pred.eventTriggered(ev);
+	delete ev;
+
+	// No event in prediction horizon
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 2.5, 1e-3);
+
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), -0.5, 1.0);
+	BOOST_CHECK_CLOSE(vars[1].getRealValue(), -1.0, 1.0);
+
+	pred.eventTriggered(ev);
+	delete ev;
+
+	// Event triggered
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 3.0, 1e-3);
+
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), -1.0, 1.0);
+	BOOST_CHECK_CLOSE(vars[1].getRealValue(), 1.0, 1.0);
+
+	pred.eventTriggered(ev);
+	delete ev;
+}
+
+/** @brief Test setting external default values for inputs and parameters */
+BOOST_DATA_TEST_CASE(testDefaultInitialization, 
+	data::make(ZIGZAG_FMU_NAMES), name)
+{
+	Base::ApplicationContext appContext;
+	addModelBaseProperties(&appContext, name);
+
+	const char * argv[] = {"testOneStepEventPredictor", 
+		"app.startTime=0.0", "app.lookAheadTime=2.5", "app.variableStepSize=1",
+		"out.0.0=x", "out.0.0.type=0", "out.0.1=der(x)", "out.0.1.type=0",
+		"in.default.k=0.5"
+	};
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+
+	OneStepEventPredictor pred(appContext);
+	pred.init();
+
+	Timing::Event *ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 2.0, 1e-3);
+
+	auto vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 1.0);
+	BOOST_CHECK_CLOSE(vars[1].getRealValue(), -0.5, 1.0);
+
+	pred.eventTriggered(ev);
+	delete ev;
+}
+
+/** @brief Test the occurrence of multiple input events in one step */
+BOOST_AUTO_TEST_CASE(testMultipleInputEvents)
+{
+	Base::ApplicationContext appContext;
+	addModelBaseProperties(&appContext, "dxiskx");
+
+	const char * argv[] = {"testOneStepEventPredictor", 
+		"app.startTime=0.0", "app.lookAheadTime=1.0", "app.variableStepSize=0",
+		"out.0.0=x", "out.0.0.type=0",
+		"in.0.0=u", "in.0.0.type=0",
+		"in.default.u=0.0", "in.default.k=1.0", "in.default.x0=0.0"
+	};
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+	
+	OneStepEventPredictor pred(appContext);
+	pred.init();
+
+	Base::PortID uPortID = appContext.getInputChannelMapping()->getPortID("u");
+
+	// First prediction
+	Timing::Event *ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 1.0, 1e-3);
+
+	auto vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 0);
+	delete ev;
+
+	// Apply the first event
+	Timing::StaticEvent inEv1(-42.0, {Timing::Variable(uPortID, (fmiReal) 2.0)});
+	pred.eventTriggered(&inEv1);
+
+	// Still the first prediction
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 1.0, 1e-3);
+
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 0);
+	delete ev;
+
+	// Apply the second event
+	Timing::StaticEvent inEv2(-41.0, {Timing::Variable(uPortID, (fmiReal) 1.0)});
+	pred.eventTriggered(&inEv2);
+
+	// Again, the first prediction
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 1.0, 1e-3);
+
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 0);
+
+	pred.eventTriggered(ev); // Schedule predicted event
+	delete ev;
+
+	// Hooray, a new prediction.
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 2.0, 1e-3);
+
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 1);
+
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 1.0);
+
+	pred.eventTriggered(ev); // Schedule predicted event
+	delete ev;
+}
 
 /** @brief Test an invalid model name */
 BOOST_DATA_TEST_CASE(testInvalidModelName, data::make(ZIGZAG_FMU_NAMES), name)
@@ -189,6 +374,24 @@ BOOST_DATA_TEST_CASE(testInvalidDefaultValue,
 
 	OneStepEventPredictor pred(appContext);
 	BOOST_CHECK_THROW(pred.init(), std::invalid_argument);
+}
+
+/** @brief Test invalid output variable name (non-existing variable) */
+BOOST_AUTO_TEST_CASE(testInvalidOutputVariableName)
+{
+	Base::ApplicationContext appContext;
+	addModelBaseProperties(&appContext, "dxiskx");
+
+	const char * argv[] = {"testOneStepEventPredictor", 
+		"app.startTime=0.0", "app.lookAheadTime=1.0", "app.variableStepSize=0",
+		"out.0.0=x", "out.0.0.type=0", "out.0.1=invalid", "out.0.1.type=0",
+		"in.0.0=u", "in.0.0.type=0",
+		"in.default.u=0.0", "in.default.k=1.0", "in.default.x0=0.0"
+	};
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+	
+	OneStepEventPredictor pred(appContext);
+	BOOST_CHECK_THROW(pred.init(), Base::SystemConfigurationException);
 }
 
 /** TODO: Test an invalid model type (co-simulation) */
