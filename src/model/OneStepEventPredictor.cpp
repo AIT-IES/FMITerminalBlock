@@ -392,7 +392,7 @@ OneStepEventPredictor::predictOneStep()
 	do {
 		fmiTime nextTime = fmu_->integrate(nextCompleteStep, 
 			simulationProperties_.integratorStepSize);
-		if (isnan(nextTime) || fmu_->getLastStatus() != fmiOK)
+		if (std::isnan(nextTime) || fmu_->getLastStatus() != fmiOK)
 		{
 			boost::format fmt("Could not integrate FMU to %1% (%2%, %3%)");
 			fmt % nextCompleteStep % nextTime % (int) fmu_->getLastStatus();
