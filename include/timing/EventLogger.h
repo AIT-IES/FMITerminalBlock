@@ -61,8 +61,6 @@ namespace FMITerminalBlock
 
 			/** @brief The property's name which holds the global log file-name */
 			static const std::string PROP_FILE_NAME;
-			/** @brief The event time attribute's name */
-			static const char* ATTR_EVENT_TIME;
 
 			/**
 			 * @brief Default C'tor
@@ -112,12 +110,7 @@ namespace FMITerminalBlock
 
 			/** @brief Attribute used to log an event's time. */
 			attributes::mutable_constant<fmiTime> eventTimeAttribute_;
-
 		};
-
-		/** @brief Defines the eventTime attribute */
-		BOOST_LOG_ATTRIBUTE_KEYWORD(eventTime, EventLogger::ATTR_EVENT_TIME,fmiTime)
-
 	}
 }
 

@@ -23,17 +23,19 @@
 #include <fstream>
 #include <iomanip>
 
+#include "base/LoggingAttributes.h"
+
+using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Timing;
 using namespace boost::log;
 
 const std::string EventLogger::PROP_FILE_NAME = "app.timingFile";
-const char* EventLogger::ATTR_EVENT_TIME = "EventTime";
 
 EventLogger::EventLogger(): 
 	channel_logger_mt(locationUndefined), eventTimeAttribute_(-1.0), 
 	objectMutex_()
 {
-	add_attribute(ATTR_EVENT_TIME, eventTimeAttribute_);
+	add_attribute(Base::ATTR_EVENT_TIME, eventTimeAttribute_);
 }
 
 void 
@@ -51,14 +53,14 @@ EventLogger::addEventFileSink(const Base::ApplicationContext& context)
 		sink->locked_backend()->add_stream(boost::make_shared<std::ofstream>(filename));
 		
 		sink->set_filter(
-			expressions::has_attr(eventTime)
+			expressions::has_attr(Base::eventTime)
 		);
 
 		sink->set_formatter(
 			expressions::stream << std::setprecision(8) << std::fixed
 			<< expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%w;%H;%M;%S.%f") 
 			<< ";" 
-			<< expressions::attr<fmiTime>(ATTR_EVENT_TIME)
+			<< expressions::attr<fmiTime>(Base::ATTR_EVENT_TIME)
 			<< ";"
 			<< expressions::attr<ProcessingStage>("Channel")
 			<< ";\""
