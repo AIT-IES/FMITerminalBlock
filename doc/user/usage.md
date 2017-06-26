@@ -30,7 +30,7 @@ The following parameters must be passed on to FMITerminalBlock:
 
 **fmu.name**: The actual name of the FMU as defined in the model description. Usually, the name is specified during the export procedure. Future versions may directly query the name from the model description file.
 
-**app.lookAheadTime**: The size of the lookahead horizon in seconds. If no event is triggered by the model until the lookAheadTime is reached, an event which outputs the current outputs of the model will be triggered by FMITerminalBlock.
+**app.lookAheadTime**: The size of the lookahead horizon in seconds. In general, FMITerminalBlock executes the model until the *app.lookAheadTime* is reached. Nevertheless, the exact behavior of FMITerminalBlock depends on the configured simulation mode. See the [Simulation Method](#simulation-method-specific-parameters) section for more details.
 
 ## Network Channel Parameters
 The network connections of FMITerminalBlock are organized into input and output channels. Each channel connects to a certain destination and uses a certain protocol. For instance, the first channel may connect to one PLC using UDP and the second channel may connect to another PLC using TCP. Each channel contains a nonempty list of model variables which should be sent or received. A model variable within a channel is also called (network-) port. Each channel and each port within a channel is configured by an index starting from zero. In the following, *-nr-* refers to the index number used in the configuration. FMITerminalBlock determines the number of channels and ports by assuming consecutive index numbers. Whenever a gap in the numbering is encountered, following indexes will be ignored.
@@ -51,14 +51,38 @@ The network connections of FMITerminalBlock are organized into input and output 
 
 Input channels which implement the CompactASN.1 protocol will convert received IEC 61499 types (REAL, LREAL, DINT, ...) to FMI types in a best effort approach. For instance a received integer values will be converted to a numerical string representation if the model expects a string. CompactASN.1 outputs chose the default IEC 61499 type according to the FMI type of the variable. A corresponding IEC 61499 type which is capable of representing the content of the FMI variable without loss of information is chosen. An alternative encoding may be specified with the optional **out.-nr-.-nr-.encoding** property. The values of the property correspond to the names (in uppercase) of the IEC 61499 types.
 
+## Simulation Method Specific Parameters
+
+FMITerminalBlock supports multiple modes of operation. Each mode implements a different simulation method. Please note that due to some restrictions in the FMI 1.0 specification and possibly reduced capabilities of the included FMU, not all modes of operation lead to reliable results. The mode of operation is set with the optional **app.simulationMethod** parameter. Currently FMITerminalBlock supports two simulation modes, *multistep-prediction* which is the default value and *singlestep-delayed*.
+
+### Multistep Prediction (Default)
+
+In multistep prediction mode, FMITerminalBlock projects the result several steps (lookahead steps) ahead until the end of the prediction horizon is reached or an event is triggered by the model. The state after each lookahead step is saved to enable FMITerminalBlock to easily revert some predictions to an arbitrary time within the lookahead horizon. If no event is triggered by the model until the lookAheadTime is reached, an event which outputs the current outputs of the model will be triggered by FMITerminalBlock. In case an external event is detected, the state of the model is reverted to the time of the external event. Hence, the external event can be applied at the correct point in simulation time and it does not have to be artificially delayed. As soon as the external event is successfully applied, the prediction starts anew.
+
+The multistep prediction requires the FMU to be able to completely reset its state to a previous one. Some FMUs are known to be incompatible with the multistep prediction method. For instance, some delay blocks do not expose all internal states and produce invalid results in case they are reseted. Please consider using the [Singlestep Delayed Operation](#singlestep-delayed-operation), in case multistep prediction fails to produce correct results.
+
+The simulation is controlled by the following parameters:
+
+**app.lookAheadTime**: The mandatory parameter specifies the maximum time in which preliminary results are computed. In case no model event is detected, an event is triggered at *app.lookAheadTime* from the previous event. The event will contain all exposed model variables. Please note that continuous changes of real-typed outputs do not trigger an event. In case they need to passed regularly to connected devices, the look ahead time needs to be set accordingly.
+
+**app.lookAheadStepSize**: An internal, optional parameter which specifies the time until a predicted state is saved. The smaller the look ahead step size is chosen, the more accurate a state can be interpolated. Per default, a value of app.lookAheadTime/10 is chosen.
+
+### Singlestep Delayed Operation
+
+In singlestep delayed operation, FMITerminalBlock performs a series of micro prediction steps. After each prediction step was finished, results are synchronized and external events may be applied. Notably, the state of the FMU will not be reset to any previous value. Instead, external inputs are delayed to the end of the current prediction step. The operation introduces an artificial delay which slightly biases the result but allows to include FMUs which could not be included otherwise. It is important to carefully choose the maximum time of each simulation step such that the bias is kept to a reasonable limit and that the model can still be solved in real-time.
+
+**app.lookAheadTime**: In singlestep delayed operation, the mandatory parameter specifies the size of each simulation step. External events are delayed at maximum by the given amount of time.
+
+Since usually smaller look ahead time values are chosen in the singlestep delayed mode than in the multistep prediction mode, FMITerminalBlock filters outgoing events to avoid overloading the network infrastructure. If no value was changed since the last prediction step, the outgoing event will be suppressed and no message will be sent.
+
+**app.variableStepSize**: Optional flag ("true"/"false" or "0"/"1") which indicates whether the lookAheadTime should be adopted to model-generated events. In case the parameter is set to *true*, events which are triggered by the model will trigger an immediate output event. Please note that incoming external events will still be delayed until the end of the look ahead horizon or the next upcoming model event. Since the variable step size reduces the predictability of the results, it is set to *false* per default.
+
 ## Optional Parameters
 The operation of the solver and the prediction logic may be adjusted by the following parameters:
 
-**app.lookAheadStepSize**: An internal parameter which specifies the time until a predicted state is saved. The smaller the look ahead step size is chosen, the more accurate a state can be interpolated. Per default, a value of app.lookAheadTime/10 is chosen.
-
 **app.integratorStepSize**: The time interval of a single integrator step. The default value is app.lookAheadStepSize/10.
 
-**app.startTime**: The initial time of the simulation. The value defaults to 0.0 s
+**app.startTime**: The initial time of the simulation. The default value which is set in the FMU description may be used. In case the FMU does not contain any default start time property, a value must be given.
 
 **app.stopTime**: The time until the simulation is performed. The program will terminate after the first event which exceeds the stop time is triggered. Hence, the actual simulation may run longer as *app.stopTime* seconds.
 
