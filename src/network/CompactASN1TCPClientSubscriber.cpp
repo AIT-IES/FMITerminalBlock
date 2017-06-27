@@ -85,7 +85,8 @@ void CompactASN1TCPClientSubscriber::syncReconnect()
 		
 		if (retry < reconnectionRetries_ - 1)
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Sleep and try reconnecting again";
+			BOOST_LOG_TRIVIAL(info) << "Sleep for " << reconnectionTimeout_.count()
+					<< " ms and try reconnecting again";
 			std::this_thread::sleep_for(reconnectionTimeout_);
 		}
 	}

@@ -85,7 +85,7 @@ EventDispatcher::addEventListener(EventListener * listener)
 void
 EventDispatcher::processEvent(Event * ev)
 {
-		BOOST_LOG_TRIVIAL(debug) << "Process next Event: " << ev->toString();
+		BOOST_LOG_TRIVIAL(trace) << "Begin processing event: " << ev->toString();
 		timingLogger_.logEvent(ev, ProcessingStage::beginOfDistribution);
 
 		for(std::list<EventListener *>::iterator it = listener_.begin(); 
@@ -95,6 +95,6 @@ EventDispatcher::processEvent(Event * ev)
 		}
 
 		timingLogger_.logEvent(ev, ProcessingStage::endOfDistribution);
-		BOOST_LOG_TRIVIAL(debug) << "Delete processed Event: " << ev->toString();
+		BOOST_LOG_TRIVIAL(debug) << "Processed event: " << ev->toString();
 		delete ev;
 }

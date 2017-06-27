@@ -218,7 +218,8 @@ const ChannelMapping * ApplicationContext::getOutputChannelMapping()
 	if(outputChannelMap_ == NULL)
 	{
 		outputChannelMap_ = newChannelMapping(PROP_OUT);
-		BOOST_LOG_TRIVIAL(debug) << "Just created output " << outputChannelMap_->toString();
+		BOOST_LOG_TRIVIAL(debug) << "Settled output variable to channel mapping: "
+				<< outputChannelMap_->toString();
 	}
 	return outputChannelMap_;
 }
@@ -228,7 +229,8 @@ const ChannelMapping * ApplicationContext::getInputChannelMapping()
 	if (inputChannelMap_ == NULL)
 	{
 		inputChannelMap_ = newChannelMapping(PROP_IN);
-		BOOST_LOG_TRIVIAL(debug) << "Just created input " << inputChannelMap_->toString();
+		BOOST_LOG_TRIVIAL(debug) << "Settled input variable to channel mapping: "
+				<< inputChannelMap_->toString();
 	}
 	return inputChannelMap_;
 }

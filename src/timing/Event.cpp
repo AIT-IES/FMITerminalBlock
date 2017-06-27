@@ -40,14 +40,14 @@ bool Event::isValid(const std::vector<Variable> &values)
 
 		if (values[i].isTypeUnknown())
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Value of unknown type found." 
-				<< values[i].toString();
+			BOOST_LOG_TRIVIAL(debug) << "Value of unknown type in event variable list"
+				<<" found: "	<< values[i].toString();
 		}
 
 		if(!values[i].isValid())
 		{
-			BOOST_LOG_TRIVIAL(warning) << "Invalid type found. " 
-				<< values[i].toString();
+			BOOST_LOG_TRIVIAL(warning) << "Invalid type in event variable list "
+				<< "found: " << values[i].toString();
 			return false;
 		}
 	}
