@@ -91,3 +91,13 @@ The operation of the solver and the prediction logic may be adjusted by the foll
 **app.dataFile**: If the parameter is set, a CSV data file will be written which stores the actually scheduled data. The first two lines will describe the variables and the data types respectively. All other lines describe a single event. In case an event does not cover all variables, the corresponding field will be left empty.
 
 **in.default.-variable-name-**: The initial value of the input variable with the name *-variable-name-*. The value will be interpreted according to the variable type. I.e. if the variable is an fmiInteger, it will be converted to an integer variable. Unknown or unused inputs will be gracefully ignored.
+
+**app.logLevel**: Specifies the number of log messages which will be displayed. A default log level of *debug* is assumed. The following table summarizes available log levels.
+
+|  Log-Level  | Displayed Messages                                         |
+|-------------|------------------------------------------------------------|
+| *error*     | error messages only                                        |
+| *warning*   | errors and warnings                                        |
+| *info*      | some informational messages, errors, warnings              |
+| *debug*     | all messages which are intended to debug test setups       |
+| *trace*     | all available messages (intended to debug the application) |

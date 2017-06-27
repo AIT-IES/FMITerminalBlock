@@ -26,6 +26,7 @@
 
 #include "base/ApplicationContext.h"
 #include "base/BaseExceptions.h"
+#include "base/CLILoggingConfigurator.h"
 #include "model/AbstractEventPredictor.h"
 #include "model/EventPredictorFactory.h"
 #include "timing/EventDispatcher.h"
@@ -36,7 +37,7 @@
 using namespace FMITerminalBlock;
 
 /* Global Function declarations */
-void initTerminalLogger(void);
+void initBasicTerminalLogger(void);
 
 /**
  * @brief Initializes the program and starts the execution
@@ -46,7 +47,7 @@ void initTerminalLogger(void);
  */
 int main (int argc, const char *argv[])
 {
-	initTerminalLogger();
+	Base::CLILoggingConfigurator loggingConfig;
 
 	// Print copyright notice
 	BOOST_LOG_TRIVIAL(info) << "Copyright (c) 2017, AIT Austrian Institute of "
@@ -60,6 +61,8 @@ int main (int argc, const char *argv[])
 	{
 		// Initialize the application
 		context.addCommandlineProperties(argc,argv);
+		loggingConfig.configureLogger(context);
+
 		std::shared_ptr<Model::AbstractEventPredictor> predictor;
 		predictor = Model::EventPredictorFactory::makeEventPredictor(context);
 
@@ -113,32 +116,4 @@ int main (int argc, const char *argv[])
 
 	}
 
-}
-
-/**
- * @brief tries to initialize a simple logger
- * @details The logger will print debug information to stdout
- */
-void initTerminalLogger()
-{
-	boost::log::add_common_attributes();
-	boost::shared_ptr<boost::log::sinks::synchronous_sink< 
-		boost::log::sinks::text_ostream_backend > > sink 
-		= boost::log::add_console_log();
-	
-	sink->locked_backend()->auto_flush(true);
-	sink->set_formatter( 
-		boost::log::expressions::format("[%1%] [%2%] %3%: %4% ")
-			// See http://www.boost.org/doc/libs/1_56_0/doc/html/date_time/
-			// date_time_io.html#date_time.format_flags
-			% boost::log::expressions::format_date_time<boost::posix_time::ptime>
-				("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-			% boost::log::expressions::attr<
-				boost::log::attributes::current_thread_id::value_type>("ThreadID")
-			% boost::log::trivial::severity
-			% boost::log::expressions::smessage
-	);
-	sink->set_filter(
-		! boost::log::expressions::has_attr(Timing::eventTime)
-	);
 }
