@@ -128,21 +128,21 @@ std::string ChannelMapping::toString() const
 	std::string ret("ChannelMapping: ");
 
 	// names
-	boost::format name("name(%1%) = {%2%}, ");
+	boost::format name("defined %1% variable names: {%2%}, ");
 	for(unsigned i = 0; i < variableNames_.size(); i++)
 	{
 		assert(variableIDs_[i].size() == variableNames_[i].size());
 
 		name.clear();
-		name % i;
+		name % Base::getVariableTypeString((FMIVariableType) i);
 
 		std::string nList;
-		boost::format nListEntry("\"%1%\" (%2%,%3%)");
+		boost::format nListEntry("\"%1%\" has id (%2%, %3%)");
 		for(unsigned j = 0; j < variableNames_[i].size();j++)
 		{
 			nListEntry.clear();
 			nListEntry % variableNames_[i][j] 
-			           % variableIDs_[i][j].first 
+			           % Base::getVariableTypeString(variableIDs_[i][j].first)
 			           % variableIDs_[i][j].second;
 			nList += nListEntry.str();
 			if(j < (variableNames_[i].size() - 1))
@@ -154,8 +154,8 @@ std::string ChannelMapping::toString() const
 		ret += name.str();
 	}
 	//channels
-	ret += "mapping = {";
-	boost::format mp(" <t:%3%,id:%4%>->(%1%.%2%)");
+	ret += "mapping: {";
+	boost::format mp("id (%3%, %4%) <-> port (%1%.%2%)");
 
 	for(unsigned i = 0; i < channels_.size(); i++)
 	{
@@ -164,7 +164,7 @@ std::string ChannelMapping::toString() const
 		{
 			mp.clear();
 			mp % i % j;
-			mp % portIDs[j].first % portIDs[j].second;
+			mp % Base::getVariableTypeString(portIDs[j].first) % portIDs[j].second;
 			ret += mp.str();
 			if(i < (channels_.size() - 1) 
 				|| j < (portIDs.size() - 1))

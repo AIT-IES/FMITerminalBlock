@@ -38,6 +38,9 @@ namespace FMITerminalBlock
 		bool operator==(PortID a, PortID b);
 		/** @brief Returns <code>false</code> iff both PortIDs are equal. */
 		bool operator!=(PortID a, PortID b);
+
+		/** @brief Returns a string representation of the given variable type */
+		std::string getVariableTypeString(FMIVariableType type);
 	}
 }
 
