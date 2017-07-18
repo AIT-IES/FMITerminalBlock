@@ -5,7 +5,7 @@ The following tutorial demonstrates the usage of FMITerminalBlock in a Controlle
 
 ## Model and Pure Virtual Simulation
 
-At the beginning, the behavior of interest is modeled. For the current tutorial, a use case which does not introduce too many technical details was chosen. The mythological character [Sisyphus](https://en.wikipedia.org/wiki/Sisyphus), king of Ephyra is forced to roll a bolder up a hill. Nearly on top, the bolder comes back and the action is repeated. The following model simulates the situation. The Sisyphus block takes the vertical speed and outputs a flag as soon as the bottom or top is nearly reached. Additionally, the current height is presented. The Hades block reads the flags and changes the vertical speed of Sisyphus accordingly.
+At the beginning, the behavior of interest is modeled. For the current tutorial, a use case which does not introduce too many technical details was chosen. The mythological character [Sisyphos (lat. Sisyphus)](https://en.wikipedia.org/wiki/Sisyphus), king of Ephyra is forced to roll a bolder up a hill. Nearly on top, the bolder comes back and the action is repeated. The following model simulates the situation. The Sisyphus block takes the vertical speed and outputs a flag as soon as the bottom or top is nearly reached. Additionally, the current height is presented. The Hades block reads the flags and changes the vertical speed of Sisyphus accordingly.
 
 ![Model: Sisyphus and Hades](tutorial-data/img/underworld.png)
 
@@ -56,4 +56,78 @@ Alternatively, a "Clean Device" entry in the context menu of the PLC in the "Dow
 ![Clean Device Entry](tutorial-data/img/clean-device.png)
 
 Eclipse 4diac FORTE PLC may be compiled to read a given startup configuration file. Per default, the file is called ```forte.fboot```. In case the file is present and contains the correct version of the PLC configuration, no manual download is necessary. If the configuration was changed, the device needs to be cleaned and the updated configuration needs to be downloaded again.
+
+## Debug the Controller
+
+Eclipse 4diac IDE provides an option to view the current status of all function block variables. The debug option may be used to assess the functionality of the controller and to find any configuration flaw. Before the variable values can be queried, the IDE needs to connect to the programmed controller. Therefore, monitoring needs to be enabled via the "Debug"/"Monitor System"/[project-name] menu entry or the corresponding "Online" button. 
+
+![Enable Online Mode](tutorial-data/img/online-mode.png)
+
+Each variable provides a "Watch" and "Remove Watch" entry in the associated context menu which controls the debug output. Alternatively all variables of a function block may be debugged by the "Watch All" entry of the context menu of the function block. 
+
+![Watch All Variables](tutorial-data/img/watch-all.png)
+
+The following figure shows the debug output during a successful experiment.
+
+![Debug Output](tutorial-data/img/debug-output.png)
+
+## Configure and Start FMITerminalBlock
+
+FMITerminalBlock uses a command line interface to read all [configuration options](usage.md). Since external configuration files are currently not supported, it is advised to start FMITerminalBlock from a simple batch file or shell script. The following batch file executes the virtual component Sisyphus and connects th the previously configured PLC. Please make sure that the PLC is already configured before starting FMITerminalBlock. Otherwise the program may exit with an error message which states that a connection is not feasible.
+
+```Batch
+FMITerminalBlock.exe ^
+	"fmu.path=file:/C:/<path-to-FMU-Directory>/Sisyphus.fmu.dir" ^
+	fmu.name=Sisyphus ^
+	^
+	out.0.0=nearlyOnTop out.0.0.type=2 ^
+	out.0.1=nearlyOnBottom out.0.1.type=2 ^
+	out.0.2=height out.0.2.type=0 ^
+	out.0.protocol=CompactASN.1-TCP ^
+	out.0.addr=localhost:1499 ^
+	^
+	in.0.0=verticalSpeed in.0.0.type=0 ^
+	in.0.protocol=CompactASN.1-TCP ^
+	in.0.addr=localhost:1500 ^
+	^
+	app.lookAheadTime=10 ^
+	app.dataFile=./data.csv ^
+	app.logLevel=debug
+```
+
+Please make sure to adapt the path the directory of the extracted FMU (```fmu.path```). It is also vital that the name of the FMU as indicated by the exporting program matches the configured ```fmu.name``` directive. In case the URL to the FMU directory or the name is invalid, the following error message will be displayed.
+
+```
+fatal: Invalid command line argument detected: Can't load the incremental FMU "Thanatos" in URL "file:/C:/<path-to-FMU-Directory>/Sisyphus.fmu.dir" Got status 4
+```
+
+As indicated in the [usage documentation](usage.md), the ```out.``` and ```in.``` directives configure the variables which will be sent to and read from the controllers respectively. ```app.lookAheadTime``` specifies the time in seconds until the prediction of upcoming events is performed. In case no model event was found within that interval, an artificial event will be sent to the controller. ```app.logLevel``` specifies the amount of data which will be printed. In debug mode each communication event will be listed by entries such as the following ones.
+
+```
+[2017-07-18 11:06:40.312559] [0x000003e4] debug: Processed event: PartialEvent: Event: time=41.8849 variables={Variable: <fmiReal, id:1>=100.000000} -- 1 of 1 variables registered
+[2017-07-18 11:06:50.717492] [0x000003e4] debug: Processed event: Event: time=51.8696,  variables={Variable: <fmiReal, id:0>=1000.009768, Variable: <fmiTypeBoolean, id:0>=1, Variable: <fmiTypeBoolean, id:1>=0}
+```
+
+Events may only change a subset of all registered model variables. Listed variables record the associated model variables of each events. The internal identifier ```<fmiReal, id:1>``` may be resolved by the channel mapping debug lines which are printed at the beginning. A more concise format is given in the data CSV file which also records each event and all associated variables. ```app.dataFile``` specifies the CSV file which will contain events and the associated data. The following snipped shows an example output of the experiment. In case a variable is not associated with a triggered event, the field in the CSV field is left empty.
+
+```csv
+"time";"verticalSpeed";"height";"nearlyOnTop";"nearlyOnBottom"
+"fmiReal";"fmiReal";"fmiReal";"fmiBoolean";"fmiBoolean"
+10;;0;0;1
+10.2801;100;;;
+10.2801;;0.01;0;0
+10.2801;100;;;
+20.28;;1000.01;1;0
+20.5291;-200;;;
+20.6536;;999.98;0;0
+20.6851;-200;;;
+25.6535;;-0.0156161;0;1
+25.8017;100;;;
+26.0983;;0.00939047;0;0
+26.1293;100;;;
+36.0982;;1000.01;1;0
+36.2847;-200;;;
+36.3779;;999.981;0;0
+36.3783;-200;;;
+```
 
