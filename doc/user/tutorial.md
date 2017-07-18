@@ -131,3 +131,19 @@ Events may only change a subset of all registered model variables. Listed variab
 36.3783;-200;;;
 ```
 
+## Connect to External Hardware
+
+Based on the CHIL application, a HIL simulation is performed. Instead of the logic which controls the speed of Sisyphus, a Modbus device which sets the speed is used. To emulate the Modbus device (Slave), an [emulator program](https://sourceforge.net/projects/modrssim/) is deployed. An Eclipse 4diac forte PLC is still used to translate between the ASN.1-based protocol which is implemented in FMITerminalBlock and Modbus. Please note that the PLC needs to be compiled manually in order to support Modbus. The documentation of Eclipse 4diac provides further information on how to compile Eclipse 4diac forte. The following graphic illustrates the experimental HIL setup.
+
+![HIL Experiment Setup](tutorial-data/img/interactive-experimental-setup.png)
+
+Another Eclipse 4diac system was created which implements the protocol handling. Before executing the setup, it needs to be imported into the IDE and downloaded to the controller as described above. The following graphic illustrates the translation logic. The system may also be [downloaded from the repository](tutorial-data/controller/4diac-tutorial-interactive-underworld.zip).
+
+![Translation Logic](tutorial-data/img/translation-logic.png)
+
+The server function blocks on the left and right hand side connect to FMITerminalBlock again. Since the same variable mapping as in the previous CHIL setup is used, the very same FMITerminalBlock configuration can be set. The client function block connects to the Modbus TCP server (slave device). One may note the ID parameter of the client function block which is set to ```modbus[127.0.0.1:502:2000:3:1:0:1..3]```. The ID encodes, among others, the remote IP address, the polling interval (2000 ms), and the addresses of the variable to read and write. In particular, holding register 40001 is used to read the vertical speed. Holding Registers 40002 and 40003 are used to set the nearlyOnTop and nearlyOnBottom values respectively and register 40004 will contain the height at the last event. The following screenshot shows the an exemplary Modbus simulator output.
+
+![Modbus Simulator Output](tutorial-data/img/modbus-simulator.png)
+
+One may note that the modbus client function block sends an event after each polling cycle, even if the read values are constant. Consequently, many events are triggered in the simulation environment which may have negative impact on the simulation performance. In case small polling intervals of few hundred milliseconds or below are used, an IEC 61499-based filtering logic which relays only change events is advised. Another observation is that the continuous height parameter is not frequently updated. In the default simulation mode, FMITErminalBlock only outputs discrete events. I.e. if the top or bottom is reached, an event is triggered. Hence, the overhead which is introduced by the simulation is reduced. One may adjust the default behavior to meet the requirements of the particular use case.
+
