@@ -30,6 +30,7 @@ Please be aware that FMITerminalBlock is still in an early development stage. Th
 
 ## Further Reading
 
+* [Quick Start Tutorial](doc/user/tutorial.md)
 * [Usage Documentation](doc/user/usage.md)
 * [Installation](doc/user/installation.md)
 
