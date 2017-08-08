@@ -1,5 +1,5 @@
 import unittest
-from event import Event
+from data.event import Event
 
 class TestEvent(unittest.TestCase):
     

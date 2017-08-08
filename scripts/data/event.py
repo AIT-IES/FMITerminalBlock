@@ -4,7 +4,7 @@ class Event(MutableMapping):
     """Encodes a single event which encapsulates data at a given instant of time
     
     Each event is precisely timed. E.i. the instant of time may always be 
-    quireied. It contains a map of variables which will be changed by the 
+    queried. It contains a map of variables which will be changed by the 
     particular event. As key elements, the unique name of the variable is used.
     The new value will be associated with the variable name. The event overloads
     the usual dictionary access functions to access variable values.
@@ -13,7 +13,7 @@ class Event(MutableMapping):
     def __init__(self, event_time):
         """Initializes an empty event at the given instant of time
         
-        event_time corresponds to the current insutant of simulation time.
+        event_time corresponds to the current instant of simulation time.
         """
         
         self._event_time = float(event_time)
