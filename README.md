@@ -33,6 +33,7 @@ Please be aware that FMITerminalBlock is still in an early development stage. Th
 * [Quick Start Tutorial](doc/user/tutorial.md)
 * [Usage Documentation](doc/user/usage.md)
 * [Installation](doc/user/installation.md)
+* [Post Processing Scripts](doc/user/scripts.md)
 
 ## Publications regarding FMITerminalBlock
 * M. Spiegel, F. Leimgruber, E. Widl, G. Gridling:
