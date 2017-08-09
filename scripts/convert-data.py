@@ -29,8 +29,8 @@ def parse_arguments():
     """Evaluates the commandline arguments and returns the argument object"""
     
     parser = ArgumentParser( \
-        description="""Condenses FMITerminalBlock data CSV files into a more 
-                        dense CSV format""", \
+        description="""Condenses FMITerminalBlock data CSV files into a CSV 
+                       format which may be processed more easily""", \
         epilog="""Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.
                 \nAll rights reserved.""")
     
@@ -50,14 +50,15 @@ def parse_arguments():
     init_opts.add_argument("--default", "-d", nargs=2, action="append", \
         metavar = ("variable-name","initial-value"), \
         help = """Sets the initial value of the variable. The value will be 
-                  set in the corresponding column as long as no input CSV row 
-                  does not set another value. It is advised to use the default 
-                  values as set in the FMITerminalBlock simulation run.""")
+                  present in the corresponding column as long as no input CSV 
+                  row contains a newer value of the variable. It is advised to 
+                  use the default values as set in the FMITerminalBlock 
+                  simulation run.""")
                   
     parser.add_argument("--empty", "-e", action="store_true", \
         help = """Preserves rows which just contain a timestamp and no other 
-                  values. If the flag is not present empty rows (events) will be
-                  removed from the simulation output.""")
+                  values. If the flag is not present, empty rows (events) will 
+                  be removed from the simulation output.""")
     
     return parser.parse_args()
 
