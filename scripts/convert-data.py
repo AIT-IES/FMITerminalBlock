@@ -44,7 +44,7 @@ def parse_arguments():
     init_opts.add_argument("--sparse", "-s", action="store_true", \
         help = """Preserves empty fields within a single CSV row without 
                   interpolating any values. Per default, values which are not 
-                  associated with a certain time-stamp will be set to ther 
+                  associated with a certain time-stamp will be set to their 
                   previous values. The flag prevents interpolation and outputs 
                   sparse events instead.""")
     init_opts.add_argument("--default", "-d", nargs=2, action="append", \

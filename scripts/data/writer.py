@@ -9,7 +9,7 @@ import csv
 def write_basic_csv(in_reader, out_file, out_dialect=csv.excel):
     """Reads all events from in_reader and converts them to a simple CSV format
     
-    The output is written to the given out_file file object. Excep CSV dialect 
+    The output is written to the given out_file file object. Except CSV dialect 
     is used to represent values. Alternatively, a csv.Dialect object may be 
     passed to format the output.
     The function always writes a single header line which describes all model 
