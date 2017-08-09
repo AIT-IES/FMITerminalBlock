@@ -128,6 +128,36 @@ class TestConstantInterpolationEventFilter(unittest.TestCase):
         ref = {"a":0.5, "b":2, "c":True, "d":"Big Bang"}
         self.assertDictEqual(dict(ev), ref)
 
+    def test_invalid_real_init_value_type(self):
+        """Test passing an invalid initialization value"""
+        csv_dat = ['"time";"a";"b";"c";"d"', \
+                   '"fmiReal";"fmiReal";"fmiInteger";"fmiBoolean";"fmiString"',\
+                   '0.0;;;;']
+        start={"a":"not-real", "b":2, "c":True, "d":"Big Bang"}
+        source_reader = Reader(csv_dat)
+        self.assertRaises(ValueError, ConstantInterpolationEventFilter, \
+            source_reader, start)
+    
+    def test_invalid_integer_init_value_type(self):
+        """Test passing an invalid initialization value"""
+        csv_dat = ['"time";"a";"b";"c";"d"', \
+                   '"fmiReal";"fmiReal";"fmiInteger";"fmiBoolean";"fmiString"',\
+                   '0.0;;;;']
+        start={"a":0.1, "b":"no-int", "c":True, "d":"Big Bang"}
+        source_reader = Reader(csv_dat)
+        self.assertRaises(ValueError, ConstantInterpolationEventFilter, \
+            source_reader, start)
+    
+    def test_invalid_init_variable_name(self):
+        """Test passing an invalid initialization value"""
+        csv_dat = ['"time";"a";"b";"c";"d"', \
+                   '"fmiReal";"fmiReal";"fmiInteger";"fmiBoolean";"fmiString"',\
+                   '0.0;;;;']
+        start={"a":0.1, "b":1, "c":True, "d":"Big Bang", "e":0}
+        source_reader = Reader(csv_dat)
+        self.assertRaises(ValueError, ConstantInterpolationEventFilter, \
+            source_reader, start)
+        
 
 if __name__ == "__main__":
     unittest.main()

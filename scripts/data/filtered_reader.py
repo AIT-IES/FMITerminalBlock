@@ -63,9 +63,10 @@ class ConstantInterpolationEventFilter(AbstractReader):
         The source reader must be an abstract reader which deliverers a stream 
         of events. The dict of initial values maps model variable names to their
         initial values. It is assumed that the types of the initial values can 
-        be interpreted according to the model variable type. In case a model 
-        variable is not present in the initial_values dict, a type-dependent 
-        default value (0, 0.0, False, and "" respectively) is taken.
+        be interpreted according to the model variable type. Otherwise a 
+        ValueError will be raised In case a model variable is not present in the
+        initial_values dict, a type-dependent default value (0, 0.0, False, and 
+        "" respectively) is taken.
         """
         
         self._source_reader = source_reader
@@ -78,17 +79,45 @@ class ConstantInterpolationEventFilter(AbstractReader):
         
         The initial_values dict overrides the default values which depend on the
         type of the variable. The header dict records the types of each model 
-        variable as defined by AbstractReader.get_header().
+        variable as defined by AbstractReader.get_header(). initial_values is 
+        checked for consistency and may contain user input.
         """
         
         ret = {}
+        initial_values = dict(initial_values) # Copy, elements will be removed
+        
         for varname, vartype in header.items():
             if varname in initial_values:
-                ret[varname] = initial_values[varname]
+                ret[varname] = self._get_typed_value(varname, vartype, \
+                                                     initial_values[varname])
+                del initial_values[varname]
             else:
                 de = ConstantInterpolationEventFilter.default_values[vartype]
                 ret[varname] = de
+        
+        if len(initial_values) > 0:
+            raise ValueError("Unknown default model variables: {}" \
+                .format(list(initial_values.keys())))
+        
         return ret
+    
+    def _get_typed_value(self, varname, type, value):
+        """Checks the type of the variable named varname and returns the value
+        
+        The function is used to validate user input by converting the value to 
+        the destination type.
+        """
+        
+        if type == SimulationDataType.REAL:
+            return float(value)
+        elif type == SimulationDataType.INTEGER:
+            return int(value)
+        elif type == SimulationDataType.BOOLEAN:
+            return bool(value)
+        elif type == SimulationDataType.STRING:
+            return str(value)
+        else:
+            assert(False)
     
     def get_header(self):
         """Returns the header of the source reader"""
