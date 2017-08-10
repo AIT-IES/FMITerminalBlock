@@ -49,7 +49,19 @@ The network connections of FMITerminalBlock are organized into input and output 
 * *2*: FMI Boolean typed variable
 * *3*: FMI String typed variable
 
-Input channels which implement the CompactASN.1 protocol will convert received IEC 61499 types (REAL, LREAL, DINT, ...) to FMI types in a best effort approach. For instance a received integer values will be converted to a numerical string representation if the model expects a string. CompactASN.1 outputs chose the default IEC 61499 type according to the FMI type of the variable. A corresponding IEC 61499 type which is capable of representing the content of the FMI variable without loss of information is chosen. An alternative encoding may be specified with the optional **out.-nr-.-nr-.encoding** property. The values of the property correspond to the names (in uppercase) of the IEC 61499 types.
+### IEC 61499 ASN.1 Specifics
+Input channels which implement the CompactASN.1 protocol will convert received IEC 61499 types (REAL, LREAL, DINT, ...) to FMI types in a best effort approach. For instance a received integer values will be converted to a numerical string representation if the model expects a string. CompactASN.1 outputs choose the default IEC 61499 type according to the FMI type of the variable. A corresponding IEC 61499 type which is capable of representing the content of the FMI variable without loss of information is chosen. In particular, the following sensitive default values apply.
+
+| FMI Type | IEC 61499 Default Type |
+|----------|------------------------|
+| Real     | LREAL                  |
+| Integer  | DINT                   |
+| Boolean  | BOOL                   |
+| String   | STRING                 |
+
+An alternative output encoding may be specified with the optional **out.-nr-.-nr-.encoding** property. The values of the property correspond to the names (in uppercase) of the IEC 61499 types.
+
+The order of encoded model variable corresponds to the number of the network port. Port number 0 is sent or received first, followed by port number 1 and so on. Each output event is sent in a single packet which holds all output ports in the particular order. Input packets may be split into several packets but the total order of network ports must remain. I.e. Although the first and the second input network port may be sent in different packets, they must not be received in reversed order. Please note that while TCP guarantees the condition, UDP may not. (UDP receivers are currently unsupported anyway. If you need UDP support for receiving, please open an issue.)
 
 ## Simulation Method Specific Parameters
 
