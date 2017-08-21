@@ -224,6 +224,14 @@ namespace FMITerminalBlock
 			 */
 			void instantiateModel(const Base::ApplicationContext &appContext);
 
+			/**
+			 * @brief Initializes the previously instantiated model 
+			 * @details It is assumed to that the model reference fmu_ is properly 
+			 * initialized. A SystemConfigurationException is thrown in case the 
+			 * model was not properly initialized.
+			 */
+			void initModel(fmiReal startTime);
+
 			/** 
 			 * @brief Converts the status code to a human readable error description.
 			 */

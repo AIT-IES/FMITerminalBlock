@@ -69,18 +69,7 @@ OneStepEventPredictor::init()
 	initInputValueReference(appContext_.getInputChannelMapping());
 	initSimulationProperties(appContext_);
 
-	fmiStatus err;
-	fmu_->setTime(start);
-	setDefaultValues(appContext_);
-	err = fmu_->initialize();
-
-	if (err != fmiOK)
-	{
-		boost::format fmt("Error while initializing the model: %1%");
-		fmt % (int) err;
-		throw Base::SystemConfigurationException(fmt.str());
-	}
-	
+	initModel(start);
 	(void) updateOutputImage();
 }
 
@@ -284,6 +273,37 @@ OneStepEventPredictor::instantiateModel(
 		boost::format fmt("Unable to instantiate the FMU (%1%)");
 		fmt % (int) err;
 		throw Base::SystemConfigurationException(fmt.str());
+	}
+}
+
+void 
+OneStepEventPredictor::initModel(fmiReal startTime)
+{
+	assert(fmu_);
+
+	fmiStatus err;
+	fmu_->setTime(startTime);
+	setDefaultValues(appContext_);
+	err = fmu_->initialize();
+
+	if (err != fmiOK)
+	{
+		boost::format fmt("Error while initializing the model: %1%");
+		fmt % (int) err;
+		throw Base::SystemConfigurationException(fmt.str());
+	}
+	
+	// Currently, the very first time event has to be handled by the caller to 
+	// overcome a limitation of FMI++
+	if (fmu_->checkTimeEvent() && fmu_->getTimeEvent() <= startTime)
+	{
+		fmu_->handleEvents();
+		if (fmu_->getLastStatus() != fmiOK)
+		{
+			boost::format fmt("Error while handling an initial time event: %1%");
+			fmt % (int) fmu_->getLastStatus();
+			throw Base::SystemConfigurationException(fmt.str());
+		}
 	}
 }
 
