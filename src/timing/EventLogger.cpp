@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file EventLogger.cpp
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #include "timing/EventLogger.h"

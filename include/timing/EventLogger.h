@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file EventLogger.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_TIMING_EVENT_LOGGER
@@ -26,9 +26,6 @@ namespace FMITerminalBlock
 {
 	namespace Timing
 	{
-		using namespace FMITerminalBlock;
-		using namespace boost::log;
-
 		/** 
 		 * @brief Defines the position of the logged event
 		 * @details The position is defined according to the program's intended 
@@ -55,7 +52,8 @@ namespace FMITerminalBlock
 		 * individually. Although it is save to use the same logger instance by more
 		 * than one thread, the function may only be called by a single thread.
 		 */
-		class EventLogger: public sources::channel_logger_mt< ProcessingStage >
+		class EventLogger: 
+			public boost::log::sources::channel_logger_mt< ProcessingStage >
 		{
 		public:
 
@@ -109,7 +107,7 @@ namespace FMITerminalBlock
 			boost::mutex objectMutex_;
 
 			/** @brief Attribute used to log an event's time. */
-			attributes::mutable_constant<fmiTime> eventTimeAttribute_;
+			boost::log::attributes::mutable_constant<fmiTime> eventTimeAttribute_;
 		};
 	}
 }
