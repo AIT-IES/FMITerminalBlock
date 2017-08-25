@@ -94,6 +94,26 @@ namespace FMITerminalBlock
 			static void addEventFileSink(const Base::ApplicationContext& context);
 
 			/**
+			 * @brief Sets the time logging epoch for recording time events.
+			 * @details The epoch is considered the point in time where a simulation
+			 * time which equals zero is reached. In real time simulations, the 
+			 * simulation is synchronized with this point in time. In non real-time 
+			 * simulations, the time stamp is used to mark the start of any 
+			 * processing activity. In case only a coarse evaluation is required, the
+			 * default value which date to the time where the code is initialized may
+			 * be taken.
+			 *
+			 * It was chosen to introduce a global simulation epoch since the 
+			 * software currently only deploys a single time base. Consequently, the
+			 * distribution of logger objects may be kept simple.
+			 *
+			 * The function is not thread save and must only be called in case no 
+			 * other instance uses the time logging facility. Usually, the function 
+			 * is called on startup and hence, the guarantee holds.
+			 */
+			static void setGlobalSimulationEpoch(boost::system_time simulationEpoch);
+
+			/**
 			 * @brief Logs the given event
 			 * @details It is assumed that the given event reference is valid until
 			 * the function returns
@@ -103,11 +123,35 @@ namespace FMITerminalBlock
 			void logEvent(Event * ev, ProcessingStage stage);
 
 		private:
+
+			/** 
+			 * @brief The timestamp of the logging facility which corresponds to a 
+			 * simulation time which equals zero.
+			 */
+			static boost::system_time simulationEpoch_;
+
 			/** @brief Mutex used to synchronize concurrent object access */
 			boost::mutex objectMutex_;
 
 			/** @brief Attribute used to log an event's time. */
 			boost::log::attributes::mutable_constant<fmiTime> eventTimeAttribute_;
+			/** @brief Attribute used to log the external time stamp of a record. */
+			boost::log::attributes::mutable_constant<fmiTime> recordTimeAttribute_;
+
+			/**
+			 * @brief Returns the absolute time stamp now
+			 * @details The same time base as simulationEpoch_ will be used. Hence, 
+			 * the function provides a unique clock handling for time logging and 
+			 * eliminates the possibility of different clock systems. Please avoid 
+			 * querying the current time manually. (Although it is quite easy)
+			 */
+			static boost::system_time getAbsoluteRecordTimeNow();
+
+			/** 
+			 * @brief Returns the number of seconds since simulation epoch in a 
+			 * floating point format.
+			 */
+			static fmiTime getRelativeRecodTimeNow();
 		};
 	}
 }

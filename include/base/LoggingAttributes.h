@@ -30,6 +30,18 @@ namespace FMITerminalBlock
 
 		/** @brief Defines the eventTime attribute */
 		BOOST_LOG_ATTRIBUTE_KEYWORD(eventTime, ATTR_EVENT_TIME, fmiTime)
+
+		/** @brief The name of the time logging record timestamp attribute */
+		extern const char* ATTR_TIMING_RECORD_TIME;
+
+		/** 
+		 * @brief Defines the timingRecordTime attribute
+		 * @details The timestamp is given in seconds since epoch and may differ
+		 * from the log entries time stamp. It is used to get a more condensed time
+		 * format.
+		 */
+		BOOST_LOG_ATTRIBUTE_KEYWORD(timingRecordTime, ATTR_TIMING_RECORD_TIME, fmiTime)
+		
 	}
 }
 

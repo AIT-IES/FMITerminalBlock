@@ -13,3 +13,5 @@
 using namespace FMITerminalBlock;
 
 const char* Base::ATTR_EVENT_TIME = "EventTime";
+
+const char* Base::ATTR_TIMING_RECORD_TIME = "TimingRecordTime";

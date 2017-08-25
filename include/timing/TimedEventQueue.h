@@ -12,6 +12,7 @@
 #define _FMITERMINALBLOCK_TIMING_TIMED_EVENT_QUEUE
 
 #include "timing/EventQueue.h"
+#include "timing/EventLogger.h"
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -25,8 +26,6 @@ namespace FMITerminalBlock
 {
 	namespace Timing
 	{
-		using namespace FMITerminalBlock;
-
 		/**
 		 * @brief EventQueue implementation issuing predicted events in time.
 		 * @details <p> The event queue maintains the reference clock (system 
@@ -62,7 +61,9 @@ namespace FMITerminalBlock
 			const fmiTime eps_ = 1e-3;
 
 			/**
-			 * C'tor generating an empty TimedEventQueue
+			 * @brief C'tor generating an empty TimedEventQueue
+			 * @details The start of simulation time is taken at the C'tor and 
+			 * globally registered for all EventLogger instances.
 			 */
 			TimedEventQueue(void);
 
@@ -89,7 +90,6 @@ namespace FMITerminalBlock
 			virtual fmiTime getTimeStampNow();
 
 		private:
-
 			/**
 			 * @brief Ordered list of upcoming events
 			 * @details The most recent event will be at the first indices. The
@@ -112,6 +112,9 @@ namespace FMITerminalBlock
 
 			/** @brief Time-stamp of the fmiTime == 0 */
 			boost::system_time  localEpoch_;
+
+			/** @brief Used to record external events and timed queue specifics */
+			EventLogger eventLoggerInstance_;
 
 			/**
 			 * @brief Dequeues every predicted value after the given time

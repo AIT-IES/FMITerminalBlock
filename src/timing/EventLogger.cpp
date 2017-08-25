@@ -30,12 +30,14 @@ using namespace FMITerminalBlock::Timing;
 using namespace boost::log;
 
 const std::string EventLogger::PROP_FILE_NAME = "app.timingFile";
+boost::system_time EventLogger::simulationEpoch_ = getAbsoluteRecordTimeNow();
 
 EventLogger::EventLogger(): 
 	channel_logger_mt(locationUndefined), eventTimeAttribute_(-1.0), 
-	objectMutex_()
+	recordTimeAttribute_(-1.0),	objectMutex_()
 {
 	add_attribute(Base::ATTR_EVENT_TIME, eventTimeAttribute_);
+	add_attribute(Base::ATTR_TIMING_RECORD_TIME, recordTimeAttribute_);
 }
 
 void 
@@ -58,11 +60,13 @@ EventLogger::addEventFileSink(const Base::ApplicationContext& context)
 
 		sink->set_formatter(
 			expressions::stream << std::setprecision(8) << std::fixed
-			<< expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%w;%H;%M;%S.%f") 
-			<< ";" 
+			<< expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%w;%H;%M;%S.%f")
+			<< ";"
 			<< expressions::attr<fmiTime>(Base::ATTR_EVENT_TIME)
 			<< ";"
 			<< expressions::attr<ProcessingStage>("Channel")
+			<< ";"
+			<< expressions::attr<fmiTime>(Base::ATTR_TIMING_RECORD_TIME)
 			<< ";\""
 			<< expressions::smessage // TODO: Should be escaped, but csv_decorator doesn't work
 			<< "\""
@@ -76,12 +80,23 @@ EventLogger::addEventFileSink(const Base::ApplicationContext& context)
 }
 
 void 
+EventLogger::setGlobalSimulationEpoch(boost::system_time simulationEpoch)
+{
+	simulationEpoch_ = simulationEpoch;
+}
+
+void 
 EventLogger::logEvent(Event * ev, ProcessingStage stage)
 {
 	assert(ev != NULL);
+
+	// As early as possible -> Does not need a locked object as long as no other
+	// thread modifies the epoch base
+	fmiTime recordTime = getRelativeRecodTimeNow();
 	boost::lock_guard<boost::mutex> lock(objectMutex_);
 
 	eventTimeAttribute_.set(ev->getTime());
+	recordTimeAttribute_.set(recordTime);
 
 	record rec = open_record(keywords::channel = stage);
 	if(rec)
@@ -91,4 +106,18 @@ EventLogger::logEvent(Event * ev, ProcessingStage stage)
 		strm.flush();
 		push_record(boost::move(rec));
 	}
+}
+
+boost::system_time
+EventLogger::getAbsoluteRecordTimeNow()
+{
+	return boost::posix_time::microsec_clock::universal_time();
+}
+
+fmiTime
+EventLogger::getRelativeRecodTimeNow()
+{
+	const boost::system_time now = getAbsoluteRecordTimeNow();
+	boost::posix_time::time_duration recordTime = now - simulationEpoch_;
+	return ((fmiTime) recordTime.ticks()) / recordTime.ticks_per_second();
 }

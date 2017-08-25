@@ -22,7 +22,7 @@ TimedEventQueue::TimedEventQueue():
 	queue_(), queueMut_(), newEventCondition_(), 
 	localEpoch_(boost::posix_time::microsec_clock::universal_time())
 {
-
+	EventLogger::setGlobalSimulationEpoch(localEpoch_);
 }
 
 void
@@ -84,6 +84,7 @@ TimedEventQueue::get(void)
 void 
 TimedEventQueue::pushExternalEvent(Event *ev)
 {
+	eventLoggerInstance_.logEvent(ev, ProcessingStage::realTimeGeneration);
 	add(ev, false);
 }
 
