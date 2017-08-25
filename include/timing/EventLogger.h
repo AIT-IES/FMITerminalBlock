@@ -39,6 +39,7 @@ namespace FMITerminalBlock
 			prediction = 1, ///< After predicting the event by the model
 			endOfDistribution = 2, ///< After distributing the event to its sinks
 			beginOfDistribution = 3, ///< Before notifying the event listeners
+			outdated = 4, ///< The predicted event was outdated due to another event
 			locationUndefined = -1 ///< Undefined location, should be used with care
 		};
 

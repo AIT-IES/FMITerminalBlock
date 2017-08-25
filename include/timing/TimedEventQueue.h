@@ -189,6 +189,13 @@ namespace FMITerminalBlock
 			 * @details The function assumes that the queue mutex is already locked.
 			 */
 			std::string toString();
+
+			/**
+			 * @brief Marks the given event as deleted and destroys it.
+			 * @details The function will log a timing event which indicates that the
+			 * event has been destroyed without actually triggering it.
+			 */
+			void deleteEvent(Event* ev);
 		};
 
 	}

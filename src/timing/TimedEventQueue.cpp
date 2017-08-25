@@ -38,7 +38,7 @@ TimedEventQueue::add(Event * ev, bool predicted)
 
 	if (predicted && hasPriorEvents(ev->getTime()))
 	{
-		delete ev; // The event is already outdated
+		deleteEvent(ev); // The event is already outdated
 		return;
 	}
 	if (predicted)
@@ -105,7 +105,7 @@ TimedEventQueue::removeFuturPredictions(fmiTime time)
 	{
 		BOOST_LOG_TRIVIAL(trace) << "De-queued future predicted "
 			<< queue_.front().first->toString();
-		delete queue_.front().first;
+		deleteEvent(queue_.front().first);
 		queue_.erase(queue_.begin());
 	}
 }
@@ -119,7 +119,7 @@ TimedEventQueue::removeConcurrentPrediction(fmiTime time)
 	{
 		BOOST_LOG_TRIVIAL(trace) << "De-queued concurrent predicted " 
 			<< queue_.front().first->toString();
-		delete queue_.front().first;
+		deleteEvent(queue_.front().first);
 		queue_.erase(queue_.begin());
 	}
 }
@@ -203,4 +203,12 @@ TimedEventQueue::toString()
 	}
 	ret += "]";
 	return ret;
+}
+
+void 
+TimedEventQueue::deleteEvent(Event* ev)
+{
+	assert(ev);
+	eventLoggerInstance_.logEvent(ev, ProcessingStage::outdated);
+	delete ev;
 }
