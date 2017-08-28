@@ -84,6 +84,11 @@ namespace FMITerminalBlock
 			 *   <li>The log record's second. [0.0-60.0)</li>
  			 *   <li>The logged event time-stamp. </li>
  			 *   <li>The number of the event stage. </li>
+			 *   <li>Another log record time stamp in seconds since the simulations 
+			 *       starts. The time stamp does not directly correspond to the first
+			 *       time stamp but uses the simulation epoch. Hence, the zero real 
+			 *       time instant corresponds to the time instant where the 
+			 *       simulation starts (at t=0).</li>
 			 *   <li>Some Arbitrary debug information which may not be properly
 			 *       escaped. The debug information field lasts until the next line
 			 *       delimiter is reacher.</li>
