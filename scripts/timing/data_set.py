@@ -129,6 +129,6 @@ def load_data_set_from_file(filename):
     """
     
     with open(filename, 'r', newline='') as infile:
-        reader = Reader(filename)
+        reader = Reader(infile)
         ds = DataSet(reader)
         return ds
