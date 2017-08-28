@@ -5,4 +5,4 @@ represent the timing of a certain event and calculate several performance
 indicators.
 """
 
-__all__ = ["timing_entry"]
+__all__ = ["timing_entry", "reader"]
