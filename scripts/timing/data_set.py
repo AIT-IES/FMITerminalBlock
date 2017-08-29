@@ -118,6 +118,19 @@ class TimingAxis:
     def get_length(self):
         """Returns the number of samples included in the axis"""
         return self._timing.shape[0]
+    
+    def get_mean_delay(self):
+        """Returns the mean delay of all timing events"""
+        return np.mean(self.get_delay())
+    
+    def get_min_delay(self):
+        """Returns the minimum delay of all timing events"""
+        return np.amin(self.get_delay())
+    
+    def get_max_delay(self):
+        """Returns the maximum delay of all timing events"""
+        return np.amax(self.get_delay())
+    
 
 
 def load_data_set_from_file(filename):

@@ -123,6 +123,23 @@ class TestDataSet(unittest.TestCase):
             "{} == {}".format(raw_reference, axis.get_raw_data()))
 
     
+    def test_mean_delay(self):
+        """Test the average delay function of a timing axis object"""
+        
+        axis = self._data_set.get_registration_axis()
+        self.assertAlmostEqual(axis.get_mean_delay(), -0.92)
 
+    def test_min_delay(self):
+        """Test the minimum delay function of a timing axis object"""
+        
+        axis = self._data_set.get_registration_axis()
+        self.assertAlmostEqual(axis.get_min_delay(), -1.5)
+
+    def test_max_delay(self):
+        """Test the maximum delay function of a timing axis object"""
+        
+        axis = self._data_set.get_registration_axis()
+        self.assertAlmostEqual(axis.get_max_delay(), -0.2)
+        
 if __name__ == "__main__":
     unittest.main()
