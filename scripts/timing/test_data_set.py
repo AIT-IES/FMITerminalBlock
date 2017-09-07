@@ -128,7 +128,13 @@ class TestDataSet(unittest.TestCase):
         
         axis = self._data_set.get_registration_axis()
         self.assertAlmostEqual(axis.get_mean_delay(), -0.92)
-
+    
+    def test_variance_of_delay(self):
+        """Test the variance calculation of all delay values"""
+        
+        axis = self._data_set.get_registration_axis()
+        self.assertAlmostEqual(axis.get_variance_of_delay(), 0.2817777777777778)
+    
     def test_min_delay(self):
         """Test the minimum delay function of a timing axis object"""
         
@@ -140,6 +146,47 @@ class TestDataSet(unittest.TestCase):
         
         axis = self._data_set.get_registration_axis()
         self.assertAlmostEqual(axis.get_max_delay(), -0.2)
+    
+    def test_get_delay_cleaned_axis(self):
+        """Test the outlier removal functionality
+        """
         
+        axis = self._data_set.get_registration_axis()
+        
+        # No cleanup
+        axis = axis.get_delay_cleaned_axis(0.0)
+        raw_reference = np.array([ \
+            [1.0, 0.0], \
+            [2.0, 1.5], \
+            [3.0, 1.6], \
+            [5.0, 3.5], \
+            [4.0, 3.8], \
+            [11.0, 10.0], \
+            [12.0, 11.5], \
+            [13.0, 11.6], \
+            [15.0, 13.5], \
+            [14.0, 13.8] \
+        ])
+        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
+            "{} == {}".format(raw_reference, axis.get_raw_data()))
+
+        # Remove four items
+        axis = axis.get_delay_cleaned_axis(0.4)
+        raw_reference = np.array([ \
+            [1.0, 0.0], \
+            [2.0, 1.5], \
+            [3.0, 1.6], \
+            [11.0, 10.0], \
+            [12.0, 11.5], \
+            [13.0, 11.6] \
+        ])
+        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
+            "{} == {}".format(raw_reference, axis.get_raw_data()))
+            
+        # Remove all items
+        axis = axis.get_delay_cleaned_axis(1.0)
+        self.assertEqual(axis.get_length(), 0)
+    
+
 if __name__ == "__main__":
     unittest.main()
