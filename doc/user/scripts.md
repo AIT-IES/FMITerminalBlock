@@ -49,7 +49,7 @@ The output CSV file format will use a comma (",") as a field separator and will 
 
 ## Timing Data Evaluation
 
-FMITerminal block provides some classes and modules which feature the analysis of timing data. The source files are located in the [scripts/timing](../../scripts/timing) directory. The project also contains a [JuPyther](https://jupyter.org/) notebook which [introduces the timing analysis facilities and performs a basic timing evaluation.](../../scripts/basic-timing-evaluation.ipynb). Please refer to the notebook for further information on how to use the timing data processing API. 
+FMITerminal block provides some classes and modules which feature the analysis of timing data. The source files are located in the [scripts/timing](../../scripts/timing) directory. The project also contains a [JuPyther](https://jupyter.org/) notebook which [introduces the timing analysis facilities and performs a basic timing evaluation](../../scripts/basic-timing-evaluation.ipynb). Please refer to the notebook for further information on how to use the timing data processing API. 
 
 ## Python Data Processing API
 
