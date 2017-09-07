@@ -46,6 +46,11 @@ For instance, to convert an input file ```~/data.csv``` to an output file ```~/o
 
 The output CSV file format will use a comma (",") as a field separator and will enclose all values within quotation marks. The first row names the model variable of each column and does not contain any simulation outcome. The first column always corresponds to the simulation time.
 
+
+## Timing Data Evaluation
+
+FMITerminal block provides some classes and modules which feature the analysis of timing data. The source files are located in the [scripts/timing](../../scripts/timing) directory. The project also contains a [JuPyther](https://jupyter.org/) notebook which [introduces the timing analysis facilities and performs a basic timing evaluation.](../../scripts/basic-timing-evaluation.ipynb). Please refer to the notebook for further information on how to use the timing data processing API. 
+
 ## Python Data Processing API
 
 The [scripts/data](../../scripts/data) directory contains a Python package which may be used to read and process FMITerminalBlock data files directly from Python. (e.g. via a [Jupyther](https://jupyter.org/) notebook. Each event is represented by an [```data.event.Event```](../../scripts/data/event.py) object. A [```data.reader.Reader```](../../scripts/data/reader.py) object may be used to read streams of events from CSV files. Filters for removing empty events and for interpolating values which are not directly associated with events can be found in the [```data.filtered_reader```](../../scripts/data/filtered_reader.py) module. Since the filtered reader are also reader objects, it is possible to connect multiple reader objects to a processing pipe which handles a complex task. Please refer to the source code documentation for more details on using the API.
