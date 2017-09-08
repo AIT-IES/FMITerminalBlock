@@ -36,9 +36,6 @@
 
 using namespace FMITerminalBlock;
 
-/* Global Function declarations */
-void initBasicTerminalLogger(void);
-
 /**
  * @brief Initializes the program and starts the execution
  * @param argc The number of elements stored in argv
