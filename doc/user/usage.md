@@ -94,7 +94,7 @@ The operation of the solver and the prediction logic may be adjusted by the foll
 
 **app.integratorStepSize**: The time interval of a single integrator step. The default value is app.lookAheadStepSize/10.
 
-**app.startTime**: The initial time of the simulation. The default value which is set in the FMU description may be used. In case the FMU does not contain any default start time property, a value must be given.
+**app.startTime**: The initial time of the simulation. In real-time mode (currently the only model of operation), the program starts processing events which are associated with the given start time, immediately. The default value which is set in the FMU description may be used. In case the FMU does not contain any default start time property, a value must be given.
 
 **app.stopTime**: The time until the simulation is performed. The program will terminate after the first event which exceeds the stop time is triggered. Hence, the actual simulation may run longer as *app.stopTime* seconds.
 
