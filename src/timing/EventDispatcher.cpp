@@ -27,7 +27,7 @@ EventDispatcher::EventDispatcher(Base::ApplicationContext &context,
 	
 	// The default value may take a time but that ok. In this case the program 
 	// has to be terminated manually.
-	theEnd_ = context.getRealPositiveDoubleProperty(PROP_STOP_TIME, DBL_MAX);
+	theEnd_ = context.getProperty<fmiTime>(PROP_STOP_TIME, DBL_MAX);
 
 	// Eventually loaded dynamically in future versions.
 	queue_ = std::make_shared<TimedEventQueue>();

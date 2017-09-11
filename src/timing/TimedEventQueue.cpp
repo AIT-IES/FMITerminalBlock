@@ -28,6 +28,8 @@ TimedEventQueue::TimedEventQueue():
 void 
 TimedEventQueue::initStartTimeNow(fmiTime start)
 {
+	assert(queue_.empty());
+
 	// Set preliminary local epoch
 	localEpoch_ = boost::posix_time::microsec_clock::universal_time();
 	// Correct local epoch by starting time

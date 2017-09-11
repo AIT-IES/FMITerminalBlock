@@ -637,3 +637,136 @@ BOOST_FIXTURE_TEST_CASE(test_realtime_performance, EventDispatcherFixture)
 	// Check termination
 	BOOST_CHECK(expectedTime.empty());
 }
+
+/** 
+ * @brief Applies some external events before the dispatcher has been 
+ * initialized
+ * @details The functions which adds the external event is expected to block
+ * until the simulation run starts.
+ */
+BOOST_FIXTURE_TEST_CASE(test_early_external_event, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.startTime=1.0", 
+		"app.stopTime=1.1", NULL };
+	appContext.addCommandlineProperties(3, argv);
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(5.0);
+	EventDispatcher dispatcher(appContext, pred);
+	RealTimeMonitor monitor;
+
+	dispatcher.addEventListener(this);
+	dispatcher.addEventListener(monitor);
+
+	monitor.sink_ = dispatcher.getEventSink();
+
+	// Add generated events
+	expectedTime.push_back(1.2); // External
+
+	BOOST_TEST_CHECKPOINT("Start external thread");
+	std::thread extThread([&dispatcher]() {
+		dispatcher.getEventSink()->pushExternalEvent(
+			new StaticEvent(1.2, std::vector<Variable>()));
+	});
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	dispatcher.run();
+
+	// Check termination
+	BOOST_CHECK(expectedTime.empty());
+	extThread.join();
+}
+
+
+/** 
+ * @brief Queries the current simulation time before the dispatcher has been 
+ * initialized
+ * @details The functions which adds the external event is expected to block
+ * until the simulation run starts. The test case makes several assumptions on
+ * the scheduling and processing speed in order to test the time-stamping 
+ * mechanism.
+ */
+BOOST_FIXTURE_TEST_CASE(test_early_time_query_1, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.startTime=1.0", 
+		"app.stopTime=1.1", NULL };
+	appContext.addCommandlineProperties(3, argv);
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(5.0);
+	EventDispatcher dispatcher(appContext, pred);
+	RealTimeMonitor monitor;
+
+	dispatcher.addEventListener(this);
+	dispatcher.addEventListener(monitor);
+
+	monitor.sink_ = dispatcher.getEventSink();
+
+	// Add generated events
+	expectedTime.push_back(1.2); // External
+
+	BOOST_TEST_CHECKPOINT("Start external thread");
+	std::thread extThread([&dispatcher]() {
+		auto es = dispatcher.getEventSink();
+		BOOST_CHECK_SMALL(es->getTimeStampNow() - 0.5, 0.01);
+		es->pushExternalEvent(new StaticEvent(1.2, std::vector<Variable>()));
+	});
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	dispatcher.run();
+
+	// Check termination
+	BOOST_CHECK(expectedTime.empty());
+	extThread.join();
+}
+
+/** 
+ * @brief Queries the current simulation time before the dispatcher has been 
+ * initialized
+ * @details The functions which adds the external event is expected to block
+ * until the simulation run starts. The test case makes several assumptions on
+ * the scheduling and processing speed in order to test the time-stamping 
+ * mechanism.
+ */
+BOOST_FIXTURE_TEST_CASE(test_early_time_query_2, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.startTime=-1.0", 
+		"app.stopTime=-0.1", NULL };
+	appContext.addCommandlineProperties(3, argv);
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(5.0);
+	EventDispatcher dispatcher(appContext, pred);
+	RealTimeMonitor monitor;
+
+	dispatcher.addEventListener(this);
+	dispatcher.addEventListener(monitor);
+
+	monitor.sink_ = dispatcher.getEventSink();
+
+	// Add generated events
+	expectedTime.push_back(0.0); // External
+
+	BOOST_TEST_CHECKPOINT("Start external thread");
+	std::thread extThread([&dispatcher]() {
+		auto es = dispatcher.getEventSink();
+		BOOST_CHECK_SMALL(es->getTimeStampNow() - (-1.5), 0.01);
+		es->pushExternalEvent(new StaticEvent(0.0, std::vector<Variable>()));
+	});
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	dispatcher.run();
+
+	// Check termination
+	BOOST_CHECK(expectedTime.empty());
+	extThread.join();
+}
