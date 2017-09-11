@@ -301,8 +301,9 @@ BOOST_FIXTURE_TEST_CASE(test_prediction_only,
 												EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = {"testEventHandling", "app.stopTime=0.6", NULL};
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = {"testEventHandling", "app.startTime=0", 
+		"app.stopTime=0.6", NULL};
+	appContext.addCommandlineProperties(3, argv);
 
 	expectedTime.push_back(0.2);
 	expectedTime.push_back(0.4);
@@ -324,8 +325,9 @@ BOOST_FIXTURE_TEST_CASE(test_prediction_only,
 BOOST_FIXTURE_TEST_CASE(test_multiple_external_events, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.6", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.stopTime=1.6", 
+		"app.startTime=0", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.6);
@@ -361,8 +363,9 @@ BOOST_FIXTURE_TEST_CASE(test_multiple_external_events, EventDispatcherFixture)
 BOOST_FIXTURE_TEST_CASE(test_late_external_events, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.0", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.startTime=0", 
+		"app.stopTime=1.0", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.6);
@@ -396,8 +399,9 @@ BOOST_FIXTURE_TEST_CASE(test_late_external_events, EventDispatcherFixture)
 BOOST_FIXTURE_TEST_CASE(test_multiple_predicted_events, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.4", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.startTime=0", 
+		"app.stopTime=1.4", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.4);
@@ -432,8 +436,9 @@ BOOST_FIXTURE_TEST_CASE(test_multiple_predicted_events, EventDispatcherFixture)
 BOOST_FIXTURE_TEST_CASE(test_concurrent_predicted_taken, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.6", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.startTime=0", 
+		"app.stopTime=1.6", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.4);
@@ -471,8 +476,9 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_predicted_taken, EventDispatcherFixture)
 BOOST_FIXTURE_TEST_CASE(test_concurrent_predicted_not_taken, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.6", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.startTime=0", 
+		"app.stopTime=1.6", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.4);
@@ -514,8 +520,9 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_predicted_not_taken, EventDispatcherFixt
 BOOST_FIXTURE_TEST_CASE(test_add_external_futur_event, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.4", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.startTime=0", 
+		"app.stopTime=1.4", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.4);
@@ -552,8 +559,9 @@ BOOST_FIXTURE_TEST_CASE(test_add_external_futur_event, EventDispatcherFixture)
 BOOST_FIXTURE_TEST_CASE(test_add_near_predicted_event, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.4", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.startTime=0", 
+		"app.stopTime=1.4", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.4);
@@ -601,8 +609,9 @@ struct RealTimeMonitor : public EventListener
 BOOST_FIXTURE_TEST_CASE(test_realtime_performance, EventDispatcherFixture)
 {
 	// Prepare environment
-	const char * argv[] = { "testEventHandling", "app.stopTime=1.0", NULL };
-	appContext.addCommandlineProperties(2, argv);
+	const char * argv[] = { "testEventHandling", "app.startTime=0", 
+		"app.stopTime=1.0", NULL };
+	appContext.addCommandlineProperties(3, argv);
 
 	// Generate the objects under test
 	SimpleTestEventPredictor pred(0.2);

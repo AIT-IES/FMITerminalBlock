@@ -19,16 +19,31 @@
 using namespace FMITerminalBlock::Timing;
 
 TimedEventQueue::TimedEventQueue():
-	queue_(), queueMut_(), newEventCondition_(), 
+	queue_(), queueMut_(), newEventCondition_(), timeInitMut_(),
 	localEpoch_(boost::posix_time::microsec_clock::universal_time())
 {
+	timeInitMut_.lock(); // The time has not been initialized yet. 
+}
+
+void 
+TimedEventQueue::initStartTimeNow(fmiTime start)
+{
+	// Set preliminary local epoch
+	localEpoch_ = boost::posix_time::microsec_clock::universal_time();
+	// Correct local epoch by starting time
+	localEpoch_ -= getRelativeTime(start);
+
 	EventLogger::setGlobalSimulationEpoch(localEpoch_);
+	timeInitMut_.unlock();
 }
 
 void
 TimedEventQueue::add(Event * ev, bool predicted)
 {
 	assert(ev != NULL);
+	waitUntilTimeIsInitiailzed(); // May be reduced for performance reasons 
+	                              // -> There should be no predicted events 
+	                              //    before the time is initialized, anyway.
 	boost::lock_guard<boost::mutex> guard(queueMut_);
 
 	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(" << ev->toString() 
@@ -49,12 +64,14 @@ TimedEventQueue::add(Event * ev, bool predicted)
 	push(ev, predicted);
 	newEventCondition_.notify_one();
 
-	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(...): Post-State: " << toString();
+	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(...): Post-State: " 
+		<< toString();
 }
 
 Event * 
 TimedEventQueue::get(void)
 {
+	waitUntilTimeIsInitiailzed();
 	boost::unique_lock<boost::mutex> lock(queueMut_);
 	Event* ret = NULL;
 
@@ -75,7 +92,6 @@ TimedEventQueue::get(void)
 			ret = queue_.front().first;
 			queue_.pop_front();
 		}
-
 	}
 
 	return ret;
@@ -84,6 +100,7 @@ TimedEventQueue::get(void)
 void 
 TimedEventQueue::pushExternalEvent(Event *ev)
 {
+	waitUntilTimeIsInitiailzed();
 	eventLoggerInstance_.logEvent(ev, ProcessingStage::realTimeGeneration);
 	add(ev, false);
 }
@@ -93,7 +110,16 @@ TimedEventQueue::getTimeStampNow()
 {
 	boost::system_time currentTime;
 	currentTime = boost::posix_time::microsec_clock::universal_time();
+	waitUntilTimeIsInitiailzed();
 	return getSimulationTime(currentTime);
+}
+
+void 
+TimedEventQueue::waitUntilTimeIsInitiailzed()
+{
+	// Do not use lock guard for performance reasons
+	timeInitMut_.lock();
+	timeInitMut_.unlock();
 }
 
 void 
@@ -129,7 +155,7 @@ TimedEventQueue::push(Event * ev, bool predicted)
 {
 	assert(ev != NULL);
 	assert(queue_.empty() || !queue_.front().second || !predicted);
-	fmiTime invariantOldTime = DBL_MIN;
+	fmiTime invariantOldTime = -1*DBL_MAX; // DBL_MIN is still positive!
 
 	auto evIt = queue_.begin();
 	while(evIt != queue_.end() && 
@@ -148,10 +174,15 @@ TimedEventQueue::getSystemTime(const Event* ev) const
 {
 	assert(ev != NULL);
 	fmiTime time = ev->getTime();
-	boost::posix_time::time_duration evTime = 
-		boost::posix_time::seconds((long) floor(time)) + 
-		boost::posix_time::microseconds((int64_t) ((time - floor(time)) * 1000*1000));
-	return localEpoch_ + evTime;
+	return localEpoch_ + getRelativeTime(time);
+}
+
+boost::posix_time::time_duration 
+TimedEventQueue::getRelativeTime(fmiTime time)
+{
+	return	boost::posix_time::seconds((long) floor(time)) + 
+		boost::posix_time::microseconds(
+			(int64_t) ((time - floor(time)) * 1000*1000));
 }
 
 fmiTime

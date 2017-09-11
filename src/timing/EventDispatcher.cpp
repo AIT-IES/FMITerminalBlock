@@ -45,6 +45,8 @@ EventDispatcher::run()
 {
 	assert(queue_ != NULL);
 	fmiTime currentTime;
+
+	initStartTimeNow();
 	do{
 		Event * prediction = predictor_.predictNext();
 		timingLogger_.logEvent(prediction, ProcessingStage::prediction);
@@ -97,4 +99,14 @@ EventDispatcher::processEvent(Event * ev)
 		timingLogger_.logEvent(ev, ProcessingStage::endOfDistribution);
 		BOOST_LOG_TRIVIAL(debug) << "Processed event: " << ev->toString();
 		delete ev;
+}
+
+void
+EventDispatcher::initStartTimeNow()
+{
+	assert(queue_);
+
+	fmiTime start = context_.getProperty<fmiTime>(
+		Base::ApplicationContext::PROP_START_TIME);
+	queue_->initStartTimeNow(start);
 }

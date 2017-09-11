@@ -131,6 +131,13 @@ namespace FMITerminalBlock
 			 */
 			void processEvent(Event * ev);
 
+			/**
+			 * @brief Initializes the start time of the event queue.
+			 * @details The function assumes that the event queue reference is 
+			 * present and ready to be initialized. Additionally, the application 
+			 * context object needs to be available.
+			 */
+			void initStartTimeNow();
 		};
 
 	}

@@ -70,6 +70,9 @@ namespace FMITerminalBlock
 			/** @brief Frees allocated resources */
 			virtual ~TimedEventQueue() {}
 
+			/** @copydoc EventQueue::initStartTimeNow(fmiTime) */
+			virtual void initStartTimeNow(fmiTime start);
+
 			/**
 			 * @copydoc EventQueue::add()
 			 */
@@ -110,11 +113,27 @@ namespace FMITerminalBlock
 			 */
 			boost::condition_variable newEventCondition_;
 
+			/** 
+			 * @brief Mutex which is released as soon as the localEpoch_ and related
+			 * variables are initialized
+			 * @details Please release the mutex as soon as it is acquired. Otherwise 
+			 * other threads may be unnecessarily blocked.
+			 */
+			boost::mutex timeInitMut_;
+
 			/** @brief Time-stamp of the fmiTime == 0 */
 			boost::system_time  localEpoch_;
 
 			/** @brief Used to record external events and timed queue specifics */
 			EventLogger eventLoggerInstance_;
+
+			/** 
+			 * @brief Blocks the current thread until the localEpoch_ and related 
+			 * variables may be safely accessed. 
+			 * @details In case the time was initialized before, the function 
+			 * returns immediately.
+			 */
+			inline void waitUntilTimeIsInitiailzed();
 
 			/**
 			 * @brief Dequeues every predicted value after the given time
@@ -147,22 +166,35 @@ namespace FMITerminalBlock
 
 			/**
 			 * @brief Returns the system time of the given event
-			 * @details Converts the time based on the simulation's starting time.
+			 * @details Converts the time based on the simulation's starting time. 
+			 * The function does not wait until the time is initialized. Hence, it 
+			 * can be used during the initialization process.
 			 * @param ev A valid event reference used to obtain the relative time
 			 * @return The corresponding system time object
 			 */
 			boost::system_time getSystemTime(const Event* ev) const;
 
 			/**
+			 * @brief Returns the duration of the fmiTime instant relative to 
+			 * the epoch
+			 * @param time A valid simulation time instant
+			 * @return The corresponding duration object
+			 */
+			static boost::posix_time::time_duration getRelativeTime(fmiTime time);
+
+			/**
 			 * @brief Returns the simulation time of the given system time instant
 			 * @details The simulation time will be based on the local notion of time 
-			 * which is stored in localEpoch_.
+			 * which is stored in localEpoch_. The function does not wait until the 
+			 * time is initialized. Hence, it can be used during the initialization 
+			 * process.
 			 * @param sysTime The system time of the event.
 			 */
 			fmiTime getSimulationTime(const boost::system_time &sysTime) const;
 
 			/**
 			 * @brief Returns whether the event's time is a future time-stamp
+			 * @details The function does not wait until the time is initialized.
 			 * @param ev A valid pointer to the event object
 			 * @return The temporal status of the event
 			 */
