@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------- *
- * Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.      *
+ * Copyright (c) 2017, AIT Austrian Institute of Technology GmbH.      *
  * All rights reserved. See file FMITerminalBlock_LICENSE for details. *
  * ------------------------------------------------------------------- */
 
 /**
  * @file EventQueue.h
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #ifndef _FMITERMINALBLOCK_EVENT_QUEUE
@@ -18,8 +18,6 @@ namespace FMITerminalBlock
 {
 	namespace Timing
 	{
-		using namespace FMITerminalBlock;
-
 		/**
 		 * @brief Abstract class which defines the basic queue functionality.
 		 * @details <p>An EventQueue instance will manage events concurrently. It
@@ -59,6 +57,20 @@ namespace FMITerminalBlock
 			 */
 			virtual Event * get(void) = 0;
 
+			/**
+			 * @brief Sets the start time of the simulation and indicates that this 
+			 * time instance is now.
+			 * @details For real-time simulations, the information may be utilized to
+			 * adjust the local epoch accordingly. The function will be called before
+			 * the actual simulation run starts. I.e. there should not be a predicted
+			 * event which was registered before. Nevertheless, it may be possible 
+			 * that an external event was registered before and that the current 
+			 * time-stamp was queried. It is advised to adjust all events in the 
+			 * event queue according to the changed notion of time.
+			 * @param start The first simulation time instant which is exactly 
+			 * now.
+			 */
+			virtual void setStartTimeNow(fmiTime start) = 0;
 		};
 
 	}

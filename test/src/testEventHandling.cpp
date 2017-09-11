@@ -254,9 +254,12 @@ struct EventDispatcherFixture: Timing::EventListener
 	 * occurrence 
 	 */
 	std::list<fmiTime> expectedTime;
+		/** @brief The absolute accuracy of time comparisons */
+	fmiTime absoluteAccuracy;
 
 	/** @brief Initializes the fixture */
-	EventDispatcherFixture(): appContext(), expectedTime()
+	EventDispatcherFixture(): appContext(), expectedTime(), 
+		absoluteAccuracy(0.00001)
 	{
 
 	}
@@ -277,9 +280,10 @@ struct EventDispatcherFixture: Timing::EventListener
 		}
 		else 
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Received an expected event: " <<
-				ev->toString();
-			BOOST_CHECK_CLOSE(ev->getTime(), expectedTime.front(), 0.0001);
+			BOOST_LOG_TRIVIAL(debug) << "Received an expected (at " << 
+				expectedTime.front() <<" s) event: " <<	ev->toString();
+			BOOST_CHECK_SMALL(ev->getTime() - expectedTime.front(), 
+				absoluteAccuracy);
 			expectedTime.pop_front();
 		}
 	}
@@ -623,6 +627,100 @@ BOOST_FIXTURE_TEST_CASE(test_realtime_performance, EventDispatcherFixture)
 
 	// Perform the test
 	BOOST_TEST_CHECKPOINT("Start test procedure");
+	dispatcher.run();
+
+	// Check termination
+	BOOST_CHECK(expectedTime.empty());
+}
+
+/**
+ * @brief Tests setting a positive start time value
+ * @details All events which were in the event queue before run starts are 
+ * expected to be shifted by the current instant of time minus the start time
+ * value. Hence the test cases uses some assumptions about the execution speed 
+ * and may fail spuriously on high load scenarios. (Sorry, I don't know a 
+ * better way of testing the re-adjustment)
+ */
+BOOST_FIXTURE_TEST_CASE(test_set_positive_start_time, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.startTime=0.5", 
+		"app.stopTime=1.4", NULL };
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]) - 1, argv);
+
+	// Setup environment -> 50ms timing tolerance
+	absoluteAccuracy = 0.05;
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(5.0);
+	EventDispatcher dispatcher(appContext, pred);
+	SynchronizedEventSource eventSource(dispatcher.getEventSink());
+
+	dispatcher.addEventListener(this);
+
+	// Push external events before the simulation gets started
+	BOOST_TEST_CHECKPOINT("Register Events");
+	auto es = dispatcher.getEventSink();
+	es->pushExternalEvent(new StaticEvent(-0.5, std::vector<Variable>()));
+	es->pushExternalEvent(new StaticEvent(0.5, std::vector<Variable>()));
+	es->pushExternalEvent(new StaticEvent(1.0, std::vector<Variable>()));
+
+	// Add generated events
+	expectedTime.push_back(-1.5); // External
+	expectedTime.push_back(-0.5); // External
+	expectedTime.push_back(0.0); // External
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	// Delay start -> Needs to be compensated by queue
+	std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+	dispatcher.run();
+
+	// Check termination
+	BOOST_CHECK(expectedTime.empty());
+}
+
+/**
+ * @brief Tests setting a negative start time value
+ * @details All events which were in the event queue before run starts are 
+ * expected to be shifted by the current instant of time minus the start time
+ * value. Hence the test cases uses some assumptions about the execution speed 
+ * and may fail spuriously on high load scenarios. (Sorry, I don't know a 
+ * better way of testing the re-adjustment)
+ */
+BOOST_FIXTURE_TEST_CASE(test_set_negative_start_time, EventDispatcherFixture)
+{
+	// Prepare environment
+	const char * argv[] = { "testEventHandling", "app.startTime=-0.5", 
+		"app.stopTime=1.4", NULL };
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]) - 1, argv);
+
+	// Setup environment -> 50ms timing tolerance
+	absoluteAccuracy = 0.05;
+
+	// Generate the objects under test
+	SimpleTestEventPredictor pred(5.0);
+	EventDispatcher dispatcher(appContext, pred);
+	SynchronizedEventSource eventSource(dispatcher.getEventSink());
+
+	dispatcher.addEventListener(this);
+
+	// Push external events before the simulation gets started
+	BOOST_TEST_CHECKPOINT("Register Events");
+	auto es = dispatcher.getEventSink();
+	es->pushExternalEvent(new StaticEvent(-0.5, std::vector<Variable>()));
+	es->pushExternalEvent(new StaticEvent(0.5, std::vector<Variable>()));
+	es->pushExternalEvent(new StaticEvent(1.0, std::vector<Variable>()));
+
+	// Add generated events
+	expectedTime.push_back(-2.5); // External
+	expectedTime.push_back(-1.5); // External
+	expectedTime.push_back(-1.0); // External
+
+	// Perform the test
+	BOOST_TEST_CHECKPOINT("Start test procedure");
+	// Delay start -> Needs to be compensated by queue
+	std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 	dispatcher.run();
 
 	// Check termination
