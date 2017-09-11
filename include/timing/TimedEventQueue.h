@@ -83,9 +83,6 @@ namespace FMITerminalBlock
 			 */
 			virtual Event * get(void);
 
-			/** @copydoc EventQueue::setStartTimeNow(fmiTime) */
-			virtual void setStartTimeNow(fmiTime start);
-
 			/** @copydoc EventSink::pushExternalEvent(Event) */
 			virtual void pushExternalEvent(Event *ev);
 

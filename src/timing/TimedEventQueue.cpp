@@ -82,12 +82,6 @@ TimedEventQueue::get(void)
 }
 
 void 
-TimedEventQueue::setStartTimeNow(fmiTime start)
-{
-	// TODO: Implement
-}
-
-void 
 TimedEventQueue::pushExternalEvent(Event *ev)
 {
 	eventLoggerInstance_.logEvent(ev, ProcessingStage::realTimeGeneration);
@@ -135,7 +129,7 @@ TimedEventQueue::push(Event * ev, bool predicted)
 {
 	assert(ev != NULL);
 	assert(queue_.empty() || !queue_.front().second || !predicted);
-	fmiTime invariantOldTime = -1*DBL_MAX; // DBL_MIN is still positive!
+	fmiTime invariantOldTime = DBL_MIN;
 
 	auto evIt = queue_.begin();
 	while(evIt != queue_.end() && 
