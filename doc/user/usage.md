@@ -126,8 +126,8 @@ The simulation time of each event is present in the fifth field of the timing re
 The following table shows an exemplary content of a data file. For better readability, the column separators (```;```) are replaced by the tabular representation.
 
 | "time"    | "x"       | "y"          | "new"        | "message"   |
-| "fmiReal" | "fmiReal" | "fmiInteger" | "fmiBoolean" | "fmiString" |
 |-----------|-----------|--------------|--------------|-------------|
+| "fmiReal" | "fmiReal" | "fmiInteger" | "fmiBoolean" | "fmiString" |
 | 0.0       |           |              |              |             |
 | 0.1       |           |              |              |             |
 | 0.2       |           |              |              |             |
