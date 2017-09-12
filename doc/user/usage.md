@@ -98,7 +98,28 @@ The operation of the solver and the prediction logic may be adjusted by the foll
 
 **app.stopTime**: The time until the simulation is performed. The program will terminate after the first event which exceeds the stop time is triggered. Hence, the actual simulation may run longer as *app.stopTime* seconds.
 
-**app.timingFile**: If the parameter is set, a timing file will be written which may be used to analyze the performance of FMITerminalBlock and its latencies.
+**app.timingFile**: If the parameter is set, a timing file will be written which may be used to analyze the performance of FMITerminalBlock and its latencies. It is advised to use the [JuPyther notebook](../../scripts/basic-timing-evaluation.ipynb) and provided [python facilities](scripts.md) to analyze the timing of a simulation run.
+
+In a nutshell, the timing file is a CSV-like text file which contains one timing record on each row. A timing record lists the current instance of real-time of a single event at various processing stages. For instance, it is recorded when an event is predicted or received, when it is scheduled and when it gets deleted. Real-time in a timing record is expressed as absolute time and in terms of simulation time. Similar to data files, fields are separated by semicolon characters. The first four fields of a timing record list the absolute real-time instant (weekday number, hour, minute, and seconds) and the seventh field lists the real-time instant in terms of simulation time. Please not that both real-time representation do not directly correspond to each other since they are generated at different times. The real-time instance in terms of simulation time is generated first and will usually contain less jitter. After the absolute real-time fields, a number which encodes the processing stage is appended in the sixth field. The following table summarizes the magic numbers.
+
+| Processing Stage Number | Description                                     |
+|-------------------------|-------------------------------------------------|
+| 0                       | Registration by an external (real-time) source) | 
+| 1                       | Prediction of the event finished                |
+| 2                       | Distribution via the network finished           |
+| 3                       | Distribution via the network started            |
+| 4                       | The predicted event was considered as outdated  |
+
+The simulation time of each event is present in the fifth field of the timing record. For each event, its simulation time remains constant. At the end of each timing records one or more fields may be appended which contain some debug information. In particular the informal string representation of each event. Please note that the string representation may not be properly escaped. It is advised to ignore all fields after the last non-debug field. The following list summarizes the files of each timing record in order of their appearance.
+
+1. Weekday number of the real-time instance
+2. Hour of the real-time instance
+3. Minute of the real-time instance
+4. Second (as real value) of the real-time instance
+5. Simulation time instant of the event
+6. Processing stage number
+7. Real-time instant of the record expressed in simulation time
+8. Debug information
 
 **app.dataFile**: If the parameter is set, a CSV data file will be written which stores the actually scheduled data. Each field of a single row is separated by a semicolon (```;```) character. Each column of the CSV file corresponds to a single model variable. The first two rows are headers which describe the variables and the data types respectively. The first row lists the variable names of each exposed variable and the second row lists the FMI data type of that variable. The FMI data type variable is included in order to ease post processing of exposed results. For some purposes and experiment specific post processing, the second header row may be safely ignored. All other rows describe a single event. I.e. they correspond to a single point in time where an exposed model variable may change. The first column of the CSV file is always the current simulation time instant of the event. In case an event does not cover all variables, the corresponding field will be left empty. Hence, often the data file contains lots of empty fields/variables (e.g. ```0.2;;;;;;;1;```). All variables which are left empty are not associated with the event and remain constant. Sometimes, the concept of events is not needed to evaluate results and a fully populated time series table is more appropriate. Please consider the [CSV data file conversion script](scripts.md) in case a dense CSV format is needed.
 
