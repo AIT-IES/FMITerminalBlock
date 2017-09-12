@@ -141,7 +141,22 @@ Another Eclipse 4diac system was created which implements the protocol handling.
 
 ![Translation Logic](tutorial-data/img/translation-logic.png)
 
-The server function blocks on the left and right hand side connect to FMITerminalBlock again. Since the same variable mapping as in the previous CHIL setup is used, the very same FMITerminalBlock configuration can be set. The client function block connects to the Modbus TCP server (slave device). One may note the ID parameter of the client function block which is set to ```modbus[127.0.0.1:502:2000:3:1:0:1..3]```. The ID encodes, among others, the remote IP address, the polling interval (2000 ms), and the addresses of the variable to read and write. In particular, holding register 40001 is used to read the vertical speed. Holding Registers 40002 and 40003 are used to set the nearlyOnTop and nearlyOnBottom values respectively and register 40004 will contain the height at the last event. The following screenshot shows the an exemplary Modbus simulator output.
+The server function blocks on the left and right hand side connect to FMITerminalBlock again. Since the same variable mapping as in the previous CHIL setup is used, the very same FMITerminalBlock configuration can be set. The client function block connects to the Modbus TCP server (slave device). One may note the ID parameter of the client function block which is set to ```modbus[127.0.0.1:502:2000:3:1:0:1..3]```. The ID encodes, among others, the remote IP address, the polling interval (2000 ms), and the addresses of the variable to read and write. In particular, holding register 40001 is used to read the vertical speed. Holding Registers 40002 and 40003 are used to set the nearlyOnTop and nearlyOnBottom values respectively and register 40004 will contain the height at the last event.
+
+A detailed description of the Modbus ID parameters can be found in the [Eclipse 4diac documentation](http://www.eclipse.org/4diac/documentation/html/communication/modbus.html). The ID string consists of a ```mudbus[ ... ]``` block which contains several colon separated fields between the square brackets. The position of the fields determines the interpretation. I.e. the first optional fields specifies the protocol, the second field specifies the IP address and so on. By the time of writing the following fields in that particular order are supported for TCP/IP connections. Please note that for Modbus RTU, other fields apply.
+
+* **Protocol**: Optional, ```tcp``` (default) or ```rtu```
+* **IP Address** or **Serial device**
+* **Port**: Modbus uses a default port of 502. Try this one, if you are not sure which port to use.
+* **Polling Interval**: The time span in milliseconds between polling the Modbus device. Please note that the communication function block will trigger an event after each polling cycle regardless of actual value changes.
+* **Read Function Code**: Specifies the value type to be read. ```1``` corresponds to coils, ```2``` specifies a discrete input, ```3``` a holding register and ```4``` an input register. Please not that by the time of writing, the function code affects read values only. For values which should be sent to the device, only holding registers are supported.
+* **Slave ID**: Optional, per default 255 is used.
+* **Read Address**: List of addresses to be read from the modbus device. Thereby the function which is specified by the function code is used. Addresses can be given as single numbers (e.g. ```0```), as ranges (e.g. ```1..3```) or a comma separated combination thereof (e.g. ```0,2..3```).
+* **Write Address**: The holding registers to write. The same address format as for *read addresses* can be applied to write addresses too.
+* **Response Timeout**: Optional, timeout for a device response in milliseconds
+* **Byte Timeout**: Optional, timeout between two consecutive bytes
+
+In the exemplary ID string, all optional values except the slave id (```1```) are omitted. The following screenshot shows the an exemplary Modbus simulator output.
 
 ![Modbus Simulator Output](tutorial-data/img/modbus-simulator.png)
 
