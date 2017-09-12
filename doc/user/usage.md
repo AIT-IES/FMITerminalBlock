@@ -104,7 +104,7 @@ In a nutshell, the timing file is a CSV-like text file which contains one timing
 
 | Processing Stage Number | Description                                     |
 |-------------------------|-------------------------------------------------|
-| 0                       | Registration by an external (real-time) source) | 
+| 0                       | Registration by an external (real-time) source  | 
 | 1                       | Prediction of the event finished                |
 | 2                       | Distribution via the network finished           |
 | 3                       | Distribution via the network started            |
@@ -127,6 +127,7 @@ The following table shows an exemplary content of a data file. For better readab
 
 | "time"    | "x"       | "y"          | "new"        | "message"   |
 | "fmiReal" | "fmiReal" | "fmiInteger" | "fmiBoolean" | "fmiString" |
+|-----------|-----------|--------------|--------------|-------------|
 | 0.0       |           |              |              |             |
 | 0.1       |           |              |              |             |
 | 0.2       |           |              |              |             |
