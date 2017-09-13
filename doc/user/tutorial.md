@@ -39,7 +39,11 @@ First, the Eclipse 4diac Project needs to be imported into the IDE. One way of i
 
 ![Project in System Explorer](tutorial-data/img/system-explorer-project.png)
 
-The application which is preceded by the blue icon can be opened by double-clicking on the entry called Hades. Eclipse 4diac IDE provides several perspectives which group available view elements. One can switch the perspective by pressing the buttons at the top right corner of the window. In order to start and program a software PLC one needs to switch to the deployment perspective.
+The application which is preceded by the blue icon can be opened by double-clicking on the entry called Hades. Eclipse 4diac IDE provides several perspectives which group available user interface elements (views). One can switch the perspective by pressing the buttons at the top right corner of the window. At some screen resolutions, not all perspective buttons may be visible. A click on the Open Perspective button may open a dialog which allows to switch the current perspective.
+
+![Open Perspective Dialog](tutorial-data/img/open-perspective-button.png)
+
+Alternatively, perspectives may be changed via the *Window/Perspective/Open Perspective* menu. In order to start and program a software PLC one needs to switch to the deployment perspective.
 
 ![Switch to Deployment Perspective](tutorial-data/img/switch-to-deployment.png)
 
@@ -55,7 +59,13 @@ Alternatively, a "Clean Device" entry in the context menu of the PLC in the "Dow
 
 ![Clean Device Entry](tutorial-data/img/clean-device.png)
 
-Eclipse 4diac FORTE PLC may be compiled to read a given startup configuration file. Per default, the file is called ```forte.fboot```. In case the file is present and contains the correct version of the PLC configuration, no manual download is necessary. If the configuration was changed, the device needs to be cleaned and the updated configuration needs to be downloaded again.
+Eclipse 4diac FORTE PLC may be compiled to read a given startup configuration file. Per default, the file is called ```forte.fboot```. In case the file is present and contains the correct version of the PLC configuration, no manual download is necessary. If the configuration was changed, the device needs to be cleaned and the updated configuration needs to be downloaded again. Please note that by the time of writing, the system must not be monitored while the device is cleaned or programmed. Otherwise both operations will not be performed successfully. See the [debug section](#debug-the-controller) on how to enable and disable monitoring (online mode).
+
+In case a forte instance should start with an initial configuration, a boot file (```forte.fboot```) has to be created and located in the very same directory as the forte executable.  Boot files may be exported via the context menu of a specific system.
+
+![Export Forte Boot Files](tutorial-data/img/export-forte-boot-files.png)
+
+The following dialog allows to select the systems and PLCs which should be included. A destination directory needs to be selected before the boot files are exported. Please note that the generated files may need to be renamed to ```forte.fboot``` and the boot file needs to be moved to the directory which contains the forte executable. After restarting the forte PLC, initial configurations should take effect and it should not be necessary to program the PLC manually anymore.
 
 ## Debug the Controller
 
@@ -130,6 +140,14 @@ Events may only change a subset of all registered model variables. Listed variab
 36.3779;;999.981;0;0
 36.3783;-200;;;
 ```
+
+## Change the PLC Configuration
+
+It may be necessary to change the PLC configuration iteratively, in order to test a particular system. For instance the vertical speed on going downwards may be changed from -200 to -250. Locate the configuration in the application view and simply change it by clicking on the displayed text. 
+
+![Change PLC Configuration](tutorial-data/img/change-plc-config.png)
+
+After the configuration changes have been applied, it is advised to save the system locally. By saving any files within the IDE, no PLC is updated per se. I.e. the old configuration is still executed, even if the system is currently monitored online. In order to take effect, each changed PLC needs to be programmed again. See the [section on programming](#start-and-program-the-controller) for detailed information on how to erase existing configuration and how to program a PLC again.
 
 ## Connect to External Hardware
 
