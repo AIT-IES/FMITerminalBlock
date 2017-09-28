@@ -6,6 +6,7 @@ memory.
 
 import numpy as np
 import math
+from abc import ABCMeta, abstractmethod
 
 from timing.timing_entry import TimingEntry
 from timing.reader import Reader
@@ -21,6 +22,25 @@ class DataSet:
     _iReg = 1 # Registration time index
     _iBgn = 2 # Begin distribution time index
     _iEnd = 3 # End distribution time index
+    
+    @staticmethod
+    def filter_include_all(ds):
+        """Simply includes all elements
+        
+        The DataSet ds will be used to create a filter expression which covers 
+        all elements.
+        """
+        return slice(len(ds._time_stamps))
+    
+    @staticmethod
+    def filter_include_predicted(ds):
+        """Includes all predicted rows of the DataSet ds"""
+        return ds._predicted
+    
+    @staticmethod
+    def filter_include_external(ds):
+        """Includes all externally registered timing records"""
+        return np.logical_not(ds._predicted)
     
     def __init__(self, source):
         """Initializes the data set via the given iterable data source
@@ -56,31 +76,61 @@ class DataSet:
                 self._time_stamps[i,DataSet._iEnd] = \
                     entry.get_end_distribution_time()
     
-    def get_registration_axis(self):
+    def _get_filtered_array(self, filter, input_data):
+        """Filters the given array and returns the result
+        
+        In the filter function which is passed in the filter variable is None, 
+        the DataSet.filter_include_all function will be used to select filtered
+        elements. The input_data array my contain an arbitrary number of columns
+        but must contain one row for each timing entry. Only rows determined by
+        the given filter expression will be returned. The number and of columns
+        will not be altered."""
+        
+        selection_function = filter or DataSet.filter_include_all
+        return input_data[selection_function(self)]
+    
+    def get_registration_axis(self, filter=None):
         """Returns a TimingAxis object of the registration processing stage
         
         The axis will include all registration events, i.e. predictions and 
-        external registrations
+        external registrations. The optional filter object must be a function 
+        which takes the current data source object (self) and returns an 
+        expression which indexes all rows which are to be included in the 
+        timing axis.
         """
-        return TimingAxis(self._time_stamps[:,[DataSet._iSim,DataSet._iReg]])
+        
+        selected_data = self._time_stamps[:, [DataSet._iSim,DataSet._iReg]]
+        selected_data = self._get_filtered_array(filter, selected_data)
+        return TimingAxis(selected_data)
+
     
-    def get_begin_distribution_axis(self):
+    def get_begin_distribution_axis(self, filter=None):
         """Returns a TimingAxis of begin of distribution time stamps
         
         Events which do not have a distribution state will not be covered by the
-        axis
+        axis. The optional filter object must be a function which takes the 
+        current data source object (self) and returns an expression which 
+        indexes all rows which are to be included in the timing axis.
         """
-        all_rows = self._time_stamps[:,[DataSet._iSim,DataSet._iBgn]]
-        return TimingAxis(all_rows[self._triggered])
+        
+        selected_data = self._time_stamps[:,[DataSet._iSim,DataSet._iBgn]]
+        selected_data = self._get_filtered_array(filter, selected_data)
+        is_triggered = self._get_filtered_array(filter, self._triggered)
+        return TimingAxis(selected_data[is_triggered])
     
-    def get_end_distribution_axis(self):
+    def get_end_distribution_axis(self, filter=None):
         """Returns a TimingAxis of end of distribution time stamps
         
         Events which do not have a distribution state will not be covered by the
-        axis
+        axis. The optional filter object must be a function which takes the 
+        current data source object (self) and returns an expression which 
+        indexes all rows which are to be included in the timing axis.
         """
-        all_rows = self._time_stamps[:,[DataSet._iSim,DataSet._iEnd]]
-        return TimingAxis(all_rows[self._triggered])
+        
+        selected_data = self._time_stamps[:,[DataSet._iSim,DataSet._iEnd]]
+        selected_data = self._get_filtered_array(filter, selected_data)
+        is_triggered = self._get_filtered_array(filter, self._triggered)
+        return TimingAxis(selected_data[is_triggered])
     
     
 

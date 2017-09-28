@@ -62,7 +62,7 @@ class TestDataSet(unittest.TestCase):
         axis = ds.get_registration_axis()
         self.assertEqual(axis.get_length(), 0)
     
-    def test_registration_axis(self):
+    def test_registration_axis_0(self):
         """Test the registration axis of the default data set"""
         
         axis = self._data_set.get_registration_axis()
@@ -88,7 +88,68 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue((delay_reference - axis.get_delay() <= 10e-7).all(), \
             "{} == {}".format(delay_reference, axis.get_delay()))
     
-    def test_get_begin_distribution_axis(self):
+    def test_registration_axis_1(self):
+        """Test the registration axis of the default data set
+        
+        An "include all" filter will be explicitly applied
+        """
+        
+        axis = self._data_set.get_registration_axis(DataSet.filter_include_all)
+        
+        raw_reference = np.array([ \
+            [1.0, 0.0], \
+            [2.0, 1.5], \
+            [3.0, 1.6], \
+            [5.0, 3.5], \
+            [4.0, 3.8], \
+            [11.0, 10.0], \
+            [12.0, 11.5], \
+            [13.0, 11.6], \
+            [15.0, 13.5], \
+            [14.0, 13.8] \
+        ])
+        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
+            "{} == {}".format(raw_reference, axis.get_raw_data()))
+    
+    def test_registration_axis_2(self):
+        """Test the registration axis of the default data set
+        
+        An "predicted" filter will be explicitly applied
+        """
+        
+        axis = self._data_set.get_registration_axis( \
+            DataSet.filter_include_predicted)
+        
+        raw_reference = np.array([ \
+            [1.0, 0.0], \
+            [2.0, 1.5], \
+            [5.0, 3.5], \
+            [11.0, 10.0], \
+            [12.0, 11.5], \
+            [15.0, 13.5] \
+        ])
+        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
+            "{} == {}".format(raw_reference, axis.get_raw_data()))
+    
+    def test_registration_axis_3(self):
+        """Test the registration axis of the default data set
+        
+        An "include external" filter will be explicitly applied
+        """
+        
+        axis = self._data_set.get_registration_axis( \
+            DataSet.filter_include_external)
+        
+        raw_reference = np.array([ \
+            [3.0, 1.6], \
+            [4.0, 3.8], \
+            [13.0, 11.6], \
+            [14.0, 13.8] \
+        ])
+        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
+            "{} == {}".format(raw_reference, axis.get_raw_data()))
+    
+    def test_get_begin_distribution_axis_0(self):
         """Test the begin of distribution axis of the default data set"""
         
         axis = self._data_set.get_begin_distribution_axis()
@@ -105,7 +166,24 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
             "{} == {}".format(raw_reference, axis.get_raw_data()))
     
-    def test_get_end_distribution_axis(self):
+    def test_get_begin_distribution_axis_1(self):
+        """Test the begin of distribution axis of the default data set
+        
+        A filter expression will be applied
+        """
+        
+        axis = self._data_set.get_begin_distribution_axis( \
+            DataSet.filter_include_external)
+        raw_reference = np.array([ \
+            [3.0, 3.1], \
+            [4.0, 4.2], \
+            [13.0, 13.1], \
+            [14.0, 14.2] \
+        ])
+        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
+            "{} == {}".format(raw_reference, axis.get_raw_data()))
+    
+    def test_get_end_distribution_axis_0(self):
         """Test the end of distribution axis of the default data set"""
         
         axis = self._data_set.get_end_distribution_axis()
@@ -116,6 +194,23 @@ class TestDataSet(unittest.TestCase):
             [4.0, 4.4], \
             [11.0, 11.5], \
             [12.0, 12.2], \
+            [13.0, 13.3], \
+            [14.0, 14.4] \
+        ])
+        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
+            "{} == {}".format(raw_reference, axis.get_raw_data()))
+    
+    def test_get_end_distribution_axis_1(self):
+        """Test the end of distribution axis of the default data set
+        
+        A filter expression will be applied
+        """
+        
+        axis = self._data_set.get_end_distribution_axis( \
+            DataSet.filter_include_external)
+        raw_reference = np.array([ \
+            [3.0, 3.3], \
+            [4.0, 4.4], \
             [13.0, 13.3], \
             [14.0, 14.4] \
         ])
