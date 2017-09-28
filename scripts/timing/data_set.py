@@ -6,10 +6,10 @@ memory.
 
 import numpy as np
 import math
-from abc import ABCMeta, abstractmethod
 
 from timing.timing_entry import TimingEntry
 from timing.reader import Reader
+from timing.abc.abstract_data_set import AbstractAxis
 
 class DataSet:
     """Encapsulates the whole timing data set of a timing file
@@ -134,7 +134,7 @@ class DataSet:
     
     
 
-class TimingAxis:
+class TimingAxis(AbstractAxis):
     """Represents a series of certain timings
     
     The timing of each processing stage is represented as TimingAxix. TimingAxis
@@ -180,26 +180,6 @@ class TimingAxis:
     def get_delay(self):
         """Returns the delay of each timing event"""
         return self._timing[:,1] - self._timing[:,0]
-    
-    def get_length(self):
-        """Returns the number of samples included in the axis"""
-        return self._timing.shape[0]
-    
-    def get_mean_delay(self):
-        """Returns the mean delay of all timing events"""
-        return np.mean(self.get_delay())
-    
-    def get_variance_of_delay(self):
-        """Returns the variance Sigma^2 of all delay values"""
-        return np.var(self.get_delay(), ddof=1)
-    
-    def get_min_delay(self):
-        """Returns the minimum delay of all timing events"""
-        return np.amin(self.get_delay())
-    
-    def get_max_delay(self):
-        """Returns the maximum delay of all timing events"""
-        return np.amax(self.get_delay())
     
     def get_delay_cleaned_axis(self, outlier_factor=0.05):
         """Returns a cleaned version of the axis
