@@ -242,6 +242,30 @@ class TestDataSet(unittest.TestCase):
         axis = self._data_set.get_registration_axis()
         self.assertAlmostEqual(axis.get_max_delay(), -0.2)
     
+    def test_get_simulation_time_data(self):
+        """Test the simulation time series function"""
+        
+        axis = self._data_set.get_registration_axis()
+        raw_reference = np.array([ \
+                1.0, 2.0, 3.0, 5.0, 4.0, 11.0, 12.0, 13.0, 15.0, 14.0 \
+            ])
+            
+        time_data = axis.get_simulation_time_data()
+        self.assertTrue((raw_reference == time_data).all(), \
+            "{} == {}".format(raw_reference, time_data))
+    
+    def test_get_real_time_data(self):
+        """Test the real time series function"""
+        
+        axis = self._data_set.get_registration_axis()
+        raw_reference = np.array([ \
+                0.0, 1.5, 1.6, 3.5, 3.8, 10.0, 11.5, 11.6, 13.5, 13.8 \
+            ])
+        
+        time_data = axis.get_real_time_data()
+        self.assertTrue((raw_reference == time_data).all(), \
+            "{} == {}".format(raw_reference, time_data))
+    
     def test_get_delay_cleaned_axis(self):
         """Test the outlier removal functionality
         """

@@ -163,6 +163,20 @@ class TimingAxis:
         """
         return self._timing
     
+    def get_simulation_time_data(self):
+        """Returns an array of all simulation time stamps
+        
+        Shorthand for get_raw_data()[:,0]
+        """
+        return self.get_raw_data()[:,0]
+    
+    def get_real_time_data(self):
+        """Returns the real-time stamps in terms of simulation time
+        
+        Shorthand for get_raw_data()[:,1]
+        """
+        return self.get_raw_data()[:,1]
+    
     def get_delay(self):
         """Returns the delay of each timing event"""
         return self._timing[:,1] - self._timing[:,0]
