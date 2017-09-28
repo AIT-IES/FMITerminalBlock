@@ -2,6 +2,7 @@
 """
 
 import numpy as np
+import math
 
 from abc import ABCMeta, abstractmethod
 
@@ -34,6 +35,16 @@ class AbstractAxis(metaclass=ABCMeta):
         """
         return []
     
+    @abstractmethod
+    def _get_cleaned_axis(self, permitted_row_indices):
+        """Factory function which returns a cleaned version of the current axis
+        
+        The array permitted_row_indices of row indices lists all rows which 
+        should reside in the new axis object. It can be assumed that the array 
+        is ascendingly sorted.
+        """
+        return []
+    
     def get_length(self):
         """Returns the number of samples included in the axis"""
         return len(self.get_delay())
@@ -53,4 +64,23 @@ class AbstractAxis(metaclass=ABCMeta):
     def get_max_delay(self):
         """Returns the maximum delay of all timing events"""
         return np.amax(self.get_delay())
+    
+    def get_delay_cleaned_axis(self, outlier_factor=0.05):
+        """Returns a cleaned version of the axis
+        
+        The cleaning operation will remove some timing entries with a very low 
+        and very high delay. These entries are considered as outliers. The 
+        outlier factor will give the share of removed samples. On subsequently 
+        calling the function on returned objects (e.g. 
+        axis.get_delay_cleaned_axis().get_delay_cleaned_axis()), the number of 
+        entries may decrease and further entries may be considered as outliers.
+        """
+        
+        assert(0 <= outlier_factor <= 1)
+        
+        ind_order = np.argsort(self.get_delay())
+        num_removed = math.floor(outlier_factor / 2.0 * self.get_length())
+        ind_order = ind_order[num_removed : (self.get_length() - num_removed)]
+        ind_order = np.sort(ind_order) # Preserve order of other elements
+        return self._get_cleaned_axis(ind_order)
     

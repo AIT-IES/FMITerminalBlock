@@ -5,7 +5,6 @@ memory.
 """
 
 import numpy as np
-import math
 
 from timing.timing_entry import TimingEntry
 from timing.reader import Reader
@@ -132,6 +131,23 @@ class DataSet:
         is_triggered = self._get_filtered_array(filter, self._triggered)
         return TimingAxis(selected_data[is_triggered])
     
+    def get_distribution_delay_axis(self, filter=None):
+        """Returns the distribution delays of all scheduled events
+        
+        The delay values will be encapsulated in a DelayAxis object. The 
+        optional filter object must be a function which takes the current data 
+        source object (self) and returns an expression which indexes all rows 
+        which are to be included in the timing axis.
+        """
+        
+        # Select and filter
+        sel_data = self._time_stamps[:,\
+            [DataSet._iSim, DataSet._iBgn, DataSet._iEnd]]
+        sel_data = self._get_filtered_array(filter, sel_data)
+        is_triggered = self._get_filtered_array(filter, self._triggered)
+        sel_data = sel_data[is_triggered,:] # Only triggered samples
+        
+        return DelayAxis(sel_data[:,0], sel_data[:,2] - sel_data[:,1])
     
 
 class TimingAxis(AbstractAxis):
@@ -181,24 +197,45 @@ class TimingAxis(AbstractAxis):
         """Returns the delay of each timing event"""
         return self._timing[:,1] - self._timing[:,0]
     
-    def get_delay_cleaned_axis(self, outlier_factor=0.05):
-        """Returns a cleaned version of the axis
+    def _get_cleaned_axis(self, permitted_row_indices):
+        """Factory function which returns a cleaned version of the current axis
+        """
+        return TimingAxis(self._timing[permitted_row_indices,:])
+    
+
+class DelayAxis(AbstractAxis):
+    """Encapsulates a time series of time span.
+    
+    Each time span (delay) values is directly associated with a simulation time
+    stamp. In contrast to TimingAxis, DelayAxis does not hold an absolute 
+    real-time instance of time. Just delay values are stored.
+    """
+    
+    def __init__(self, simulation_time, delay):
+        """Sets the given data vectors
         
-        The cleaning operation will remove some timing entries with a very low 
-        and very high delay. These entries are considered as outliers. The 
-        outlier factor will give the share of removed samples. On subsequently 
-        calling the function on returned objects (e.g. 
-        axis.get_delay_cleaned_axis().get_delay_cleaned_axis()), the number of 
-        entries may decrease and further entries may be considered as outliers.
+        It is assumed that both one dimensional data vectors have the same size.
+        """
+        assert(len(simulation_time) == len(delay))
+        
+        self._simulation_time = simulation_time
+        self._delay = delay
+    
+    def get_delay(self):
+        """Returns the vector of delay values"""
+        return self._delay
+    
+    def get_simulation_time_data(self):
+        """Returns the vector of simulation time stamps"""
+        return self._simulation_time
+    
+    def _get_cleaned_axis(self, permitted_row_indices):
+        """Factory function which returns a cleaned version of the current axis
         """
         
-        assert(0 <= outlier_factor <= 1)
-        
-        ind_order = np.argsort(self.get_delay())
-        num_removed = math.floor(outlier_factor / 2.0 * self.get_length())
-        ind_order = ind_order[num_removed : (self.get_length() - num_removed)]
-        ind_order = np.sort(ind_order) # Preserve order of other elements
-        return TimingAxis(self._timing[ind_order,:])
+        clean_sim_time = self._simulation_time[permitted_row_indices]
+        clean_delay = self._delay[permitted_row_indices]
+        return DelayAxis(clean_sim_time, clean_delay)
     
 
 def load_data_set_from_file(filename):

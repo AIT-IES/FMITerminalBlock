@@ -108,8 +108,7 @@ class TestDataSet(unittest.TestCase):
             [15.0, 13.5], \
             [14.0, 13.8] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
     
     def test_registration_axis_2(self):
         """Test the registration axis of the default data set
@@ -128,8 +127,7 @@ class TestDataSet(unittest.TestCase):
             [12.0, 11.5], \
             [15.0, 13.5] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
     
     def test_registration_axis_3(self):
         """Test the registration axis of the default data set
@@ -146,8 +144,7 @@ class TestDataSet(unittest.TestCase):
             [13.0, 11.6], \
             [14.0, 13.8] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
     
     def test_get_begin_distribution_axis_0(self):
         """Test the begin of distribution axis of the default data set"""
@@ -163,8 +160,7 @@ class TestDataSet(unittest.TestCase):
             [13.0, 13.1], \
             [14.0, 14.2] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
     
     def test_get_begin_distribution_axis_1(self):
         """Test the begin of distribution axis of the default data set
@@ -180,8 +176,7 @@ class TestDataSet(unittest.TestCase):
             [13.0, 13.1], \
             [14.0, 14.2] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
     
     def test_get_end_distribution_axis_0(self):
         """Test the end of distribution axis of the default data set"""
@@ -197,8 +192,7 @@ class TestDataSet(unittest.TestCase):
             [13.0, 13.3], \
             [14.0, 14.4] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
     
     def test_get_end_distribution_axis_1(self):
         """Test the end of distribution axis of the default data set
@@ -214,10 +208,41 @@ class TestDataSet(unittest.TestCase):
             [13.0, 13.3], \
             [14.0, 14.4] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
-
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
     
+    def test_get_distribution_delay_axis_0(self):
+        """Test the distribution delay axis generation"""
+        axis = self._data_set.get_distribution_delay_axis()
+        raw_reference = np.array([ \
+            [1.0, 0.5], \
+            [2.0, 0.2], \
+            [3.0, 0.2], \
+            [4.0, 0.2], \
+            [11.0, 0.5], \
+            [12.0, 0.2], \
+            [13.0, 0.2], \
+            [14.0, 0.2] \
+        ])
+        self.assertArrayEqual(raw_reference[:,0], \
+            axis.get_simulation_time_data())
+        self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
+    
+    def test_get_distribution_delay_axis_1(self):
+        """Test the filtered distribution delay axis generation"""
+        
+        axis = self._data_set.get_distribution_delay_axis(\
+            DataSet.filter_include_external)
+        raw_reference = np.array([ \
+            [3.0, 0.2], \
+            [4.0, 0.2], \
+            [13.0, 0.2], \
+            [14.0, 0.2] \
+        ])
+        self.assertArrayEqual(raw_reference[:,0], \
+            axis.get_simulation_time_data())
+        self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
+
+        
     def test_mean_delay(self):
         """Test the average delay function of a timing axis object"""
         
@@ -251,8 +276,7 @@ class TestDataSet(unittest.TestCase):
             ])
             
         time_data = axis.get_simulation_time_data()
-        self.assertTrue((raw_reference == time_data).all(), \
-            "{} == {}".format(raw_reference, time_data))
+        self.assertArrayEqual(raw_reference, time_data)
     
     def test_get_real_time_data(self):
         """Test the real time series function"""
@@ -263,8 +287,7 @@ class TestDataSet(unittest.TestCase):
             ])
         
         time_data = axis.get_real_time_data()
-        self.assertTrue((raw_reference == time_data).all(), \
-            "{} == {}".format(raw_reference, time_data))
+        self.assertArrayEqual(raw_reference, time_data)
     
     def test_get_delay_cleaned_axis(self):
         """Test the outlier removal functionality
@@ -286,8 +309,7 @@ class TestDataSet(unittest.TestCase):
             [15.0, 13.5], \
             [14.0, 13.8] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
 
         # Remove four items
         axis = axis.get_delay_cleaned_axis(0.4)
@@ -299,13 +321,23 @@ class TestDataSet(unittest.TestCase):
             [12.0, 11.5], \
             [13.0, 11.6] \
         ])
-        self.assertTrue((raw_reference == axis.get_raw_data()).all(), \
-            "{} == {}".format(raw_reference, axis.get_raw_data()))
+        self.assertArrayEqual(raw_reference, axis.get_raw_data())
             
         # Remove all items
         axis = axis.get_delay_cleaned_axis(1.0)
         self.assertEqual(axis.get_length(), 0)
     
+    def assertArrayEqual(self, a, b):
+        """Asserts that both numpy arrays are equal"""
+        
+        self.assertTrue((a == b).all(), "{} == {}".format(a, b))
+    
+    def assertArrayAlmostEqual(self, a, b, tolerance=10e-7):
+        """Asserts that both numpy arrays are equal up to tolerance"""
+        
+        assert(tolerance >= 0.0)
+        self.assertTrue((np.absolute(a - b) <= tolerance).all(), \
+            "{} == {}".format(a, b))
 
 if __name__ == "__main__":
     unittest.main()
