@@ -241,8 +241,40 @@ class TestDataSet(unittest.TestCase):
         self.assertArrayEqual(raw_reference[:,0], \
             axis.get_simulation_time_data())
         self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
-
+    
+    def test_get_triggered_prediction_delay_axis_0(self):
+        """Test the corresponding axis generation function"""
         
+        axis = self._data_set.get_triggered_prediction_delay_axis()
+        raw_reference = np.array([ \
+            [1.0, 0.0], \
+            [2.0, np.nan], \
+            [3.0, 0.2], \
+            [4.0, 5.6], \
+            [11.0, 0.0], \
+            [12.0, np.nan], \
+            [13.0, 0.2], \
+            [14.0, np.nan] \
+        ])
+        self.assertArrayEqual(raw_reference[:,0], \
+            axis.get_simulation_time_data())
+        self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
+    
+    def test_get_triggered_prediction_delay_axis_1(self):
+        """Test the corresponding filtered axis generation function"""
+        
+        axis = self._data_set.get_triggered_prediction_delay_axis( \
+            DataSet.filter_include_external)
+        raw_reference = np.array([ \
+            [3.0, 0.2], \
+            [4.0, 5.6], \
+            [13.0, 0.2], \
+            [14.0, np.nan] \
+        ])
+        self.assertArrayEqual(raw_reference[:,0], \
+            axis.get_simulation_time_data())
+        self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
+    
     def test_mean_delay(self):
         """Test the average delay function of a timing axis object"""
         
@@ -336,7 +368,9 @@ class TestDataSet(unittest.TestCase):
         """Asserts that both numpy arrays are equal up to tolerance"""
         
         assert(tolerance >= 0.0)
-        self.assertTrue((np.absolute(a - b) <= tolerance).all(), \
+        almost_equal = np.absolute(a - b) <= tolerance
+        both_nan = np.logical_and(np.isnan(a), np.isnan(b))
+        self.assertTrue(np.logical_or(almost_equal, both_nan).all(), \
             "{} == {}".format(a, b))
 
 if __name__ == "__main__":

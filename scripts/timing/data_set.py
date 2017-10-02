@@ -149,6 +149,57 @@ class DataSet:
         
         return DelayAxis(sel_data[:,0], sel_data[:,2] - sel_data[:,1])
     
+    def get_triggered_prediction_delay_axis(self, filter=None):
+        """For each scheduled event, the following prediction delay is returned
+        
+        Each distribution triggers a prediction phase. The returned axis will 
+        hold the duration of the prediction phase following the distribution. 
+        Hence, the simulation time stamps do not correspond to the predicted 
+        event but to the event which was scheduled before. Hence, for each event
+        except the very last one, a prediction delay can be assigned. The very 
+        last event will not be present in the returned delay axis.
+        
+        The given filter is applied to all entries which trigger the prediction.
+        """
+        
+        prediction_timing = self._get_prediction_timing()
+        prediction_timing = self._get_filtered_array(filter, prediction_timing)
+        is_triggered = self._get_filtered_array(filter, self._triggered)
+        trig_pred_timing =  prediction_timing[is_triggered, :]
+        return DelayAxis(trig_pred_timing[:, 0], trig_pred_timing[:, 4])
+    
+    def _get_prediction_timing(self):
+        """Returns an array of prediction timing data
+        
+        The following columns will be returned:
+            0: Simulation time of event which triggers the prediction
+            1: Real-time instant the prediction is triggered
+            2: Simulation time instant of the next predicted event
+            3: Real-time instant when the next predicted event is registered
+            4: Duration of the prediction operation
+        Since the very last event does not trigger a 
+        prediction, the simulation time and the delay will be set to NaN. The 
+        function will not remove the last entry in order to ease subsequent 
+        filtering. Additionally, entries which does not contain a scheduled 
+        event will also contain NaN entries as they do not trigger a subsequent
+        prediction.
+        """
+        
+        ret = np.full([self._time_stamps.shape[0],5], np.nan)
+        ret[:,[0,1]] = self._time_stamps[:,[DataSet._iSim, DataSet._iEnd]]
+        
+        # Iterate through the array and match the corresponding predictions
+        last_trigger_index = -1
+        for i,predicted in enumerate(self._predicted):
+            if predicted and last_trigger_index >= 0:
+                ret[last_trigger_index, 2] = self._time_stamps[i,DataSet._iSim]
+                ret[last_trigger_index, 3] = self._time_stamps[i,DataSet._iReg]
+            if self._triggered[i]:
+                last_trigger_index = i
+        
+        # Calculate the prediction duration
+        ret[:,4] = ret[:,3] - ret[:,1]
+        return ret
 
 class TimingAxis(AbstractAxis):
     """Represents a series of certain timings
