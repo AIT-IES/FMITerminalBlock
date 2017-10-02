@@ -242,6 +242,37 @@ class TestDataSet(unittest.TestCase):
             axis.get_simulation_time_data())
         self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
     
+    def test_get_wait_delay_axis_0(self):
+        """Test the wait delay axis generation"""
+        axis = self._data_set.get_wait_delay_axis()
+        raw_reference = np.array([ \
+            [1.0, 1.0], \
+            [2.0, 0.5], \
+            [3.0, 1.5], \
+            [4.0, 0.4], \
+            [11.0, 1.0], \
+            [12.0, 0.5], \
+            [13.0, 1.5], \
+            [14.0, 0.4] \
+        ])
+        self.assertArrayEqual(raw_reference[:,0], \
+            axis.get_simulation_time_data())
+        self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
+    
+    def test_get_wait_delay_axis_1(self):
+        """Test the filtered wait delay axis generation"""
+        axis = self._data_set.get_wait_delay_axis( \
+            DataSet.filter_include_external)
+        raw_reference = np.array([ \
+            [3.0, 1.5], \
+            [4.0, 0.4], \
+            [13.0, 1.5], \
+            [14.0, 0.4] \
+        ])
+        self.assertArrayEqual(raw_reference[:,0], \
+            axis.get_simulation_time_data())
+        self.assertArrayAlmostEqual(raw_reference[:,1], axis.get_delay())
+    
     def test_get_triggered_prediction_delay_axis_0(self):
         """Test the corresponding axis generation function"""
         

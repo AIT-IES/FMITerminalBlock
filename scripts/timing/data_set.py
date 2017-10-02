@@ -149,6 +149,25 @@ class DataSet:
         
         return DelayAxis(sel_data[:,0], sel_data[:,2] - sel_data[:,1])
     
+    def get_wait_delay_axis(self, filter=None):
+        """Returns a delay axis which covers each wait operation
+        
+        The axis will only cover actually scheduled entries. It lists the time 
+        span from the registration to the begin of the distribution phase. The 
+        wait delay can be used as an indicator for timing reserve but does not 
+        cover late results. See get_begin_distribution_axis() which returns the
+        actual delay of the event. 
+        """
+        
+        # Select and filter
+        sel_data = self._time_stamps[:,\
+            [DataSet._iSim, DataSet._iReg, DataSet._iBgn]]
+        sel_data = self._get_filtered_array(filter, sel_data)
+        is_triggered = self._get_filtered_array(filter, self._triggered)
+        sel_data = sel_data[is_triggered,:] # Only triggered samples
+        
+        return DelayAxis(sel_data[:,0], sel_data[:,2] - sel_data[:,1])
+    
     def get_triggered_prediction_delay_axis(self, filter=None):
         """For each scheduled event, the following prediction delay is returned
         
