@@ -82,7 +82,6 @@ add_source_file(BASE src/base/LoggingAttributes.cpp )
 add_source_file(MODEL src/model/EventPredictor.cpp )
 add_source_file(MODEL src/model/OneStepEventPredictor.cpp )
 add_source_file(MODEL src/model/LazyEvent.cpp )
-add_source_file(MODEL src/model/PredictingFMU.cpp )
 add_source_file(MODEL src/model/EventPredictorFactory.cpp )
 
 add_source_file(TIMING src/timing/Variable.cpp )

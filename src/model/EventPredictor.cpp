@@ -43,7 +43,7 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	std::string path = context.getProperty<std::string>(PROP_FMU_PATH);
 	std::string name = context.getProperty<std::string>(PROP_FMU_NAME);
 
-	solver_ = new PredictingFMU(path, name);
+	solver_ = std::make_shared<IncrementalFMU>(path, name);
 	
 	if (solver_->getLastStatus() != fmiOK) {
 		boost::format err("Can't load the incremental FMU \"%1%\" in URL \"%2%\""
@@ -51,12 +51,6 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 		err % name % path % solver_->getLastStatus();
 		throw std::invalid_argument(err.str());
 	}
-}
-
-EventPredictor::~EventPredictor()
-{
-	if (solver_ != NULL)
-		delete solver_;
 }
 
 void 
@@ -145,7 +139,7 @@ void
 EventPredictor::eventTriggered(Timing::Event * ev)
 {
 	assert(ev != NULL);
-	assert(solver_ != NULL);
+	assert(solver_);
 
 	bool imageUpdated = updateInputImage(ev);
 	if (imageUpdated) {
@@ -190,7 +184,7 @@ std::vector<Timing::Variable> &
 EventPredictor::getOutputVariables(fmiTime time)
 {
 	assert(time >= 0.0);
-	assert(solver_ != NULL);
+	assert(solver_);
 	// Time corresponds to the current event's time
 	assert(abs(lastPredictedEventTime_ - time) 
 		< solver_->getTimeDiffResolution());
@@ -228,7 +222,7 @@ void EventPredictor::initSolver(const std::string& instanceName,
 	const fmiTime lookAheadStepSize, const fmiTime integratorStepSize)
 {
 	const Base::ChannelMapping *inputMapping = context_.getInputChannelMapping();
-	assert(solver_ != NULL);
+	assert(solver_);
 
 	assert(inputMapping != NULL);
 	assert(inputMapping->getVariableNames(fmiTypeReal).size() == 
@@ -293,7 +287,7 @@ void
 EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIVariableType type)
 {
 	assert(outputIDs_.size() >= 5);
-	assert(solver_ != NULL);
+	assert(solver_);
 	assert(mapping != NULL);
 	assert((int) type >= 0);
 	assert((int) type < 5);
@@ -327,7 +321,7 @@ EventPredictor::defineOutput(const Base::ChannelMapping *mapping, FMIVariableTyp
 void 
 EventPredictor::fetchOutputs(std::vector<Timing::Variable> &values, fmiTime time)
 {
-	assert(solver_ != NULL);
+	assert(solver_);
 	assert(outputIDs_.size() >= 5);
 
 	Timing::Variable element;
@@ -376,7 +370,7 @@ void EventPredictor::defineInputs(std::vector<InputType> *destinationImage,
 	void(IncrementalFMU::*defineFunction)(const std::string *,std::size_t))
 {
 	assert(destinationImage != NULL);
-	assert(solver_ != NULL);
+	assert(solver_);
 	const Base::ChannelMapping *mapping = context_.getInputChannelMapping();
 	assert(mapping != NULL);
 
@@ -397,7 +391,7 @@ void EventPredictor::defineInputs(std::vector<InputType> *destinationImage,
 
 	// Register the Inputs
 	inputIDs_[type] = ids;
-	(solver_->*defineFunction)(names.data(), names.size());
+	(solver_.get()->*defineFunction)(names.data(), names.size());
 }
 
 void EventPredictor::defineInputs()

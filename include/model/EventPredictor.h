@@ -13,7 +13,6 @@
 
 
 #include "model/AbstractEventPredictor.h"
-#include "model/PredictingFMU.h"
 #include "base/ChannelMapping.h"
 #include "timing/Event.h"
 #include "timing/EventListener.h"
@@ -21,7 +20,9 @@
 // Fixes an include dependency flaw/feature(?) of ModelDescription.h
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
+#include <import/utility/include/IncrementalFMU.h>
 #include <vector>
+#include <memory>
 
 namespace FMITerminalBlock
 {
@@ -75,7 +76,7 @@ namespace FMITerminalBlock
 			 * @brief Frees allocated resources
 			 * @details Deletes the FMU instance
 			 */
-			virtual ~EventPredictor();
+			virtual ~EventPredictor() {}
 
 			/**
 			 * @brief Implements 
@@ -153,9 +154,9 @@ namespace FMITerminalBlock
 			/**
 			 * @brief Pointer to the predicting FMU which manages the simulation.
 			 * @details It can be assumed that the pointer is valid. It will be 
-			 * initialized in the C'tor and deleted if the object's lifetime expires
+			 * initialized in the C'tor and will not be reset.
 			 */
-			PredictingFMU * solver_;
+			std::shared_ptr<IncrementalFMU> solver_;
 
 			/**
 			 * @brief Stores the ID of each registered output.
