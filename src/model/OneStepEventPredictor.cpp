@@ -284,7 +284,7 @@ OneStepEventPredictor::initModel(fmiReal startTime)
 	fmiStatus err;
 	fmu_->setTime(startTime);
 	setDefaultValues(appContext_);
-	err = fmu_->initialize();
+	err = fmu_->initialize(false, 0.0); // Do not use tolerance, yet
 
 	if (err != fmiOK)
 	{
