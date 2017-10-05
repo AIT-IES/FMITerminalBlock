@@ -117,15 +117,15 @@ BOOST_AUTO_TEST_CASE(test_init_missing_path)
 }
 
 /** @brief Tests the initialization's error handling */
-BOOST_AUTO_TEST_CASE(test_init_missing_name)
+BOOST_AUTO_TEST_CASE(test_init_invalid_name)
 {
 	Base::ApplicationContext appContext;
 	const char * argv[] = {"testEventPredictor", 
-		"fmu.path=" FMU_URI_PRE "zigzag",
+		"fmu.path=" FMU_URI_PRE "zigzag", "fmu.name=line", // Wrong name
 		"out.0.0=x", "out.0.0.type=0",
 		"app.lookAheadTime=1.1", "app.startTime=0.0", 
 		"app.lookAheadStepSize=0.11", "app.integratorStepSize=0.11", NULL };
-	appContext.addCommandlineProperties(8, argv);
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0])-1, argv);
 
 	BOOST_CHECK_THROW(EventPredictor pred(appContext), std::invalid_argument);
 }
@@ -163,15 +163,29 @@ BOOST_FIXTURE_TEST_CASE(test_init_invalid_look_ahead_step_size,
 // ============================================================================
 
 /** @brief Tests the initialization's default value generation */
-BOOST_AUTO_TEST_CASE(test_init_defaults)
+BOOST_AUTO_TEST_CASE(test_init_defaults_0)
 {
 	Base::ApplicationContext appContext;
 	const char * argv[] = {"testEventPredictor",
 			"fmu.path=" FMU_URI_PRE "zigzag", "fmu.name=zigzag", 
 			"app.startTime=0.0", "app.lookAheadTime=1.1",
 			"out.0.0=x", "out.0.0.type=0", NULL};
-	appContext.addCommandlineProperties(7, argv);
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0])-1, argv);
 
+	EventPredictor pred(appContext);
+	pred.init();
+}
+
+/** @brief Tests the initialization's default value generation */
+BOOST_AUTO_TEST_CASE(test_init_defaults_1)
+{
+	Base::ApplicationContext appContext;
+	const char * argv[] = {"testEventPredictor",
+			"fmu.path=" FMU_URI_PRE "zigzag", // No fmu.name parameter
+			"app.startTime=0.0", "app.lookAheadTime=1.1",
+			"out.0.0=x", "out.0.0.type=0", NULL};
+	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0])-1, argv);
+	
 	EventPredictor pred(appContext);
 	pred.init();
 }
