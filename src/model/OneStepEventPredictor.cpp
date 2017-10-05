@@ -24,8 +24,6 @@
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Model;
 
-const std::string OneStepEventPredictor::PROP_FMU_PATH = "fmu.path";
-const std::string OneStepEventPredictor::PROP_FMU_NAME = "fmu.name";
 const std::string OneStepEventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
 const std::string OneStepEventPredictor::PROP_DEFAULT_INPUT = Base::ApplicationContext::PROP_IN + ".default";
 const std::string OneStepEventPredictor::PROP_VARIABLE_STEP_SIZE = "app.variableStepSize";
@@ -40,13 +38,13 @@ OneStepEventPredictor::OneStepEventPredictor(
 	inputValueReference_(0, Base::hashPortID), 
 	currentPrediction_(), fmu_()
 {
-	fmu_ = loadModel(appContext);
+	lowLevelFMU_ = std::make_shared<ManagedLowLevelFMU>(appContext);
+	fmu_ = loadModel(appContext, lowLevelFMU_);
 	instantiateModel(appContext);
 }
 
 OneStepEventPredictor::~OneStepEventPredictor()
 {
-
 }
 
 void 
@@ -217,38 +215,28 @@ OneStepEventPredictor::initSimulationProperties(
 
 std::unique_ptr<FMUModelExchangeBase>
 OneStepEventPredictor::loadModel(
-	const Base::ApplicationContext &appContext)
+	const Base::ApplicationContext &appContext, 
+	const std::shared_ptr<ManagedLowLevelFMU> lowLevelFMU)
 {
-	FMUType fmuType = invalid;
-	ModelManager::LoadFMUStatus loadStatus;
-	loadStatus = ModelManager::loadFMU(
-		appContext.getProperty<std::string>(PROP_FMU_NAME), 
-		appContext.getProperty<std::string>(PROP_FMU_PATH), fmiFalse, fmuType);
-
-	if (loadStatus != ModelManager::success &&
-		loadStatus != ModelManager::duplicate)
-	{
-		throw Base::SystemConfigurationException(
-			std::string("The model instantiation failed: ") +
-			getErrorDescription(loadStatus));
-	}
-
-
+	assert(lowLevelFMU);
+	
+	FMUType fmuType = lowLevelFMU->getType();
 	std::unique_ptr<FMUModelExchangeBase> ret;
+
 	if (fmuType == fmi_1_0_me)
 	{
 		ret = std::unique_ptr<FMUModelExchangeBase>(new fmi_1_0::FMUModelExchange(
-			appContext.getProperty<std::string>(PROP_FMU_NAME)));
+			lowLevelFMU->getModelIdentifier()));
 	}
 	else if (fmuType == fmi_2_0_me || fmuType == fmi_2_0_me)
 	{
 		ret = std::unique_ptr<FMUModelExchangeBase>(new fmi_2_0::FMUModelExchange(
-			appContext.getProperty<std::string>(PROP_FMU_NAME)));
+			lowLevelFMU->getModelIdentifier()));
 	}
 	else
 	{
 		throw Base::SystemConfigurationException(
-			std::string("Unsupported FMU type: ") = getFMUTypeString(fmuType));
+			std::string("Unsupported FMU type: ") + lowLevelFMU->getTypeString());
 	}
 
 	if (ret->getLastStatus() != fmiOK)
@@ -264,10 +252,12 @@ OneStepEventPredictor::instantiateModel(
 	const Base::ApplicationContext &appContext)
 {
 	assert(fmu_);
+	assert(lowLevelFMU_);
+
 	fmiStatus err;
-	err = fmu_->instantiate(
-		appContext.getProperty<std::string>(PROP_FMU_INSTANCE_NAME,
-			appContext.getProperty<std::string>(PROP_FMU_NAME)));
+	std::string instanceName = appContext.getProperty<std::string>(
+		PROP_FMU_INSTANCE_NAME, lowLevelFMU_->getModelIdentifier() );
+	err = fmu_->instantiate(instanceName);
 	if (err != fmiOK)
 	{
 		boost::format fmt("Unable to instantiate the FMU (%1%)");
@@ -284,7 +274,7 @@ OneStepEventPredictor::initModel(fmiReal startTime)
 	fmiStatus err;
 	fmu_->setTime(startTime);
 	setDefaultValues(appContext_);
-	err = fmu_->initialize();
+	err = fmu_->initialize(false, 0.0); // Do not use tolerance, yet
 
 	if (err != fmiOK)
 	{
@@ -304,44 +294,6 @@ OneStepEventPredictor::initModel(fmiReal startTime)
 			fmt % (int) fmu_->getLastStatus();
 			throw Base::SystemConfigurationException(fmt.str());
 		}
-	}
-}
-
-std::string 
-OneStepEventPredictor::getErrorDescription(ModelManager::LoadFMUStatus err)
-{
-	switch (err)
-	{
-		case ModelManager::success:
-			return "Successful operation";
-		case ModelManager::duplicate:
-			return "The FMU was loaded before";
-		case ModelManager::shared_lib_invalid_uri:
-			return "The FMU shared library URL is invalid";
-		case ModelManager::shared_lib_load_failed:
-			return "The shared library of the FMU cannot be loaded correctly";
-		case ModelManager::description_invalid_uri:
-			return "The URL of the description is invalid";
-		case ModelManager::description_invalid:
-			return "The model description is invalid";
-		case ModelManager::failed:
-			return "Unable to load and instantiate the FMU";
-		default:
-			return "Unknown error";
-	}
-}
-
-std::string
-OneStepEventPredictor::getFMUTypeString(FMUType type)
-{
-	switch (type)
-	{
-		case fmi_1_0_cs: return "FMI 1.0 CS";
-		case fmi_1_0_me: return "FMI 1.0 ME";
-		case fmi_2_0_cs: return "FMI 2.0 CS";
-		case fmi_2_0_me: return "FMI 2.0 ME";\
-		case fmi_2_0_me_and_cs: return "FMI 2.0 CS and ME";
-		default: return "Unknown type";
 	}
 }
 

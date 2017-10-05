@@ -13,7 +13,7 @@
 
 
 #include "model/AbstractEventPredictor.h"
-#include "model/PredictingFMU.h"
+#include "model/ManagedLowLevelFMU.h"
 #include "base/ChannelMapping.h"
 #include "timing/Event.h"
 #include "timing/EventListener.h"
@@ -21,14 +21,14 @@
 // Fixes an include dependency flaw/feature(?) of ModelDescription.h
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
+#include <import/utility/include/IncrementalFMU.h>
 #include <vector>
+#include <memory>
 
 namespace FMITerminalBlock
 {
 	namespace Model
 	{
-
-		using namespace FMITerminalBlock;
 
 		/**
 		 * @brief Encapsulates and accesses the FMI-model
@@ -46,10 +46,6 @@ namespace FMITerminalBlock
 			/** @brief Used to lazy load the event's data */
 			friend class LazyEvent;
 
-			/** @brief The name of the FMU path property */
-			static const std::string PROP_FMU_PATH;
-			/** @brief The name of the FMU name property */
-			static const std::string PROP_FMU_NAME;
 			/** @brief The name of the FMU instance name property */
 			static const std::string PROP_FMU_INSTANCE_NAME;
 			/** @brief The format string of the default input property */
@@ -75,7 +71,7 @@ namespace FMITerminalBlock
 			 * @brief Frees allocated resources
 			 * @details Deletes the FMU instance
 			 */
-			virtual ~EventPredictor();
+			virtual ~EventPredictor() {}
 
 			/**
 			 * @brief Implements 
@@ -151,11 +147,18 @@ namespace FMITerminalBlock
 			Base::ApplicationContext &context_;
 
 			/**
+			 * @brief Pointer to the low level FMU instance which is also used in 
+			 * the solver_
+			 * @details The variable is initialized at the C'tor and will remain 
+			 * valid until the object is deleted.
+			 */
+			std::unique_ptr<ManagedLowLevelFMU> lowLevelFMU_;
+			/**
 			 * @brief Pointer to the predicting FMU which manages the simulation.
 			 * @details It can be assumed that the pointer is valid. It will be 
-			 * initialized in the C'tor and deleted if the object's lifetime expires
+			 * initialized in the C'tor and will not be reset.
 			 */
-			PredictingFMU * solver_;
+			std::shared_ptr<IncrementalFMU> solver_;
 
 			/**
 			 * @brief Stores the ID of each registered output.

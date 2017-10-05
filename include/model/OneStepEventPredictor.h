@@ -17,9 +17,9 @@
 #include <unordered_map>
 
 #include <import/base/include/FMUModelExchangeBase.h>
-#include <import/base/include/ModelManager.h>
 
 #include "model/AbstractEventPredictor.h"
+#include "model/ManagedLowLevelFMU.h"
 #include "timing/StaticEvent.h"
 
 namespace FMITerminalBlock
@@ -53,10 +53,6 @@ namespace FMITerminalBlock
 		{
 		public:
 
-			/** @brief The name of the FMU path property */
-			static const std::string PROP_FMU_PATH;
-			/** @brief The name of the FMU name property */
-			static const std::string PROP_FMU_NAME;
 			/** @brief The name of the FMU instance name property */
 			static const std::string PROP_FMU_INSTANCE_NAME;
 			/** @brief The key of the default input property */
@@ -158,6 +154,13 @@ namespace FMITerminalBlock
 			/** @brief The currently active prediction or a null pointer */
 			std::unique_ptr<Timing::StaticEvent> currentPrediction_;
 
+			/**
+			 * @brief Pointer to the low level FMU instance which is also used in 
+			 * the solver_
+			 * @details The variable is initialized at the C'tor and will remain 
+			 * valid until the object is deleted.
+			 */
+			std::shared_ptr<ManagedLowLevelFMU> lowLevelFMU_;
 			/** @brief The model instance which will be managed */
 			std::shared_ptr<FMUModelExchangeBase> fmu_;
 
@@ -211,10 +214,16 @@ namespace FMITerminalBlock
 			/**
 			 * @brief loads a particular model
 			 * @details In case a model cannot be loaded correctly, a 
-			 * Base::SystemConfigurationException will be thrown. 
+			 * Base::SystemConfigurationException will be thrown. It is assumed that
+			 * the given application context and the lowLevelFMU are consistent.
+			 * @param appContext The application context which is used to fetch 
+			 * additional information beyond the lowLevelFMU
+			 * @param lowLevelFMU A valid lowLevelFMU pointer which is used to 
+			 * generate the model instance. The variable must not be null.
 			 */
 			static std::unique_ptr<FMUModelExchangeBase> loadModel(
-				const Base::ApplicationContext &appContext);
+				const Base::ApplicationContext &appContext, 
+				const std::shared_ptr<ManagedLowLevelFMU> lowLevelFMU);
 
 			/**
 			 * @brief Instantiates the previously loaded model
@@ -231,13 +240,6 @@ namespace FMITerminalBlock
 			 * model was not properly initialized.
 			 */
 			void initModel(fmiReal startTime);
-
-			/** 
-			 * @brief Converts the status code to a human readable error description.
-			 */
-			static std::string getErrorDescription(ModelManager::LoadFMUStatus err);
-			/** @brief Returns a human readable string representation of the type */
-			static std::string getFMUTypeString(FMUType type);
 
 			/**
 			 * @brief Sets the default input and parameter values which are 

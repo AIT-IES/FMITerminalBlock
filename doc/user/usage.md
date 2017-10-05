@@ -9,7 +9,6 @@ To give a first impression, the following invocation shows a simulation run whic
 ```sh
 ./FMITerminalBlock.exe \
 	"fmu.path=file:/C:/My Unzipped FMUs/Ramp.fmu.dir" \
-	fmu.name=Ramp \
 	app.lookAheadTime=8.0 \
 	in.0.protocol=CompactASN.1-TCP \
 	in.0.addr=localhost:1500 \
@@ -27,8 +26,6 @@ To give a first impression, the following invocation shows a simulation run whic
 The following parameters must be passed on to FMITerminalBlock:
 
 **fmu.path**: An *URL* to a local directory which holds the content of the FMU. Each .fmu file is a zip compressed archive which contains all files to run the simulation. FMITerminalBlock is currently not able to decompress the fmu itself. Hence, the location of directory which holds all extracted files and subdirectories needs to be specified.
-
-**fmu.name**: The actual name of the FMU as defined in the model description. Usually, the name is specified during the export procedure. Future versions may directly query the name from the model description file.
 
 **app.lookAheadTime**: The size of the lookahead horizon in seconds. In general, FMITerminalBlock executes the model until the *app.lookAheadTime* is reached. Nevertheless, the exact behavior of FMITerminalBlock depends on the configured simulation mode. See the [Simulation Method](#simulation-method-specific-parameters) section for more details.
 
@@ -91,6 +88,8 @@ Since usually smaller look ahead time values are chosen in the singlestep delaye
 
 ## Optional Parameters
 The operation of the solver and the prediction logic may be adjusted by the following parameters:
+
+**fmu.name**: The actual model identifier of the FMU as defined in the model description. Usually, the identifier is specified during the export procedure and can be automatically deduced from the files in the FMU directory. In case the FMU simultaneously provides co-simulation and a model exchange (FMI 2.0 only) and in case both variants use different identifiers, the name property should be set to ensure the proper variant is taken. A debug message can be displayed (log level *debug*) which prints the actually taken model identifier. One may use *fmu.name* to change the default behavior, if necessary.
 
 **app.integratorStepSize**: The time interval of a single integrator step. The default value is app.lookAheadStepSize/10.
 
