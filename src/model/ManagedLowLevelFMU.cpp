@@ -14,7 +14,6 @@
 
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
-#include <import/base/include/ModelManager.h>
 
 using namespace FMITerminalBlock::Model;
 using namespace FMITerminalBlock;
@@ -45,8 +44,8 @@ void ManagedLowLevelFMU::initVarsAndLoadFMU(
 		if (!(status == ModelManager::success 
 			|| status == ModelManager::duplicate)) {
 			boost::format err("Can't load the FMU at URL \"%1%\" with the "
-				"specified name \"%2%\". (Got status code %3%)");
-			err % path_ % modelIdentifier_ % status;
+				"specified name \"%2%\". %3%.");
+			err % path_ % modelIdentifier_ % getErrorDescription(status);
 			throw std::invalid_argument(err.str());
 		}
 	} else {
@@ -55,8 +54,8 @@ void ManagedLowLevelFMU::initVarsAndLoadFMU(
 		if (!(status == ModelManager::success 
 			|| status == ModelManager::duplicate)) {
 			boost::format err("Can't load the FMU at URL \"%1%\" with the "
-				"deduced name \"%2%\". (Got status code %3%)");
-			err % path_ % modelIdentifier_ % status;
+				"deduced name \"%2%\". %3%.");
+			err % path_ % modelIdentifier_ % getErrorDescription(status);
 			throw std::invalid_argument(err.str());
 		}
 		BOOST_LOG_TRIVIAL(debug) << "Take the default FMU model identifier \"" 
@@ -82,9 +81,51 @@ void ManagedLowLevelFMU::lockFMU()
 			break;
 		default:
 			boost::format err("The FMU at '%1%' has an unsupported FMI type (%2%)");
-			err % path_ % type_;
+			err % path_ % getFMUTypeString(type_);
 			throw std::invalid_argument(err.str());
 	}
 	fmuLock_ = lock;
 }
 
+std::string 
+ManagedLowLevelFMU::getErrorDescription(ModelManager::LoadFMUStatus err)
+{
+	switch (err)
+	{
+		case ModelManager::success:
+			return "Successful operation";
+		case ModelManager::duplicate:
+			return "The FMU was loaded before";
+		case ModelManager::shared_lib_invalid_uri:
+			return "The FMU shared library URL is invalid";
+		case ModelManager::shared_lib_load_failed:
+			return "The shared library of the FMU cannot be loaded correctly";
+		case ModelManager::description_invalid_uri:
+			return "The URL of the description is invalid";
+		case ModelManager::description_invalid:
+			return "The model description is invalid";
+		case ModelManager::failed:
+			return "Unable to load and instantiate the FMU";
+		default:
+			boost::format errmsg("Unknown error (code %1%)");
+			errmsg % err;
+			return errmsg.str();
+	}
+}
+
+std::string
+ManagedLowLevelFMU::getFMUTypeString(FMUType type)
+{
+	switch (type)
+	{
+		case fmi_1_0_cs: return "FMI 1.0 CS";
+		case fmi_1_0_me: return "FMI 1.0 ME";
+		case fmi_2_0_cs: return "FMI 2.0 CS";
+		case fmi_2_0_me: return "FMI 2.0 ME";\
+		case fmi_2_0_me_and_cs: return "FMI 2.0 CS and ME";
+		default: 
+			boost::format err("Unknown FMI type (code %1%)");
+			err % type;
+			return err.str();
+	}
+}

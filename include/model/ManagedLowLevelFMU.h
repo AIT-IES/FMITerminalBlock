@@ -15,6 +15,7 @@
 #include <memory>
 
 #include <common/FMUType.h>
+#include <import/base/include/ModelManager.h>
 
 #include "base/ApplicationContext.h"
 
@@ -86,6 +87,13 @@ namespace FMITerminalBlock
 			 */
 			FMUType getType() const { return type_; }
 
+			/**
+			 * @brief Returns a human readable FMUType representation.
+			 * @details The function is mainly destined for debugging purpose. Do not
+			 * expect its output to remain stable across different versions.
+			 */
+			std::string getTypeString() const { return getFMUTypeString(type_); }
+
 		private:
 			/** 
 			 * @brief The FMUs model identifier
@@ -125,6 +133,13 @@ namespace FMITerminalBlock
 			 * before.
 			 */
 			void lockFMU();
+
+			/** 
+			 * @brief Converts the status code to a human readable error description.
+			 */
+			static std::string getErrorDescription(ModelManager::LoadFMUStatus err);
+			/** @brief Returns a human readable string representation of the type */
+			static std::string getFMUTypeString(FMUType type);
 		};
 	}
 }
