@@ -95,6 +95,29 @@ BOOST_AUTO_TEST_CASE(testInstantiationAndInitialization1)
 	}
 }
 
+/// Test the instantiation and initialization of a model using name deduction 
+BOOST_AUTO_TEST_CASE(testInstantiationAndInitialization2)
+{
+	Base::ApplicationContext appContext;
+
+	const char * argv[] = {"testOneStepEventPredictor", 
+		"fmu.path=" FMU_URI_PRE "dxiskx", // No name
+		"app.startTime=0.0", "app.lookAheadTime=1.0",
+		"out.0.0=x", "out.0.0.type=0",
+		"in.0.0=u", "in.0.0.type=0"};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+		
+	try
+	{
+		OneStepEventPredictor pred(appContext);
+		pred.init();
+	} catch (Base::SystemConfigurationException &ex) {
+		BOOST_LOG_TRIVIAL(error) << ex.what() << "Key: " << ex.getKey() << 
+			" Value: " << ex.getValue();
+		BOOST_CHECK(false);
+	}
+}
+
 /** @brief Test add defaults */
 BOOST_AUTO_TEST_CASE(test_configureDefaultApplicationContext)
 {
