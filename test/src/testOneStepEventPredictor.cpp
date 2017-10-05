@@ -326,7 +326,7 @@ BOOST_DATA_TEST_CASE(testInvalidModelName, data::make(ZIGZAG_FMU_NAMES), name)
 	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
 	
 	BOOST_CHECK_THROW(OneStepEventPredictor pred(appContext), 
-		Base::SystemConfigurationException);
+		std::invalid_argument);
 }
 
 /** @brief Test an invalid model URL */
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE(testInvalidModelPath)
 	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
 	
 	BOOST_CHECK_THROW(OneStepEventPredictor pred(appContext), 
-		Base::SystemConfigurationException);
+		std::invalid_argument);
 }
 
 /** @brief Test invalid default variable key */

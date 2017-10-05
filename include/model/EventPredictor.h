@@ -13,6 +13,7 @@
 
 
 #include "model/AbstractEventPredictor.h"
+#include "model/ManagedLowLevelFMU.h"
 #include "base/ChannelMapping.h"
 #include "timing/Event.h"
 #include "timing/EventListener.h"
@@ -28,8 +29,6 @@ namespace FMITerminalBlock
 {
 	namespace Model
 	{
-
-		using namespace FMITerminalBlock;
 
 		/**
 		 * @brief Encapsulates and accesses the FMI-model
@@ -47,10 +46,6 @@ namespace FMITerminalBlock
 			/** @brief Used to lazy load the event's data */
 			friend class LazyEvent;
 
-			/** @brief The name of the FMU path property */
-			static const std::string PROP_FMU_PATH;
-			/** @brief The name of the FMU name property */
-			static const std::string PROP_FMU_NAME;
 			/** @brief The name of the FMU instance name property */
 			static const std::string PROP_FMU_INSTANCE_NAME;
 			/** @brief The format string of the default input property */
@@ -151,6 +146,13 @@ namespace FMITerminalBlock
 			 */
 			Base::ApplicationContext &context_;
 
+			/**
+			 * @brief Pointer to the low level FMU instance which is also used in 
+			 * the solver_
+			 * @details The variable is initialized at the C'tor and will remain 
+			 * valid until the object is deleted.
+			 */
+			std::unique_ptr<ManagedLowLevelFMU> lowLevelFMU_;
 			/**
 			 * @brief Pointer to the predicting FMU which manages the simulation.
 			 * @details It can be assumed that the pointer is valid. It will be 

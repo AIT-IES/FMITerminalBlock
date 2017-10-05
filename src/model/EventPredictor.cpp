@@ -8,27 +8,25 @@
  * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
-#include "model/EventPredictor.h"
-#include "base/BaseExceptions.h"
-#include "base/ApplicationContext.h"
-#include "model/LazyEvent.h"
-
-#include <import/base/include/ModelManager.h>
 #include <assert.h>
 #include <algorithm>
-#include <boost/any.hpp>
-#include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <stdio.h>
 
+#include <boost/any.hpp>
+#include <boost/format.hpp>
+#include <boost/log/trivial.hpp>
+
+#include "model/EventPredictor.h"
+#include "base/BaseExceptions.h"
+#include "base/ApplicationContext.h"
+#include "model/LazyEvent.h"
+
 using namespace FMITerminalBlock::Model;
 using namespace FMITerminalBlock;
 
-const std::string EventPredictor::PROP_FMU_PATH = "fmu.path";
-const std::string EventPredictor::PROP_FMU_NAME = "fmu.name";
 const std::string EventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
 const std::string EventPredictor::PROP_DEFAULT_INPUT = Base::ApplicationContext::PROP_IN + ".default.%1%";
 
@@ -40,15 +38,16 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	inputIDs_(5,std::vector<Base::PortID>()), realInputImage_(), 
 	integerInputImage_(), booleanInputImage_(), stringInputImage_()
 {
-	std::string path = context.getProperty<std::string>(PROP_FMU_PATH);
-	std::string name = context.getProperty<std::string>(PROP_FMU_NAME);
-
-	solver_ = std::make_shared<IncrementalFMU>(path, name);
 	
+	lowLevelFMU_ = std::unique_ptr<ManagedLowLevelFMU>(
+		new ManagedLowLevelFMU(context));
+
+	solver_ = std::make_shared<IncrementalFMU>(lowLevelFMU_->getModelIdentifier());
 	if (solver_->getLastStatus() != fmiOK) {
 		boost::format err("Can't load the incremental FMU \"%1%\" in URL \"%2%\""
-			" Got status %3%");
-		err % name % path % solver_->getLastStatus();
+			" Got FMI status code %3%");
+		err % lowLevelFMU_->getModelIdentifier() % lowLevelFMU_->getPath();
+		err % solver_->getLastStatus();
 		throw std::invalid_argument(err.str());
 	}
 }
@@ -64,9 +63,11 @@ EventPredictor::configureDefaultApplicationContext(
 void 
 EventPredictor::init()
 {
+	assert(lowLevelFMU_);
+
 	// Fetch parameter. Set sensitive default values, if needed
 	std::string instanceName = context_.getProperty<std::string>(
-		PROP_FMU_INSTANCE_NAME, context_.getProperty<std::string>(PROP_FMU_NAME));
+		PROP_FMU_INSTANCE_NAME, lowLevelFMU_->getModelIdentifier());
 	fmiTime start = context_.getPositiveDoubleProperty(
 		Base::ApplicationContext::PROP_START_TIME);
 	fmiTime lookAheadHorizon = context_.getRealPositiveDoubleProperty(
@@ -79,16 +80,16 @@ EventPredictor::init()
 	// Check values
 	if(lookAheadHorizon < lookAheadStepSize)
 	{
-		throw Base::SystemConfigurationException("The look ahead step size exceeds "
-			"the lookahead horizon", 
+		throw Base::SystemConfigurationException("The look ahead step size exceeds"
+			" the lookahead horizon", 
 			Base::ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE,
 			context_.getProperty<std::string>(
 				Base::ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE));
 	}
 	if(lookAheadStepSize < integratorStepSize)
 	{
-		throw Base::SystemConfigurationException("The integrator step size exceeds "
-			"the look ahead step size", 
+		throw Base::SystemConfigurationException("The integrator step size exceeds"
+			" the look ahead step size", 
 			Base::ApplicationContext::PROP_INTEGRATOR_STEP_SIZE,
 			context_.getProperty<std::string>(
 				Base::ApplicationContext::PROP_INTEGRATOR_STEP_SIZE));
@@ -113,7 +114,8 @@ EventPredictor::init()
 	defineInputs();
 
 	// initialize FMU
-	initSolver(instanceName, start, lookAheadHorizon, lookAheadStepSize, integratorStepSize);
+	initSolver(instanceName, start, lookAheadHorizon, lookAheadStepSize, 
+		integratorStepSize);
 }
 
 Timing::Event *
