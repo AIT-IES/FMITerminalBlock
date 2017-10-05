@@ -20,6 +20,14 @@
 #include <import/base/include/ModelDescription.h>
 #include <string>
 
+/**
+ * @brief returns the number of arguments in a valid argument vector array.
+ * @details It is assumed that the argument vector array argv is null 
+ * terminated. Hence, one element will be subtracted from the total count of 
+ * elements. The macro is mainly intended for testing purpose. 
+ */
+#define ARG_NUM_OF_ARGV( argv ) (sizeof((argv)) / sizeof((argv)[0]) - 1)
+
 namespace FMITerminalBlock
 {
 	namespace Base
