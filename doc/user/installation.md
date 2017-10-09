@@ -23,6 +23,19 @@ boost_1_61_0> b2.exe toolset=gcc --build-type=complete link=static,shared
 boost_1_61_0> b2.exe toolset=gcc --build-type=complete link=static,shared --prefix="bin.install" install
 ```
 
+For Linux, one may similarly need the following commands the get and install boost
+```
+$ ls
+boost_1_61.tar.bz2
+$ bunzip2 boost_1_61.tar.bz2
+$ tar -xf boost_1_61.tar
+$ cd boost_1_61_0/
+$ ./bootstrap.sh
+$ ./b2 toolset=gcc link=static,shared threading=multi
+$ mkdir ~/boost
+$ ./b2 toolset=gcc link=static,shared threading=multi --prefix="/home/username/boost/boost_1_61_0" install
+```
+
 In any case it is expected that the header and binary files are available in a common Boost installation directory. Within that directory, it is expected that all header files are located in the ```boost``` subdirectory and all binary files are located in a compiler specific ```lib*``` directory. The installation directory is also referred as Boost-root directory.
 
 ## Step 2: Download FMI++ and FMITerminalBlock Source Files
@@ -42,6 +55,15 @@ The configuration scripts need to locate the Boost directories. The Boost librar
 
 The source code location of FMI++ needs to be set in the CMake option fmipp_PROJECT_DIR. The default value is set to ```../fmipp```. As soon as FMI++ is found, FMI++ may be configured via the same CMake instance too. Nevertheless. The default options should be sufficient to configure and generate the build environment.
 
+On Linux machine without a GUI, one may use the following commands to configure and generate the build environment.
+```
+$ ls
+fmipp  FMITerminalBlock
+$ mkdir build
+$ cd build/
+$ cmake ../FMITerminalBlock/ -DBOOST_ROOT=~/boost/boost_1_61_0 -Dfmipp_PROJECT_DIR=../fmipp
+```
+
 ## Step 4: Compile the Project
 
-The project is compiled by the generated build environment. For instance, for Microsoft Visual Studio, a solution file which covers all necessary targets is provided. Similarly, appropriate Makefiles and Eclipse projects may be generated as well. Use the default mechanism to build FMITerminalBlock and all test-cases or invoke the corresponding targets to execute the test cases and to build the Doxygen documentation.
+The project is compiled by the generated build environment. For instance, for Microsoft Visual Studio, a solution file which covers all necessary targets is provided. Similarly, appropriate Makefiles and Eclipse projects may be generated as well. Use the default mechanism to build FMITerminalBlock and all test-cases or invoke the corresponding targets to execute the test cases and to build the Doxygen documentation. On a Linux host, for instance, simply run the default ```make``` command to compile FMITerminalBlock.
