@@ -25,7 +25,7 @@ endif ()
 find_package(Threads REQUIRED)
 
 # Boost dependencies
-option( Boost_USE_STATIC_LIBS "Specifies whether boost should be linked statically" ON)
+option( Boost_USE_STATIC_LIBS "Specifies whether boost should be linked statically (ON: Experimental)" OFF)
 find_package( Boost 1.56.0 COMPONENTS thread system filesystem date_time regex log log_setup REQUIRED )
 
 if( NOT Boost_USE_STATIC_LIBS )
