@@ -6,7 +6,9 @@
 # Defines the target which compiles the given test case. the test case name is
 # given without a leading "test" string. That prefix will be appended to 
 # define the target. It is assumed that all test cases require the boost 
-# libraries in Boost_LIBRARIES, fmipp and the local Threads libraries
+# libraries in Boost_LIBRARIES, fmipp and the local Threads libraries. The 
+# function also parses FMITerminalBlock_GLOBAL_TEST_ARGUMENTS to take optional 
+# command line parameters passed on to each test case.
 #
 # test_name: The name of the test set
 # others: All arguments after the last named one list the source files which 
@@ -21,5 +23,6 @@ macro(add_test_target test_name)
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different 
 			$<TARGET_FILE:fmippim> $<TARGET_FILE_DIR:test${test_name}> 
 		COMMENT "Make fmippim available" VERBATIM)
-    add_test( NAME ${test_name} COMMAND test${test_name} )
+    add_test( NAME ${test_name} COMMAND test${test_name} 
+		${FMITerminalBlock_GLOBAL_TEST_ARGUMENTS} )
 endmacro()

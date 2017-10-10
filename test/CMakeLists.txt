@@ -7,6 +7,10 @@ cmake_minimum_required( VERSION 3.1.0 )
 
 project( FMITerminalBlockTest )
 
+set( FMITerminalBlock_GLOBAL_TEST_ARGUMENTS "" CACHE STRING
+     "Command line arguments which are passed on to each test executable." )
+
+
 find_package( Boost 1.61.0 
 	COMPONENTS 
 		thread system filesystem date_time regex log log_setup 
