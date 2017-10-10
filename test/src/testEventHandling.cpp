@@ -712,7 +712,7 @@ BOOST_FIXTURE_TEST_CASE(test_early_time_query_1, EventDispatcherFixture)
 	BOOST_TEST_CHECKPOINT("Start external thread");
 	std::thread extThread([&dispatcher]() {
 		auto es = dispatcher.getEventSink();
-		BOOST_CHECK_SMALL(es->getTimeStampNow() - 0.5, 0.01);
+		BOOST_CHECK_SMALL(es->getTimeStampNow() - 0.5, 0.025);
 		es->pushExternalEvent(new StaticEvent(1.2, std::vector<Variable>()));
 	});
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -757,7 +757,7 @@ BOOST_FIXTURE_TEST_CASE(test_early_time_query_2, EventDispatcherFixture)
 	BOOST_TEST_CHECKPOINT("Start external thread");
 	std::thread extThread([&dispatcher]() {
 		auto es = dispatcher.getEventSink();
-		BOOST_CHECK_SMALL(es->getTimeStampNow() - (-1.5), 0.01);
+		BOOST_CHECK_SMALL(es->getTimeStampNow() - (-1.5), 0.025);
 		es->pushExternalEvent(new StaticEvent(0.0, std::vector<Variable>()));
 	});
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
