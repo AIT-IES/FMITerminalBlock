@@ -7,9 +7,8 @@ cmake_minimum_required( VERSION 3.1.0 )
 
 project( FMITerminalBlockTest )
 
-set( FMITerminalBlock_GLOBAL_TEST_ARGUMENTS "" CACHE STRING
-     "Command line arguments which are passed on to each test executable." )
-
+option( FMITerminalBlockTest_XML_FILE_OUTPUT 
+     "Specifies whether to output all test results in an XML format." OFF)
 
 find_package( Boost 1.61.0 
 	COMPONENTS 
