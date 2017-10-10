@@ -47,6 +47,12 @@ if ( NOT IS_DIRECTORY ${fmipp_PROJECT_DIR} )
 			"accordingly." )
 endif ()
 
+# Fixes the relative sundials library paths in FMI++
+# TODO: Remove as soon as FMI++ uses absolute library paths
+if ( INCLUDE_SUNDIALS )
+   link_directories( ${SUNDIALS_LIBRARYDIR} )
+endif ()
+
 # SWIG is not needed by FMITerminalBlock - Set the default value to OFF
 option( BUILD_SWIG "SWIG - Simplified Wrapper and Interface Generator stuff." OFF )
 add_subdirectory(${fmipp_PROJECT_DIR} fmipp)
