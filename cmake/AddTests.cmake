@@ -6,14 +6,15 @@
 # Defines the target which compiles the given test case. the test case name is
 # given without a leading "test" string. That prefix will be appended to 
 # define the target. It is assumed that all test cases require the boost 
-# libraries in Boost_LIBRARIES and fmipp
+# libraries in Boost_LIBRARIES, fmipp and the local Threads libraries
 #
 # test_name: The name of the test set
 # others: All arguments after the last named one list the source files which 
 # are necessary to compile the test set.
 macro(add_test_target test_name)
     add_executable( test${test_name} ${ARGN} )
-    target_link_libraries( test${test_name} ${Boost_LIBRARIES} fmippim )
+    target_link_libraries( test${test_name} ${Boost_LIBRARIES} fmippim 
+	                                        ${CMAKE_THREAD_LIBS_INIT} )
 	set_default_compiler_settings( test${test_name} )
 	add_custom_command( 
 		TARGET test${test_name} POST_BUILD 
