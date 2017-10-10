@@ -21,8 +21,11 @@ if ( DOXYGEN_FOUND )
    add_custom_target( FMITerminalBlock-doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM )
 endif ()
 
+# Find the Threads library of the system
+find_package(Threads REQUIRED)
+
 # Boost dependencies
-option( Boost_USE_STATIC_LIBS "Specifies whether boost should be linked statically" ON)
+option( Boost_USE_STATIC_LIBS "Specifies whether boost should be linked statically (ON: Experimental)" OFF)
 find_package( Boost 1.56.0 COMPONENTS thread system filesystem date_time regex log log_setup REQUIRED )
 
 if( NOT Boost_USE_STATIC_LIBS )
@@ -101,12 +104,14 @@ add_executable(FMITerminalBlock src/main.cpp
 	${FMITerminalBlock_NETWORK_SOURCE}
 	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
 
-target_link_libraries(FMITerminalBlock ${Boost_LIBRARIES} fmippim )
+target_link_libraries( FMITerminalBlock ${Boost_LIBRARIES} fmippim
+                                        ${CMAKE_THREAD_LIBS_INIT} )
 set_default_compiler_settings(FMITerminalBlock)
 
 # Configure test cases
 option(FMITerminalBlock_BUILD_TESTS 
-	"Specify whether the unit tests should be generated for FMITerminalBlock" ON )
+	"Specify whether the unit tests should be generated for FMITerminalBlock"
+	ON )
 
 if (FMITerminalBlock_BUILD_TESTS)
 	if (NOT BUILD_TESTS)
