@@ -67,7 +67,11 @@ namespace FMITerminalBlock
 			 */
 			TimedEventQueue(void);
 
-			/** @brief Frees allocated resources */
+			/** 
+			 * @brief Frees allocated resources
+			 * @details It is assumed that no other thread is concurrently accessing
+			 * the object at the time it gets destroyed. 
+			 */
 			virtual ~TimedEventQueue() {}
 
 			/** @copydoc EventQueue::initStartTimeNow(fmiTime) */
@@ -93,6 +97,34 @@ namespace FMITerminalBlock
 			virtual fmiTime getTimeStampNow();
 
 		private:
+
+			/**
+			 * @brief Small helper class which synchronizes the initialization
+			 * @details It provides a function which blocks until another resource 
+			 * signals that something has been initialized.
+			 */
+			class InitializationBarrier
+			{
+			public:
+				/** @brief Creates an object in uninitialized state */
+				InitializationBarrier();
+				/** @brief Frees allocated resources */
+				virtual ~InitializationBarrier() {}
+				/** @brief Puts the object into an initialized state */
+				void notifyInitialized();
+				/** @brief Returns as soon as the object is initialized */
+				void waitIfUninitialized();
+
+			private:
+
+				/** @brief Guards all concurrent accesses */
+				boost::mutex accessMut_;
+				/** @brief indicates the initialization status */
+				bool initialized_;
+				/** @brief Signals the initialization event */
+				boost::condition_variable initializationCondition_;
+			};
+
 			/**
 			 * @brief Ordered list of upcoming events
 			 * @details The most recent event will be at the first indices. The
@@ -114,26 +146,16 @@ namespace FMITerminalBlock
 			boost::condition_variable newEventCondition_;
 
 			/** 
-			 * @brief Mutex which is released as soon as the localEpoch_ and related
-			 * variables are initialized
-			 * @details Please release the mutex as soon as it is acquired. Otherwise 
-			 * other threads may be unnecessarily blocked.
+			 * @brief Barrier which is released as soon as the localEpoch_ and 
+			 * related variables are initialized
 			 */
-			boost::mutex timeInitMut_;
+			InitializationBarrier timeInitBarrier_;
 
 			/** @brief Time-stamp of the fmiTime == 0 */
 			boost::system_time  localEpoch_;
 
 			/** @brief Used to record external events and timed queue specifics */
 			EventLogger eventLoggerInstance_;
-
-			/** 
-			 * @brief Blocks the current thread until the localEpoch_ and related 
-			 * variables may be safely accessed. 
-			 * @details In case the time was initialized before, the function 
-			 * returns immediately.
-			 */
-			inline void waitUntilTimeIsInitiailzed();
 
 			/**
 			 * @brief Dequeues every predicted value after the given time

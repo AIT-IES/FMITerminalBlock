@@ -19,10 +19,10 @@
 using namespace FMITerminalBlock::Timing;
 
 TimedEventQueue::TimedEventQueue():
-	queue_(), queueMut_(), newEventCondition_(), timeInitMut_(),
-	localEpoch_(boost::posix_time::microsec_clock::universal_time())
-{
-	timeInitMut_.lock(); // The time has not been initialized yet. 
+	queue_(), queueMut_(), newEventCondition_(),
+	localEpoch_(boost::posix_time::microsec_clock::universal_time()), 
+	timeInitBarrier_()
+{ 
 }
 
 void 
@@ -36,16 +36,17 @@ TimedEventQueue::initStartTimeNow(fmiTime start)
 	localEpoch_ -= getRelativeTime(start);
 
 	EventLogger::setGlobalSimulationEpoch(localEpoch_);
-	timeInitMut_.unlock();
+	timeInitBarrier_.notifyInitialized();
 }
 
 void
 TimedEventQueue::add(Event * ev, bool predicted)
 {
 	assert(ev != NULL);
-	waitUntilTimeIsInitiailzed(); // May be reduced for performance reasons 
-	                              // -> There should be no predicted events 
-	                              //    before the time is initialized, anyway.
+	// May be reduced for performance reasons ->
+	// There should be no predicted events before the time is initialized, anyway
+	timeInitBarrier_.waitIfUninitialized();
+
 	boost::lock_guard<boost::mutex> guard(queueMut_);
 
 	BOOST_LOG_TRIVIAL(trace) << "TimedEventQueue: Add(" << ev->toString() 
@@ -73,7 +74,7 @@ TimedEventQueue::add(Event * ev, bool predicted)
 Event * 
 TimedEventQueue::get(void)
 {
-	waitUntilTimeIsInitiailzed();
+	timeInitBarrier_.waitIfUninitialized();
 	boost::unique_lock<boost::mutex> lock(queueMut_);
 	Event* ret = NULL;
 
@@ -102,7 +103,7 @@ TimedEventQueue::get(void)
 void 
 TimedEventQueue::pushExternalEvent(Event *ev)
 {
-	waitUntilTimeIsInitiailzed();
+	timeInitBarrier_.waitIfUninitialized();
 	eventLoggerInstance_.logEvent(ev, ProcessingStage::realTimeGeneration);
 	add(ev, false);
 }
@@ -112,16 +113,34 @@ TimedEventQueue::getTimeStampNow()
 {
 	boost::system_time currentTime;
 	currentTime = boost::posix_time::microsec_clock::universal_time();
-	waitUntilTimeIsInitiailzed();
+	timeInitBarrier_.waitIfUninitialized();
 	return getSimulationTime(currentTime);
 }
 
-void 
-TimedEventQueue::waitUntilTimeIsInitiailzed()
+TimedEventQueue::InitializationBarrier::InitializationBarrier():
+	accessMut_(), initializationCondition_(), initialized_(false) 
 {
-	// Do not use lock guard for performance reasons
-	timeInitMut_.lock();
-	timeInitMut_.unlock();
+}
+
+void
+TimedEventQueue::InitializationBarrier::notifyInitialized()
+{
+	boost::lock_guard<boost::mutex> guard(accessMut_);
+	assert(!initialized_);
+
+	initialized_ = true;
+	initializationCondition_.notify_all();
+}
+
+void
+TimedEventQueue::InitializationBarrier::waitIfUninitialized()
+{
+	boost::unique_lock<boost::mutex> lock(accessMut_);
+
+	while (!initialized_)
+	{
+		initializationCondition_.wait(lock);
+	}
 }
 
 void 

@@ -25,7 +25,6 @@ namespace FMITerminalBlock
 {
 	namespace Timing
 	{
-		using namespace FMITerminalBlock;
 
 		/**
 		 * @brief Class providing event management and distribution functionality.

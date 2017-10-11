@@ -25,7 +25,7 @@ EventDispatcher::EventDispatcher(Base::ApplicationContext &context,
 	listener_(), timingLogger_()
 {
 	
-	// The default value may take a time but that ok. In this case the program 
+	// The default value may take a time but that's ok. In this case the program 
 	// has to be terminated manually.
 	theEnd_ = context.getProperty<fmiTime>(PROP_STOP_TIME, DBL_MAX);
 
