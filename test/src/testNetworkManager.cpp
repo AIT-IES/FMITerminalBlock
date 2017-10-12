@@ -118,10 +118,17 @@ BOOST_FIXTURE_TEST_CASE(testStandardExecution, BasicNetworkManagerFixture)
 	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getInitAndStartSequenceID(), 
 		0);
 	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getInitSequenceID(), 1);
-	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getRunSequenceID(), 2);
-	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getTerminateSequenceID(), 3);
-	BOOST_CHECK_EQUAL(
-		ConcurrentMockupSubscriber::getTerminationRequestSequenceID(), 4);
+
+	// In the particular test case, run() does not depend on terminate() and 
+	// terminationRequest(). Hence it may be executed in between any function.
+	BOOST_CHECK_GE(ConcurrentMockupSubscriber::getRunSequenceID(), 2);
+	BOOST_CHECK_GE(ConcurrentMockupSubscriber::getTerminateSequenceID(), 2);
+	BOOST_CHECK_GE(
+		ConcurrentMockupSubscriber::getTerminationRequestSequenceID(), 
+		3);
+	BOOST_CHECK_LT(
+		ConcurrentMockupSubscriber::getTerminateSequenceID(),
+		ConcurrentMockupSubscriber::getTerminationRequestSequenceID());
 
 	BOOST_CHECK_EQUAL(MockupPublisher::getInitSequenceID(), 0);
 	BOOST_CHECK_EQUAL(MockupPublisher::getEventTriggeredSequenceID(), -1);
