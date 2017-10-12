@@ -57,7 +57,8 @@ ApplicationContext::addCommandlineProperties(int argc, const char *argv[])
 	{
 		throw std::invalid_argument("The program name is not set");
 	}
-	config_.put(PROP_PROGRAM_NAME, argv[0]);
+	// The program name needs to be copied since it may be deleted afterwards
+	config_.put(PROP_PROGRAM_NAME, std::string(argv[0]));
 
 	// Parse commandline arguments
 	for(int i = 1; i < argc;i++)
