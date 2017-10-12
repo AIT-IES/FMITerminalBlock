@@ -60,7 +60,19 @@ namespace FMITerminalBlockTest
 				return newElement();
 			}
 
-			/** @brief Generates A factory which instantiates the specific type */
+			/** @brief Converts the generator function to a printable factory */
+			template<typename SpecificType>
+			static PrintableFactory<BaseType> make(const std::string &name, 
+				std::function<std::shared_ptr<SpecificType>()> generator)
+			{
+				return PrintableFactory<BaseType>(name,
+						[generator]() {
+							return std::static_pointer_cast<BaseType>(generator()); 
+						}
+					);
+			}
+
+			/** @brief Generates A factory which instantiates the specific type */			
 			template<typename SpecificType>
 			static PrintableFactory<BaseType> make(const std::string &name)
 			{
@@ -68,6 +80,7 @@ namespace FMITerminalBlockTest
 						[]() {return std::make_shared<SpecificType>(); }
 					);
 			}
+
 
 		private:
 

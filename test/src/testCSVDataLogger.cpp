@@ -23,9 +23,11 @@
 #include "timing/StaticEvent.h"
 #include "base/BaseExceptions.h"
 #include "base/ApplicationContext.h"
+#include "PrintableFactory.h"
 
 using namespace FMITerminalBlock::Base;
 using namespace FMITerminalBlock::Timing;
+using namespace FMITerminalBlockTest::Network;
 
 namespace data = boost::unit_test::data;
 
@@ -64,9 +66,10 @@ BOOST_AUTO_TEST_CASE(testInvalidStream)
 }
 
 /** @brief Returns a configuration which covers all in- and output types */
-ApplicationContext makeCompleteAppContext()
+std::shared_ptr<ApplicationContext> makeCompleteAppContext()
 {
-	ApplicationContext appContext;
+	std::shared_ptr<ApplicationContext> appContext;
+	appContext = std::make_shared<ApplicationContext>();
 	const char *args[] = {
 		"testCSVLogger", 
 		"in.0.0=ia", "in.0.0.type=0", 
@@ -79,7 +82,7 @@ ApplicationContext makeCompleteAppContext()
 		"out.0.2=oc", "out.0.2.type=2",
 		"out.0.3=od", "out.0.3.type=3"
 	};
-	appContext.addCommandlineProperties(sizeof(args) / sizeof(args[0]), args);
+	appContext->addCommandlineProperties(sizeof(args) / sizeof(args[0]), args);
 	return appContext;
 }
 
@@ -101,19 +104,32 @@ std::string makeCompleteCSVHeader()
 		"\"fmiReal\";\"fmiInteger\";\"fmiBoolean\";\"fmiString\"\n";
 }
 
-/** Generates the reference app-context vector for the single event test case*/
-std::vector<ApplicationContext> makeSingleEventContext()
+/** 
+ * Generates the reference app-context vector for the single event test case
+ * @details The context must be generated on starting the test in order singe 
+ * AppContext may not be fully initialized when statically creating it. 
+ * (Issue with GCC 4.9 on Debian)
+ */
+std::vector<PrintableFactory<ApplicationContext>> makeSingleEventContextGen()
 {
-	return{
-		makeCompleteAppContext(),
-		makeCompleteAppContext(),
-		makeCompleteAppContext(),
-		makeCompleteAppContext(),
+	return {
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
 
-		makeCompleteAppContext(),
-		makeCompleteAppContext(),
-		makeCompleteAppContext(),
-		makeCompleteAppContext()
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
+		PrintableFactory<ApplicationContext>::make<ApplicationContext>("complete",
+			makeCompleteAppContext),
 	};
 };
 
@@ -151,11 +167,11 @@ std::vector<std::string> makeSingleEventReference()
 
 /** @brief Test multiple renderings on a single event */
 BOOST_DATA_TEST_CASE(testSingleEvent, 
-	data::make(makeSingleEventContext())^data::make(makeSingleEventEvent())^
+	data::make(makeSingleEventContextGen())^data::make(makeSingleEventEvent())^
 		data::make(makeSingleEventReference()), 
 	appContext, evt, refString)
 {
-	ApplicationContext context = appContext;
+	ApplicationContext context = *(appContext()); // Generate context
 	StaticEvent ev = evt;
 	std::ostringstream stream;
 
@@ -170,7 +186,7 @@ BOOST_DATA_TEST_CASE(testSingleEvent,
 /** @brief Test multiple events in a row */
 BOOST_AUTO_TEST_CASE(testMultipleEvents)
 {
-	ApplicationContext appContext = makeCompleteAppContext();
+	ApplicationContext appContext = *(makeCompleteAppContext());
 	std::ostringstream stream;
 
 	{
