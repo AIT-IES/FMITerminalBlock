@@ -101,44 +101,58 @@ std::string makeCompleteCSVHeader()
 		"\"fmiReal\";\"fmiInteger\";\"fmiBoolean\";\"fmiString\"\n";
 }
 
-ApplicationContext SINGLE_EVENT_CONTEXT[] = {
-	makeCompleteAppContext(),
-	makeCompleteAppContext(),
-	makeCompleteAppContext(),
-	makeCompleteAppContext(),
+/** Generates the reference app-context vector for the single event test case*/
+std::vector<ApplicationContext> makeSingleEventContext()
+{
+	return{
+		makeCompleteAppContext(),
+		makeCompleteAppContext(),
+		makeCompleteAppContext(),
+		makeCompleteAppContext(),
 
-	makeCompleteAppContext(),
-	makeCompleteAppContext(),
-	makeCompleteAppContext(),
-	makeCompleteAppContext()
+		makeCompleteAppContext(),
+		makeCompleteAppContext(),
+		makeCompleteAppContext(),
+		makeCompleteAppContext()
+	};
 };
-StaticEvent SINGLE_EVENT_EVENT[] = {
-	makeEventVarOnly(1, fmiTypeReal, (fmiReal) 0.1, 0.0),
-	makeEventVarOnly(1, fmiTypeInteger, (fmiInteger) -42, 0.1),
-	makeEventVarOnly(1, fmiTypeBoolean, (fmiBoolean) fmiTrue, 0.2),
-	makeEventVarOnly(1, fmiTypeString,  std::string("\"a,bäd;String"), 0.3),
 
-	makeEventVarOnly(0, fmiTypeReal, (fmiReal) 0.2, 0.4),
-	makeEventVarOnly(0, fmiTypeInteger, (fmiInteger) -1, 0.5),
-	makeEventVarOnly(0, fmiTypeBoolean, (fmiBoolean) fmiFalse, 0.6),
-	makeEventVarOnly(0, fmiTypeString,  std::string("aGoodString"), 0.7)
-};
-std::string SINGLE_EVENT_REFERENCE[] = {
-	makeCompleteCSVHeader() + "0;0.1;;;;;;;\n",
-	makeCompleteCSVHeader() + "0.1;;-42;;;;;;\n",
-	makeCompleteCSVHeader() + "0.2;;;1;;;;;\n",
-	makeCompleteCSVHeader() + "0.3;;;;\"\"\"a,bäd;String\";;;;\n",
+/** Generates the event vector for the single event test case */
+std::vector<StaticEvent> makeSingleEventEvent()
+{
+	return{
+		makeEventVarOnly(1, fmiTypeReal, (fmiReal) 0.1, 0.0),
+		makeEventVarOnly(1, fmiTypeInteger, (fmiInteger) -42, 0.1),
+		makeEventVarOnly(1, fmiTypeBoolean, (fmiBoolean) fmiTrue, 0.2),
+		makeEventVarOnly(1, fmiTypeString,  std::string("\"a,bäd;String"), 0.3),
 
-	makeCompleteCSVHeader() + "0.4;;;;;0.2;;;\n",
-	makeCompleteCSVHeader() + "0.5;;;;;;-1;;\n",
-	makeCompleteCSVHeader() + "0.6;;;;;;;0;\n",
-	makeCompleteCSVHeader() + "0.7;;;;;;;;\"aGoodString\"\n"
-};
+		makeEventVarOnly(0, fmiTypeReal, (fmiReal) 0.2, 0.4),
+		makeEventVarOnly(0, fmiTypeInteger, (fmiInteger) -1, 0.5),
+		makeEventVarOnly(0, fmiTypeBoolean, (fmiBoolean) fmiFalse, 0.6),
+		makeEventVarOnly(0, fmiTypeString,  std::string("aGoodString"), 0.7)
+	};
+}
+
+/** Generates the reference string  vector for the single event test case */
+std::vector<std::string> makeSingleEventReference()
+{
+	return {
+		makeCompleteCSVHeader() + "0;0.1;;;;;;;\n",
+		makeCompleteCSVHeader() + "0.1;;-42;;;;;;\n",
+		makeCompleteCSVHeader() + "0.2;;;1;;;;;\n",
+		makeCompleteCSVHeader() + "0.3;;;;\"\"\"a,bäd;String\";;;;\n",
+
+		makeCompleteCSVHeader() + "0.4;;;;;0.2;;;\n",
+		makeCompleteCSVHeader() + "0.5;;;;;;-1;;\n",
+		makeCompleteCSVHeader() + "0.6;;;;;;;0;\n",
+		makeCompleteCSVHeader() + "0.7;;;;;;;;\"aGoodString\"\n"
+	};
+}
 
 /** @brief Test multiple renderings on a single event */
 BOOST_DATA_TEST_CASE(testSingleEvent, 
-	data::make(SINGLE_EVENT_CONTEXT)^data::make(SINGLE_EVENT_EVENT)^
-		data::make(SINGLE_EVENT_REFERENCE), 
+	data::make(makeSingleEventContext())^data::make(makeSingleEventEvent())^
+		data::make(makeSingleEventReference()), 
 	appContext, evt, refString)
 {
 	ApplicationContext context = appContext;
