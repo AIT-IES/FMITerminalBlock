@@ -55,6 +55,7 @@ The configuration scripts need to locate the Boost directories. The Boost librar
 
 The source code location of FMI++ needs to be set in the CMake option fmipp_PROJECT_DIR. The default value is set to ```../fmipp```. As soon as FMI++ is found, FMI++ may be configured via the same CMake instance too. Nevertheless. The default options should be sufficient to configure and generate the build environment.
 
+### Linux Make Files
 On Linux machine without a GUI, one may use the following commands to configure and generate the build environment.
 ```
 $ ls
@@ -63,6 +64,17 @@ $ mkdir build
 $ cd build/
 $ cmake ../FMITerminalBlock/ -DBOOST_ROOT=~/boost/boost_1_61_0 -Dfmipp_PROJECT_DIR=../fmipp
 ```
+
+### Eclipse CDT with NMake 
+Before executing CMake the Visual Studio environment needs to be set up. One may open a command line and execute the setup batch file: ``call "%VS140COMNTOOLS%\vsvars32.bat"```. Within the very same command line (the environment will not be exported), start the cmake-gui and the eclipse instance. CMake should now be able to find the appropriate tool chain for the Eclipse Nmake target. The following batch file automatically configures the environment and opens both tools, CMake and Eclipse. Make sure to adapt the paths accordingly.
+```
+call "%VS140COMNTOOLS%\vsvars32.bat"
+
+start /B "CMake" "C:\Program Files\CMake\bin\cmake-gui.exe"
+start /B "Eclipse" "C:\Program Files\eclipse-cpp-neon-3-win32-x86_64\eclipse.exe"
+```
+
+Before generating the eclipse project, the CMake option CMAKE_ECLIPSE_VERSION must be set to the appropriate value. Invalid values may result in spurious failures on parsing the source code. In case some errors are still displayed, or the Eclipse project is updated, the configuration may be reloaded and the index may be refreshed manually.
 
 ## Step 4: Compile the Project
 
