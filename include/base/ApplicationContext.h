@@ -12,6 +12,7 @@
 #define _FMITERMINALBLOCK_BASE_APPLICATION_CONTEXT
 
 #include <base/ChannelMapping.h>
+#include <base/AbstractConfigProvider.h>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/format.hpp>
@@ -19,6 +20,7 @@
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
 #include <string>
+#include <iostream>
 
 /**
  * @brief returns the number of arguments in a valid argument vector array.
@@ -48,7 +50,7 @@ namespace FMITerminalBlock
 		 * separated by a single dot character.
 		 * </p>
 		 */
-		class ApplicationContext
+		class ApplicationContext: public AbstractConfigProvider
 		{
 		public:
 
@@ -72,7 +74,6 @@ namespace FMITerminalBlock
 
 			/** @brief The key of the input channel property */
 			static const std::string PROP_IN;
-
 
 			/**
 			 * @brief Default C'tor initializing an empty application context object
@@ -106,115 +107,6 @@ namespace FMITerminalBlock
 			void addSensitiveDefaultProperties(const ModelDescription * description);
 
 			/**
-			 * @brief Returns the property's value
-			 * @details The function queries the global configuration. It will throw
-			 * std::invalid_argument, if the property was not found or if it couldn't
-			 * be converted properly.
-			 * @param path The property's path
-			 * @return The property's value
-			 */
-			template<typename Type>
-			Type getProperty(const std::string &path) const
-			{
-				try
-				{
-					return config_.get<Type>(path);
-				}catch(std::exception &ex){
-					boost::format err("The property \"%1%\" was not found: %2%");
-					err % path % ex.what();
-					throw std::invalid_argument(err.str());
-				}
-			}
-
-			/**
-			 * @brief Returns the property's value or its given default value
-			 * @details The function queries the global configuration. It will throw
-			 * std::invalid_argument if the value couldn't be converted properly.
-			 * @param path The property's path
-			 * @param def The property's default value
-			 * @return The property's value or its default.
-			 */
-			template<typename Type>
-			Type getProperty(const std::string &path, Type def) const
-			{
-				if(!hasProperty(path))
-				{
-					return def;
-				}else{
-					return getProperty<Type>(path);
-				}
-			}
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property contains an invalid value,
-			 * Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @param def The property's default value
-			 * @return A positive double value r, r >= 0
-			 */
-			double getPositiveDoubleProperty(const std::string &path, double def)
-				const;
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property doesn't exist or if the property contains an
-			 * invalid value, Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @return A positive double value r, r >= 0
-			 */
-			double getPositiveDoubleProperty(const std::string &path) const;
-
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property contains an invalid value,
-			 * Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @param def The property's default value
-			 * @return A real positive double value r, r > 0
-			 */
-			double getRealPositiveDoubleProperty(const std::string &path, double def)
-				const;
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property contains an invalid value or if it doesn't
-			 * exist, Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @return A real positive double value r, r > 0
-			 */
-			double getRealPositiveDoubleProperty(const std::string &path) const;
-
-			/**
-			 * @brief Returns the subtree given by the path string.
-			 * @details If the path is not present in the global configuration
-			 * Base::SystemConfigurationException will be thrown.
-			 * @param path The property's path identifier
-			 * @return The subtree given by the path string
-			 */
-			const boost::property_tree::ptree & getPropertyTree(
-				const std::string &path)
-				const;
-
-			/**
-			 * @brief Returns whether the properties already contain the given key
-			 * @param key The checked path which is given as a valid zero terminated
-			 * cstring
-			 * @return <code>true</code> if the properties already contain the given
-			 * key
-			 */
-			bool hasProperty(const char * key) const;
-
-			/**
-			 * @brief Returns whether the properties already contain the given key
-			 * @param key The path to check
-			 * @return <code>true</code> if the properties already contain the given
-			 * key
-			 */
-			bool hasProperty(const std::string &key) const;
-
-			/**
 			 * @brief Returns a pointer to the global output Base::ChannelMapping object
 			 * @details The first invocation of the function will create the object. 
 			 * Subsequent configuration changes may not be reflected by the output 
@@ -241,6 +133,13 @@ namespace FMITerminalBlock
 			 * included in the output.
 			 */
 			std::string toString() const;
+
+		protected:
+			/** @copydoc AbstractConfigProvider::getConfig() */
+			virtual const boost::property_tree::ptree& getConfig() const 
+			{ 
+				return config_;
+			}
 
 		private:
 
