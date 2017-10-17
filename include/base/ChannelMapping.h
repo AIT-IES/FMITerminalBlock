@@ -73,10 +73,16 @@ namespace FMITerminalBlock
 			 * @param portIDSource A reference to the global PortIDDrawer
 			 * object. The reference must be valid until the object is
 			 * destroyed.
+			 * @param variablePrefix The path prefix of each variable. The prefix 
+			 * will be pushed at the front of each path string. In case all 
+			 * variables should be encapsulated into a sub-tree, the variablePrefix 
+			 * must end with a dot character. Empty strings will read all variables 
+			 * as direct ancestors of the channel.
 			 * @throws Base::SystemConfigurationException if an invalid configuration is found
 			 */
 			ChannelMapping(PortIDDrawer &portIDSource, 
-				const boost::property_tree::ptree &prop);
+				const boost::property_tree::ptree &prop, 
+				std::string variablePrefix = "");
 			
 			/**
 			 * @brief Returns a vector which contains every variable name
@@ -193,8 +199,10 @@ namespace FMITerminalBlock
 			 * On detecting an invalid configuration, a
 			 * Base::SystemConfigurationException will be thrown.
 			 * @param prop The properties containing the channel configuration
+			 * @param variablePrefix The prefix used in each variable name
 			 */
-			void addChannels(const boost::property_tree::ptree &prop);
+			void addChannels(const boost::property_tree::ptree &prop, 
+				const std::string& variablePrefix);
 
 			/**
 			 * @brief Adds the port configuration to the list of variables and channels
@@ -204,9 +212,11 @@ namespace FMITerminalBlock
 			 * a Base::SystemConfigurationException will be thrown.
 			 * @param channelProp The properties which contain the port configuration
 			 * @param variablelList The list of previously added ports of the channel
+			 * @param variablePrefix The prefix used in each variable name. May also
+			 * be an empty string
 			 */			
 			void addVariables(const boost::property_tree::ptree &channelProp,
-				TransmissionChannel &variableList);
+				TransmissionChannel &variableList, const std::string& variablePrefix);
 
 			/**
 			 * @brief Queries the ChannelMapping::PortID of the given name

@@ -20,12 +20,12 @@ using namespace FMITerminalBlock::Base;
 const std::string ChannelMapping::PROP_TYPE = "type";
 
 ChannelMapping::ChannelMapping(PortIDDrawer &portIDSource,
-	const boost::property_tree::ptree &prop) :
+	const boost::property_tree::ptree &prop, std::string variablePrefix):
 	variableNames_(5, std::vector<std::string>()),
 	variableIDs_(5, std::vector<PortID>()), channels_(),
 	portIDSource_(portIDSource)
 {
-	addChannels(prop);
+	addChannels(prop, variablePrefix);
 }
 
 const std::vector<std::string> & 
@@ -177,7 +177,8 @@ std::string ChannelMapping::toString() const
 	return ret;
 }
 
-void ChannelMapping::addChannels(const boost::property_tree::ptree &prop)
+void ChannelMapping::addChannels(const boost::property_tree::ptree &prop, 
+	const std::string& variablePrefix)
 {
 
 	boost::format chnFormat("%1%");
@@ -191,7 +192,7 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop)
 
 		// Add associated variables
 		TransmissionChannel channel(channelProp.get());
-		addVariables(channelProp.get(), channel);
+		addVariables(channelProp.get(), channel, variablePrefix);
 		channels_.push_back(channel);
 
 		// Try next configuration directive
@@ -202,13 +203,14 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop)
 
 }
 
-void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp,
-			TransmissionChannel &variableList)
+void ChannelMapping::addVariables(
+	const boost::property_tree::ptree &channelProp,
+	TransmissionChannel &variableList, const std::string& variablePrefix)
 {
 	assert(variableNames_.size() >= 5);
 	assert(variableIDs_.size() == variableNames_.size());
 
-	boost::format varFormat("%1%");
+	boost::format varFormat(variablePrefix + "%1%");
 	int variableNr = 0;
 	boost::optional<const boost::property_tree::ptree&> variableProp;
 
