@@ -82,6 +82,7 @@ add_source_file(NETWORK src/network/PartialEvent.cpp )
 
 add_source_file(BASE src/base/ApplicationContext.cpp )
 add_source_file(BASE src/base/AbstractConfigProvider.cpp )
+add_source_file(BASE src/base/ConnectionConfig.cpp )
 add_source_file(BASE src/base/ChannelMapping.cpp )
 add_source_file(BASE src/base/PortID.cpp )
 add_source_file(BASE src/base/PortIDDrawer.cpp )
