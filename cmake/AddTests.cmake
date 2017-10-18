@@ -6,9 +6,10 @@
 # Defines the target which compiles the given test case. the test case name is
 # given without a leading "test" string. That prefix will be appended to 
 # define the target. It is assumed that all test cases require the boost 
-# libraries in Boost_LIBRARIES, fmipp and the local Threads libraries. In case 
-# the option FMITerminalBlockTest_XML_FILE_OUTPUT is set, the output of the XML
-# files will be redirected to a dedicated output directory in an XML format.
+# libraries in Boost_LIBRARIES, fmipp, fmippex and the local Threads libraries.
+# In case the option FMITerminalBlockTest_XML_FILE_OUTPUT is set, the output of
+# the XML files will be redirected to a dedicated output directory in an XML 
+# format.
 #
 # test_name: The name of the test set
 # others: All arguments after the last named one list the source files which 
@@ -30,7 +31,7 @@ macro(add_test_target test_name)
 
 	# Create the test target
     add_executable( test${test_name} ${ARGN} )
-    target_link_libraries( test${test_name} ${Boost_LIBRARIES} fmippim 
+    target_link_libraries( test${test_name} ${Boost_LIBRARIES} fmippim fmippex
 	                                        ${CMAKE_THREAD_LIBS_INIT} )
 	set_default_compiler_settings( test${test_name} )
 	add_custom_command( 
