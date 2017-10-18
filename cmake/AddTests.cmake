@@ -38,7 +38,9 @@ macro(add_test_target test_name)
 		TARGET test${test_name} POST_BUILD 
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different 
 			$<TARGET_FILE:fmippim> $<TARGET_FILE_DIR:test${test_name}> 
-		COMMENT "Make fmippim available" VERBATIM)
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+			$<TARGET_FILE:fmippex> $<TARGET_FILE_DIR:test${test_name}> 
+		COMMENT "Make FMI++ available" VERBATIM)
     add_test( NAME ${test_name} COMMAND test${test_name} 
 		${test_args} )
 endmacro()
