@@ -242,12 +242,14 @@ BOOST_AUTO_TEST_CASE( test_get_property_tree )
 /** @brief Tests the getPropertyTree function */
 BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_variables )
 {
-	const char * argv[] = {"testApplicationContext", "out.0.0=x", 
-		"out.0.0.type=0", "out.0.1=y", "out.0.1.type=1", "out.1.0=z", 
-		"out.1.0.type=2", "out.1.1=w", "out.1.1.type=3", "out.1.2=x",
-		"out.1.2.type=0", NULL};
+	const char * argv[] = {"testApplicationContext", 
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
+		"channel.0.out-var.1=y", "channel.0.out-var.1.type=1", 
+		"channel.1.out-var.0=z", "channel.1.out-var.0.type=2", 
+		"channel.1.out-var.1=w", "channel.1.out-var.1.type=3", 
+		"channel.1.out-var.2=x", "channel.1.out-var.2.type=0", NULL};
 	ApplicationContext context;
-	context.addCommandlineProperties(11,argv);
+	context.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	const ChannelMapping * mapping = context.getOutputChannelMapping();
 	BOOST_REQUIRE(mapping != NULL);
@@ -294,12 +296,14 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_variables )
 /** @brief Tests the getPropertyTree function */
 BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_channel )
 {
-	const char * argv[] = {"testApplicationContext", "out.0.0=x", 
-		"out.0.0.type=0", "out.0.1=y", "out.0.1.type=1", "out.1.0=z", 
-		"out.1.0.type=2", "out.1.1=w", "out.1.1.type=3", "out.1.2=x",
-		"out.1.2.type=0", NULL};
+	const char * argv[] = {"testApplicationContext", 
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
+		"channel.0.out-var.1=y", "channel.0.out-var.1.type=1", 
+		"channel.1.out-var.0=z", "channel.1.out-var.0.type=2", 
+		"channel.1.out-var.1=w", "channel.1.out-var.1.type=3", 
+		"channel.1.out-var.2=x", "channel.1.out-var.2.type=0", NULL};
 	ApplicationContext context;
-	context.addCommandlineProperties(11,argv);
+	context.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	const ChannelMapping * mapping = context.getOutputChannelMapping();
 	BOOST_REQUIRE(mapping != NULL);
@@ -325,10 +329,10 @@ BOOST_AUTO_TEST_CASE( test_get_channel_mapping_output_channel )
 /** @brief Queries a channel mapping object and checks some basic properties */
 BOOST_AUTO_TEST_CASE(test_get_input_channel_mapping)
 {
-	const char * argv[] = { "testApplicationContext", "in.0.0=x",
-		"in.0.0.type=0", NULL };
+	const char * argv[] = { "testApplicationContext", 
+		"channel.0.in-var.0=x",	"channel.0.in-var.0.type=0", NULL };
 	ApplicationContext context;
-	context.addCommandlineProperties(3, argv);
+	context.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	const ChannelMapping * mapping = context.getInputChannelMapping();
 	BOOST_REQUIRE(mapping != NULL);

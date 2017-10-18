@@ -18,7 +18,7 @@ using namespace FMITerminalBlockTest;
 using namespace FMITerminalBlockTest::Network;
 using namespace FMITerminalBlock;
 
-const std::string ConcurrentMockupSubscriber::SUBSCRIBER_ID = "ConcurrentMockupSubscriber";
+const std::string ConcurrentMockupSubscriber::SUBSCRIBER_ID = "Mockup";
 
 int ConcurrentMockupSubscriber::nextSequenceID_ = 0;
 int ConcurrentMockupSubscriber::initAndStartSequenceID_ = -1;
@@ -37,7 +37,7 @@ void ConcurrentMockupSubscriber::initAndStart(
   config_ = &settings; // No need to synchronize, no thread is started yet
   incrementSequenceID(&initAndStartSequenceID_);
 
-  if (getFlag("throwOnInitAndStart"))
+  if (getFlag("subs_throwOnInitAndStart"))
   {
     throw Base::SystemConfigurationException("Triggered Exception");
   }
@@ -49,7 +49,7 @@ void ConcurrentMockupSubscriber::terminate()
 {
   incrementSequenceID(&terminateSequenceID_);
   ConcurrentSubscriber::terminate();
-  if (getFlag("throwOnTerminate"))
+  if (getFlag("subs_throwOnTerminate"))
   {
     throw std::runtime_error("Triggered Exception");
   }
@@ -96,7 +96,7 @@ void ConcurrentMockupSubscriber::init(
   std::shared_ptr<FMITerminalBlock::Timing::EventSink> eventSink)
 {
   incrementSequenceID(&initSequenceID_);
-  if (getFlag("throwOnInit"))
+  if (getFlag("subs_throwOnInit"))
   {
     throw Base::SystemConfigurationException("Triggered Exception");
   }
@@ -105,12 +105,12 @@ void ConcurrentMockupSubscriber::init(
 void ConcurrentMockupSubscriber::run()
 {
   incrementSequenceID(&runSequenceID_);
-  if (getFlag("throwOnRun"))
+  if (getFlag("subs_throwOnRun"))
   {
     throw std::runtime_error("Triggered Exception");
   }
 
-  if(getFlag("waitUntilTerminationRequest", true))
+  if(getFlag("subs_waitUntilTerminationRequest", true))
   {
     std::unique_lock<std::mutex> guard(classMutex_);
     while (!terminationRequestPending_)
@@ -131,7 +131,7 @@ void ConcurrentMockupSubscriber::terminationRequest()
 		assert(isTerminationRequestPending());
 	}
 
-  if (getFlag("throwOnTerminationRequest"))
+  if (getFlag("subs_throwOnTerminationRequest"))
   {
     throw std::runtime_error("Triggered Error");
   }

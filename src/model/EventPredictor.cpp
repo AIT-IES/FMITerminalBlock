@@ -28,7 +28,7 @@ using namespace FMITerminalBlock::Model;
 using namespace FMITerminalBlock;
 
 const std::string EventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
-const std::string EventPredictor::PROP_DEFAULT_INPUT = Base::ApplicationContext::PROP_IN + ".default.%1%";
+const std::string EventPredictor::PROP_DEFAULT_INPUT = "in-var.default.%1%";
 
 EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	context_(context), solver_(NULL), 

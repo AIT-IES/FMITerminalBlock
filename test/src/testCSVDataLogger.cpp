@@ -72,17 +72,18 @@ std::shared_ptr<ApplicationContext> makeCompleteAppContext()
 	appContext = std::make_shared<ApplicationContext>();
 	const char *args[] = {
 		"testCSVLogger", 
-		"in.0.0=ia", "in.0.0.type=0", 
-		"in.0.1=ib", "in.0.1.type=1", 
-		"in.0.2=ic", "in.0.2.type=2",
-		"in.0.3=id", "in.0.3.type=3",
+		"channel.0.in-var.0=ia", "channel.0.in-var.0.type=0", 
+		"channel.0.in-var.1=ib", "channel.0.in-var.1.type=1", 
+		"channel.0.in-var.2=ic", "channel.0.in-var.2.type=2",
+		"channel.0.in-var.3=id", "channel.0.in-var.3.type=3",
 
-		"out.0.0=oa", "out.0.0.type=0", 
-		"out.0.1=ob", "out.0.1.type=1", 
-		"out.0.2=oc", "out.0.2.type=2",
-		"out.0.3=od", "out.0.3.type=3"
+		"channel.0.out-var.0=oa", "channel.0.out-var.0.type=0", 
+		"channel.0.out-var.1=ob", "channel.0.out-var.1.type=1", 
+		"channel.0.out-var.2=oc", "channel.0.out-var.2.type=2",
+		"channel.0.out-var.3=od", "channel.0.out-var.3.type=3",
+		NULL
 	};
-	appContext->addCommandlineProperties(sizeof(args) / sizeof(args[0]), args);
+	appContext->addCommandlineProperties(ARG_NUM_OF_ARGV(args), args);
 	return appContext;
 }
 

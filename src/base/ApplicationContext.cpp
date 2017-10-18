@@ -29,8 +29,9 @@ const std::string ApplicationContext::PROP_START_TIME = "app.startTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_TIME = "app.lookAheadTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAheadStepSize";
 const std::string ApplicationContext::PROP_INTEGRATOR_STEP_SIZE = "app.integratorStepSize";
-const std::string ApplicationContext::PROP_OUT = "out";
-const std::string ApplicationContext::PROP_IN = "in";
+const std::string ApplicationContext::PROP_CHANNEL = "channel";
+const std::string ApplicationContext::PROP_OUT_VAR = "out-var.";
+const std::string ApplicationContext::PROP_IN_VAR = "in-var.";
 
 ApplicationContext::ApplicationContext(void):
 	config_(), outputChannelMap_(NULL), inputChannelMap_(NULL), portIDSource_()
@@ -130,7 +131,7 @@ const ChannelMapping * ApplicationContext::getOutputChannelMapping()
 {
 	if(outputChannelMap_ == NULL)
 	{
-		outputChannelMap_ = newChannelMapping(PROP_OUT);
+		outputChannelMap_ = newChannelMapping(PROP_OUT_VAR);
 		BOOST_LOG_TRIVIAL(debug) << "Settled output variable to channel mapping: "
 				<< outputChannelMap_->toString();
 	}
@@ -141,7 +142,7 @@ const ChannelMapping * ApplicationContext::getInputChannelMapping()
 {
 	if (inputChannelMap_ == NULL)
 	{
-		inputChannelMap_ = newChannelMapping(PROP_IN);
+		inputChannelMap_ = newChannelMapping(PROP_IN_VAR);
 		BOOST_LOG_TRIVIAL(debug) << "Settled input variable to channel mapping: "
 				<< inputChannelMap_->toString();
 	}
@@ -169,12 +170,14 @@ std::string ApplicationContext::toString() const
 	return ret;
 }
 
-ChannelMapping * ApplicationContext::newChannelMapping(const std::string &propertyPrefix)
+ChannelMapping * 
+ApplicationContext::newChannelMapping(const std::string &variablePrefix)
 {
 	ChannelMapping *channelMap;
 
-	if (hasProperty(propertyPrefix)) {
-		channelMap = new ChannelMapping(portIDSource_, getPropertyTree(propertyPrefix));
+	if (hasProperty(PROP_CHANNEL)) {
+		channelMap = new ChannelMapping(portIDSource_, 
+			getPropertyTree(PROP_CHANNEL), variablePrefix);
 	}
 	else
 	{

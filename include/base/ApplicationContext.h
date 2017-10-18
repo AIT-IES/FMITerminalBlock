@@ -69,11 +69,14 @@ namespace FMITerminalBlock
 			/** @brief The key of the integrator step-size property */
 			static const std::string PROP_INTEGRATOR_STEP_SIZE;
 
-			/** @brief The key of the output channel property */
-			static const std::string PROP_OUT;
+			/** @brief The key of the channel configuration property tree */
+			static const std::string PROP_CHANNEL;
 
-			/** @brief The key of the input channel property */
-			static const std::string PROP_IN;
+			/** @brief The prefix of output variables */
+			static const std::string PROP_OUT_VAR;
+
+			/** @brief The prefix of input variables */
+			static const std::string PROP_IN_VAR;
 
 			/**
 			 * @brief Default C'tor initializing an empty application context object
@@ -192,11 +195,10 @@ namespace FMITerminalBlock
 			 * @details The object must be deleted outside the function. If 
 			 * the ChannelMapping cannot be created, a 
 			 * Base::SystemConfigurationException will be thrown.
-			 * @param propertyPrefix The prefix of the channels inside the property 
-			 * tree. The sting is not stored and may be freed after the function 
-			 * returns.
+			 * @param variablePrefix The variable list prefix which is passed on to
+			 * the newly created ChannelMapping object.
 			 */
-			ChannelMapping * newChannelMapping(const std::string &propertyPrefix);
+			ChannelMapping * newChannelMapping(const std::string &variablePrefix);
 
 		};
 
