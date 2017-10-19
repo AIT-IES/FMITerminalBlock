@@ -64,6 +64,24 @@ $ cd build/
 $ cmake ../FMITerminalBlock/ -DBOOST_ROOT=~/boost/boost_1_61_0 -Dfmipp_PROJECT_DIR=../fmipp
 ```
 
+<<<<<<< Updated upstream
+=======
+### Eclipse CDT with NMake 
+Before executing CMake the Visual Studio environment needs to be set up. One may open a command line and execute the setup batch file: ``call "%VS140COMNTOOLS%\vsvars32.bat"```. Within the very same command line (the environment will not be exported), start the cmake-gui and the eclipse instance. CMake should now be able to find the appropriate tool chain for the Eclipse Nmake target. The following batch file automatically configures the environment and opens both tools, CMake and Eclipse. Make sure to adapt the paths accordingly.
+```
+call "%VS140COMNTOOLS%\vsvars32.bat"
+
+start /B "CMake" "C:\Program Files\CMake\bin\cmake-gui.exe"
+start /B "Eclipse" "C:\Program Files\eclipse-cpp-neon-3-win32-x86_64\eclipse.exe"
+```
+
+Before generating the eclipse project, the CMake option CMAKE_ECLIPSE_VERSION must be set to the appropriate value. Invalid values may result in spurious failures on parsing the source code. On Windows 7 it is observed that several C++11 features are marked as syntax errors within the source code editor. To enable C++11, the built-in compiler was configured appropriately. On Eclipse Neon, navigate to Window/Preferences/C,C++/Build/Settings and choose the Discovery Tab. Add the option ```-std=c++11``` on all built-in GCC compilers.
+
+![Eclipse Compiler Preferences](installation-data/img/eclipse-compiler-preferences.png)
+
+Afterwards it is necessary to clean and rebuild the project and the index. 
+
+>>>>>>> Stashed changes
 ## Step 4: Compile the Project
 
 The project is compiled by the generated build environment. For instance, for Microsoft Visual Studio, a solution file which covers all necessary targets is provided. Similarly, appropriate Makefiles and Eclipse projects may be generated as well. Use the default mechanism to build FMITerminalBlock and all test-cases or invoke the corresponding targets to execute the test cases and to build the Doxygen documentation. On a Linux host, for instance, simply run the default ```make``` command to compile FMITerminalBlock.
