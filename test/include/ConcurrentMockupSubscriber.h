@@ -77,6 +77,9 @@ namespace FMITerminalBlockTest {
 			 */
 			static void resetCounter();
 
+			/** @brief Returns a human readable representation of the static data */
+			static std::string toString();
+
     protected:
       /** @brief Records the function invocation */
       virtual void init(

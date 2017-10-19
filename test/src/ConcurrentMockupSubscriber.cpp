@@ -12,6 +12,8 @@
 
 #include <assert.h>
 
+#include <boost/format.hpp>
+
 #include "base/BaseExceptions.h"
 
 using namespace FMITerminalBlockTest;
@@ -90,6 +92,18 @@ void ConcurrentMockupSubscriber::resetCounter()
 	runSequenceID_ = -1;
 	terminationRequestSequenceID_ = -1;
 }
+
+std::string ConcurrentMockupSubscriber::toString()
+{
+	std::lock_guard<std::mutex> guard(classMutex_);
+	boost::format str("ConcurrentMockupSubscriber state: nextSequenceID=%1%, "
+		"initAndStartSequenceID=%2%, terminateSequenceID=%3%, "
+		"initSequenceID=%4%, runSqeuenceID=%5%, terminateSequenceID=%6%");
+	str % nextSequenceID_ % initAndStartSequenceID_ % terminateSequenceID_;
+	str % initSequenceID_ % runSequenceID_ % terminationRequestSequenceID_;
+	return str.str();
+}
+
 
 void ConcurrentMockupSubscriber::init(
   const FMITerminalBlock::Base::TransmissionChannel &settings,

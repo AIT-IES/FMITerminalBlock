@@ -259,6 +259,9 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 		// Everything is ok
 	}
 
+	BOOST_LOG_TRIVIAL(debug) << "Mockup subscriber state: " 
+		<< ConcurrentMockupSubscriber::toString();
+
 	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getTerminateSequenceID(), 13);
 	BOOST_CHECK_EQUAL(
 		ConcurrentMockupSubscriber::getTerminationRequestSequenceID(), 14);
@@ -295,6 +298,9 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 	} catch (std::runtime_error &) {
 		// Everything is ok
 	}
+
+	BOOST_LOG_TRIVIAL(debug) << "Mockup subscriber state: " 
+		<< ConcurrentMockupSubscriber::toString();
 
 	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getTerminateSequenceID(), 13);
 	BOOST_CHECK_EQUAL(
