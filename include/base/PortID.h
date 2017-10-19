@@ -11,9 +11,11 @@
 #ifndef _FMITERMINALBLOCK_BASE_PORT_ID
 #define _FMITERMINALBLOCK_BASE_PORT_ID
 
-#include <common/FMIVariableType.h>
 #include <utility>
 #include <functional>
+#include <ostream>
+
+#include <common/FMIVariableType.h>
 
 namespace FMITerminalBlock
 {
@@ -41,6 +43,12 @@ namespace FMITerminalBlock
 
 		/** @brief Returns a string representation of the given variable type */
 		std::string getVariableTypeString(FMIVariableType type);
+
+		/** @brief Prints the PortID */
+		// Must be declared in the namespace of the argument! 
+		// -> Otherwise some boost macros cannot resolve it
+		std::ostream& operator<<(std::ostream& stream, 
+			const PortID& portID);
 	}
 }
 

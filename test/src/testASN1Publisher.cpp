@@ -75,7 +75,8 @@ struct ASN1Fixture
 	unsigned int validMessages;
 
 	/** @brief C'tor which initializes a minimal configuration */
-	ASN1Fixture(): config(), ports(config), ioService(), validMessages(0)
+	ASN1Fixture(): config(), ports(config, "default-id"), ioService(), 
+		validMessages(0)
 	{
 		config.put<std::string>("addr", "127.0.0.1:4242");
 		config.put<std::string>("0", "");

@@ -10,12 +10,17 @@
 
 #include "base/TransmissionChannel.h"
 
+#include <boost/format.hpp>
 
+#include "base/BaseExceptions.h"
 
 using namespace FMITerminalBlock::Base;
 
+const std::string TransmissionChannel::PROP_CONNECTION = "connection";
+
 TransmissionChannel::TransmissionChannel(
-	const boost::property_tree::ptree &channelConfig):
+	const boost::property_tree::ptree &channelConfig,
+	const std::string &channelID): channelID_(channelID), 
 	channelConfig_(channelConfig)
 {
 }
@@ -37,6 +42,38 @@ const std::vector<PortID> & TransmissionChannel::getPortIDs() const
 {
 	assert(portConfig_.size() == portIDs_.size());
 	return portIDs_;
+}
+
+const std::string TransmissionChannel::getConnectionID() const
+{
+	boost::optional<std::string> optConID;
+	optConID = channelConfig_.get_optional<std::string>(PROP_CONNECTION);
+
+	if(optConID) { // Explicit connection name
+		if (optConID->size() <= 0){
+			boost::format err("Empty connection name string in channel '%1%' found");
+			err % channelID_;
+			throw SystemConfigurationException(err.str(), PROP_CONNECTION, 
+				optConID.get());
+		}
+		if (optConID->find('.') != std::string::npos)	{
+			boost::format err("The connection ID at channel '%1%' must not contain "
+				"a dot character");
+			err % channelID_;
+			throw SystemConfigurationException(err.str(), PROP_CONNECTION, 
+				optConID.get());
+		}
+		return optConID.get();
+	} else { // Implicit connection name
+		return std::string(".") + channelID_;
+	}
+}
+
+const bool TransmissionChannel::isImplicitConnection() const
+{
+	boost::optional<std::string> optConID;
+	optConID = channelConfig_.get_optional<std::string>(PROP_CONNECTION);
+	return !optConID;
 }
 
 void TransmissionChannel::pushBackPort(

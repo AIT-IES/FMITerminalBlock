@@ -195,7 +195,7 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop,
 		if (varListProp) // Only add channels which have a (an empty) variable list
 		{
 			// Add associated variables
-			TransmissionChannel channel(channelProp.get());
+			TransmissionChannel channel(channelProp.get(), chnFormat.str());
 			addVariables(varListProp.get(), channel);
 			channels_.push_back(channel);
 		}

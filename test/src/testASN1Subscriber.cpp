@@ -122,7 +122,7 @@ public:
 	ASN1SubscriberFixture(): lastException_()
 	{
 		eventSink_ = std::make_shared<ConcurrentEventSink>();
-		channel_ = std::make_shared<Base::TransmissionChannel>(config_);
+		channel_ = std::make_shared<Base::TransmissionChannel>(config_, "id");
 	}
 
 	/** 
