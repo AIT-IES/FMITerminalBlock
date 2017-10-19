@@ -30,8 +30,8 @@ const std::string ApplicationContext::PROP_LOOK_AHEAD_TIME = "app.lookAheadTime"
 const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAheadStepSize";
 const std::string ApplicationContext::PROP_INTEGRATOR_STEP_SIZE = "app.integratorStepSize";
 const std::string ApplicationContext::PROP_CHANNEL = "channel";
-const std::string ApplicationContext::PROP_OUT_VAR = "out-var.";
-const std::string ApplicationContext::PROP_IN_VAR = "in-var.";
+const std::string ApplicationContext::PROP_OUT_VAR = "out-var";
+const std::string ApplicationContext::PROP_IN_VAR = "in-var";
 
 ApplicationContext::ApplicationContext(void):
 	config_(), outputChannelMap_(NULL), inputChannelMap_(NULL), portIDSource_()

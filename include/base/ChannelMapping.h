@@ -36,14 +36,17 @@ namespace FMITerminalBlock
 		 * exposed by FMI++ which handles the FMI communication. Every PortID is 
 		 * uniquely assigned along all input and output ports but may not have a
 		 * consecutive number.</p>
-		 * <p> Ports are grouped into output channels. An output channel
-		 * holds every variable identifier (port) which is transmit or received in 
-		 * one protocol entity. For instance, a single ASN.1-based channel may 
-		 * encapsulate several model variables into one network packet. Each channel 
-		 * is identified by a unique integer ID. All ports of a channel are 
-		 * encapsulated into a common TransmissionChannel object. The ChannelMapping
-		 * object does not specify the direction of the data-flow. Hence, it may be
-		 * used for input and output channels alike.</p>
+		 * <p> Ports are grouped into one directional channels. A channel holds 
+		 * every variable identifier (port) which is transmit or received in one 
+		 * protocol entity. For instance, a single ASN.1-based channel may 
+		 * encapsulate several model variables into one network packet. Each 
+		 * channel is identified by a unique integer ID. All ports of a channel 
+		 * are encapsulated into a common TransmissionChannel object. Although 
+		 * channel configurations may encapsulate both directions, a ChannelMapping
+		 * object only maintains one directional channels. Hence, a prefix is used
+		 * to separate direction specific configuration. The ChannelMapping object
+		 * does not specify the direction of the data-flow. Hence, it may be used 
+		 * for input and output channels alike. </p>
 		 */
 		class ChannelMapping
 		{
@@ -74,15 +77,16 @@ namespace FMITerminalBlock
 			 * object. The reference must be valid until the object is
 			 * destroyed.
 			 * @param variablePrefix The path prefix of each variable. The prefix 
-			 * will be pushed at the front of each path string. In case all 
-			 * variables should be encapsulated into a sub-tree, the variablePrefix 
-			 * must end with a dot character. Empty strings will read all variables 
-			 * as direct ancestors of the channel.
-			 * @throws Base::SystemConfigurationException if an invalid configuration is found
+			 * encodes the property sub-tree which encapsulates all channels. An 
+			 * empty string corresponds to subtree of depth one which has an empty 
+			 * key element. Elements in the paths are separated by dot characters. 
+			 * (As usual)
+			 * @throws Base::SystemConfigurationException if an invalid configuration
+			 * is found
 			 */
 			ChannelMapping(PortIDDrawer &portIDSource, 
 				const boost::property_tree::ptree &prop, 
-				std::string variablePrefix = "");
+				std::string variablePrefix);
 			
 			/**
 			 * @brief Returns a vector which contains every variable name
@@ -210,13 +214,12 @@ namespace FMITerminalBlock
 			 * names and every configured port will be added to the list of (a
 			 * channel's) variable identifier. On detecting an invalid configuration,
 			 * a Base::SystemConfigurationException will be thrown.
-			 * @param channelProp The properties which contain the port configuration
+			 * @param varListProp The properties which contain the list of variables
+			 * which should be added to the channel.
 			 * @param variablelList The list of previously added ports of the channel
-			 * @param variablePrefix The prefix used in each variable name. May also
-			 * be an empty string
 			 */			
-			void addVariables(const boost::property_tree::ptree &channelProp,
-				TransmissionChannel &variableList, const std::string& variablePrefix);
+			void addVariables(const boost::property_tree::ptree &varListProp,
+				TransmissionChannel &variableList);
 
 			/**
 			 * @brief Queries the ChannelMapping::PortID of the given name

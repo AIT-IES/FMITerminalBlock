@@ -263,7 +263,7 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 	BOOST_CHECK_EQUAL(
 		ConcurrentMockupSubscriber::getTerminationRequestSequenceID(), 14);
 
-	BOOST_CHECK_EQUAL(MockupPublisher::getInitSequenceID(), 2);
+	BOOST_CHECK_EQUAL(MockupPublisher::getInitSequenceID(), 0);
 	BOOST_CHECK_EQUAL(MockupPublisher::getEventTriggeredSequenceID(), -1);
 }
 
@@ -300,6 +300,6 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 	BOOST_CHECK_EQUAL(
 		ConcurrentMockupSubscriber::getTerminationRequestSequenceID(), 14);
 
-	BOOST_CHECK_EQUAL(MockupPublisher::getInitSequenceID(), 2);
+	BOOST_CHECK_EQUAL(MockupPublisher::getInitSequenceID(), 0);
 	BOOST_CHECK_EQUAL(MockupPublisher::getEventTriggeredSequenceID(), -1);
 }

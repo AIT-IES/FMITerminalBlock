@@ -48,37 +48,6 @@ struct BasicChannelMappingFixture {
 
 /**
  * @brief The fixture sets some default properties
- * @details The Fixture uses the default variablePrefix, an empty string
- */
-struct InitializedChannelMappingFixture_0: public BasicChannelMappingFixture {
-	InitializedChannelMappingFixture_0() {
-		variablePrefix_ = "";
-
-		// Channel 0
-		configRoot_.put("0.addr", "An address");
-		configRoot_.put("0.0.type", (int) fmiTypeReal);
-		configRoot_.put("0.0", "a");
-		configRoot_.put("0.0.mission", "Apollo13");
-
-		configRoot_.put("0.1.type", (int) fmiTypeInteger);
-		configRoot_.put("0.1", "b");
-
-		configRoot_.put("0.2.type", (int) fmiTypeBoolean);
-		configRoot_.put("0.2", "c");
-
-		configRoot_.put("0.3.type", (int) fmiTypeString);
-		configRoot_.put("0.3", "d");
-		configRoot_.put("0.3.dest", "Moon");
-
-		// Channel 1
-		configRoot_.put("1.lunch", "At Noon");
-		configRoot_.put("1.0.type", (int)fmiTypeReal);
-		configRoot_.put("1.0", "a");
-	};
-};
-
-/**
- * @brief The fixture sets some default properties
  * @details The Fixture uses an inline variable prefix without generating a 
  * subtree
  */
@@ -88,24 +57,24 @@ struct InitializedChannelMappingFixture_1: public BasicChannelMappingFixture {
 
 		// Channel 0
 		configRoot_.put("0.addr", "An address");
-		configRoot_.put("0.-0.type", (int) fmiTypeReal);
-		configRoot_.put("0.-0", "a");
-		configRoot_.put("0.-0.mission", "Apollo13");
+		configRoot_.put("0.-.0.type", (int) fmiTypeReal);
+		configRoot_.put("0.-.0", "a");
+		configRoot_.put("0.-.0.mission", "Apollo13");
 
-		configRoot_.put("0.-1.type", (int) fmiTypeInteger);
-		configRoot_.put("0.-1", "b");
+		configRoot_.put("0.-.1.type", (int) fmiTypeInteger);
+		configRoot_.put("0.-.1", "b");
 
-		configRoot_.put("0.-2.type", (int) fmiTypeBoolean);
-		configRoot_.put("0.-2", "c");
+		configRoot_.put("0.-.2.type", (int) fmiTypeBoolean);
+		configRoot_.put("0.-.2", "c");
 
-		configRoot_.put("0.-3.type", (int) fmiTypeString);
-		configRoot_.put("0.-3", "d");
-		configRoot_.put("0.-3.dest", "Moon");
+		configRoot_.put("0.-.3.type", (int) fmiTypeString);
+		configRoot_.put("0.-.3", "d");
+		configRoot_.put("0.-.3.dest", "Moon");
 
 		// Channel 1
 		configRoot_.put("1.lunch", "At Noon");
-		configRoot_.put("1.-0.type", (int)fmiTypeReal);
-		configRoot_.put("1.-0", "a");
+		configRoot_.put("1.-.0.type", (int)fmiTypeReal);
+		configRoot_.put("1.-.0", "a");
 	};
 };
 
@@ -115,7 +84,7 @@ struct InitializedChannelMappingFixture_1: public BasicChannelMappingFixture {
  */
 struct InitializedChannelMappingFixture_2: public BasicChannelMappingFixture {
 	InitializedChannelMappingFixture_2() {
-		variablePrefix_ = "var.";
+		variablePrefix_ = "var";
 
 		// Channel 0
 		configRoot_.put("0.addr", "An address");
@@ -143,7 +112,6 @@ struct InitializedChannelMappingFixture_2: public BasicChannelMappingFixture {
 typedef PrintableFactory<BasicChannelMappingFixture> PrintableFixtureFactory;
 /** @brief Generate a standard config */
 const PrintableFactory<BasicChannelMappingFixture> INIT_FIXTURE_GENERATORS[] = {
-	PrintableFixtureFactory::make<InitializedChannelMappingFixture_0>("flat"),
 	PrintableFixtureFactory::make<InitializedChannelMappingFixture_1>("inline"),
 	PrintableFixtureFactory::make<InitializedChannelMappingFixture_2>("subtree")
 };
@@ -153,19 +121,20 @@ const PrintableFactory<BasicChannelMappingFixture> INIT_FIXTURE_GENERATORS[] = {
  */
 BOOST_FIXTURE_TEST_CASE(testMissingType, BasicChannelMappingFixture)
 {
-	configRoot_.put("0.0.type", (int) fmiTypeReal);
-	configRoot_.put("0.0", "a"); // OK
-	configRoot_.put("0.1", "b"); // Type missing
+	configRoot_.put("0.var.0.type", (int) fmiTypeReal);
+	configRoot_.put("0.var.0", "a"); // OK
+	configRoot_.put("0.var.1", "b"); // Type missing
 
 
-	std::unique_ptr<ChannelMapping> mapping =
-		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
+	std::unique_ptr<ChannelMapping> mapping =	std::unique_ptr<ChannelMapping>(
+			new ChannelMapping(idSource_, configRoot_, "var"));
 	
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown).size(), 1);
 	BOOST_CHECK_EQUAL(mapping->getVariableNames(fmiTypeUnknown)[0], "b");
 
 	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown).size(), 1);
-	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown)[0], PortID(fmiTypeUnknown, 0));
+	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeUnknown)[0], 
+		PortID(fmiTypeUnknown, 0));
 }
 
 /**
@@ -173,24 +142,25 @@ BOOST_FIXTURE_TEST_CASE(testMissingType, BasicChannelMappingFixture)
 */
 BOOST_FIXTURE_TEST_CASE(testMissingVariableName, BasicChannelMappingFixture)
 {
-	configRoot_.put("0.0", "a");
-	configRoot_.put("0.0.type", (int) fmiTypeReal); // OK
-	configRoot_.put("0.1.type", (int) fmiTypeReal); // Type name
+	configRoot_.put("0.var.0", "a");
+	configRoot_.put("0.var.0.type", (int) fmiTypeReal); // OK
+	configRoot_.put("0.var.1.type", (int) fmiTypeReal); // Type name
 
-	BOOST_CHECK_THROW(new ChannelMapping(idSource_, configRoot_), SystemConfigurationException);
+	BOOST_CHECK_THROW(new ChannelMapping(idSource_, configRoot_, "var"), 
+		SystemConfigurationException);
 }
 
 /** @brief Creates a channel without a variable */
 BOOST_FIXTURE_TEST_CASE(testNoVariables, BasicChannelMappingFixture)
 {
 
-	configRoot_.put("0.0", "a"); // OK
-	configRoot_.put("0.0.type", (int) fmiTypeReal);
+	configRoot_.put("0.var.0", "a"); // OK
+	configRoot_.put("0.var.0.type", (int) fmiTypeReal);
 
-	configRoot_.put("1.addr", "addr"); // OK, but no variables
+	configRoot_.put("1.var.addr", "addr"); // OK, but no variables
 
-	std::unique_ptr<ChannelMapping> mapping = 
-		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
+	std::unique_ptr<ChannelMapping> mapping = std::unique_ptr<ChannelMapping>(
+			new ChannelMapping(idSource_, configRoot_, "var"));
 	
 	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 2);
 	BOOST_CHECK_EQUAL(mapping->getPorts(0).size(), 1);
@@ -200,8 +170,8 @@ BOOST_FIXTURE_TEST_CASE(testNoVariables, BasicChannelMappingFixture)
 /** @brief Invokes a ChannelMapping object with an empty property tree */
 BOOST_FIXTURE_TEST_CASE(testEmptyConfig, BasicChannelMappingFixture)
 {
-	std::unique_ptr<ChannelMapping> mapping =
-		std::unique_ptr<ChannelMapping>(new ChannelMapping(idSource_, configRoot_));
+	std::unique_ptr<ChannelMapping> mapping =	std::unique_ptr<ChannelMapping>(
+		new ChannelMapping(idSource_, configRoot_, "var"));
 
 	BOOST_CHECK_EQUAL(mapping->getNumberOfChannels(), 0);
 	BOOST_CHECK_EQUAL(mapping->getVariableIDs(fmiTypeReal).size(), 0);

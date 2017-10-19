@@ -189,33 +189,37 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop,
 	chnFormat % channelNr;
 	while (channelProp = prop.get_child_optional(chnFormat.str()))
 	{
+		boost::optional<const boost::property_tree::ptree&> varListProp;
+		varListProp = channelProp->get_child_optional(variablePrefix);
 
-		// Add associated variables
-		TransmissionChannel channel(channelProp.get());
-		addVariables(channelProp.get(), channel, variablePrefix);
-		channels_.push_back(channel);
+		if (varListProp) // Only add channels which have a (an empty) variable list
+		{
+			// Add associated variables
+			TransmissionChannel channel(channelProp.get());
+			addVariables(varListProp.get(), channel);
+			channels_.push_back(channel);
+		}
 
 		// Try next configuration directive
 		channelNr++;
 		chnFormat.clear();
 		chnFormat % channelNr;
 	}
-
 }
 
 void ChannelMapping::addVariables(
-	const boost::property_tree::ptree &channelProp,
-	TransmissionChannel &variableList, const std::string& variablePrefix)
+	const boost::property_tree::ptree &varListProp, 
+	TransmissionChannel &variableList)
 {
 	assert(variableNames_.size() >= 5);
 	assert(variableIDs_.size() == variableNames_.size());
 
-	boost::format varFormat(variablePrefix + "%1%");
+	boost::format varFormat("%1%");
 	int variableNr = 0;
 	boost::optional<const boost::property_tree::ptree&> variableProp;
 
 	varFormat % variableNr;
-	while(variableProp = channelProp.get_child_optional(varFormat.str()))
+	while(variableProp = varListProp.get_child_optional(varFormat.str()))
 	{
 		const std::string &name = variableProp.get().data();
 		if(name.empty())
@@ -224,7 +228,8 @@ void ChannelMapping::addVariables(
 				"doesn't specify a variable name");
 		}
 
-		FMIVariableType type = (FMIVariableType) variableProp.get().get<int>(PROP_TYPE, (int) fmiTypeUnknown);
+		FMIVariableType type = (FMIVariableType) variableProp.get().get<int>(
+			PROP_TYPE, (int) fmiTypeUnknown);
 		if(((unsigned) type) >= variableNames_.size())
 		{
 			throw Base::SystemConfigurationException("FMI type code does not exist", 
