@@ -20,12 +20,12 @@ using namespace FMITerminalBlock::Base;
 const std::string ChannelMapping::PROP_TYPE = "type";
 
 ChannelMapping::ChannelMapping(PortIDDrawer &portIDSource,
-	const boost::property_tree::ptree &prop) :
+	const boost::property_tree::ptree &prop, std::string variablePrefix):
 	variableNames_(5, std::vector<std::string>()),
 	variableIDs_(5, std::vector<PortID>()), channels_(),
 	portIDSource_(portIDSource)
 {
-	addChannels(prop);
+	addChannels(prop, variablePrefix);
 }
 
 const std::vector<std::string> & 
@@ -177,7 +177,8 @@ std::string ChannelMapping::toString() const
 	return ret;
 }
 
-void ChannelMapping::addChannels(const boost::property_tree::ptree &prop)
+void ChannelMapping::addChannels(const boost::property_tree::ptree &prop, 
+	const std::string& variablePrefix)
 {
 
 	boost::format chnFormat("%1%");
@@ -188,22 +189,27 @@ void ChannelMapping::addChannels(const boost::property_tree::ptree &prop)
 	chnFormat % channelNr;
 	while (channelProp = prop.get_child_optional(chnFormat.str()))
 	{
+		boost::optional<const boost::property_tree::ptree&> varListProp;
+		varListProp = channelProp->get_child_optional(variablePrefix);
 
-		// Add associated variables
-		TransmissionChannel channel(channelProp.get());
-		addVariables(channelProp.get(), channel);
-		channels_.push_back(channel);
+		if (varListProp) // Only add channels which have a (an empty) variable list
+		{
+			// Add associated variables
+			TransmissionChannel channel(channelProp.get(), chnFormat.str());
+			addVariables(varListProp.get(), channel);
+			channels_.push_back(channel);
+		}
 
 		// Try next configuration directive
 		channelNr++;
 		chnFormat.clear();
 		chnFormat % channelNr;
 	}
-
 }
 
-void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp,
-			TransmissionChannel &variableList)
+void ChannelMapping::addVariables(
+	const boost::property_tree::ptree &varListProp, 
+	TransmissionChannel &variableList)
 {
 	assert(variableNames_.size() >= 5);
 	assert(variableIDs_.size() == variableNames_.size());
@@ -213,7 +219,7 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 	boost::optional<const boost::property_tree::ptree&> variableProp;
 
 	varFormat % variableNr;
-	while(variableProp = channelProp.get_child_optional(varFormat.str()))
+	while(variableProp = varListProp.get_child_optional(varFormat.str()))
 	{
 		const std::string &name = variableProp.get().data();
 		if(name.empty())
@@ -222,7 +228,8 @@ void ChannelMapping::addVariables(const boost::property_tree::ptree &channelProp
 				"doesn't specify a variable name");
 		}
 
-		FMIVariableType type = (FMIVariableType) variableProp.get().get<int>(PROP_TYPE, (int) fmiTypeUnknown);
+		FMIVariableType type = (FMIVariableType) variableProp.get().get<int>(
+			PROP_TYPE, (int) fmiTypeUnknown);
 		if(((unsigned) type) >= variableNames_.size())
 		{
 			throw Base::SystemConfigurationException("FMI type code does not exist", 

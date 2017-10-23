@@ -11,14 +11,22 @@
 #ifndef _FMITERMINALBLOCK_BASE_APPLICATION_CONTEXT
 #define _FMITERMINALBLOCK_BASE_APPLICATION_CONTEXT
 
-#include <base/ChannelMapping.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/format.hpp>
+
 // Fixes an include dependency flaw/feature(?) of ModelDescription.h
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
-#include <string>
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/format.hpp>
+
+#include "base/ChannelMapping.h"
+#include "base/AbstractConfigProvider.h"
+#include "base/ConnectionConfig.h"
 
 /**
  * @brief returns the number of arguments in a valid argument vector array.
@@ -48,7 +56,7 @@ namespace FMITerminalBlock
 		 * separated by a single dot character.
 		 * </p>
 		 */
-		class ApplicationContext
+		class ApplicationContext: public AbstractConfigProvider
 		{
 		public:
 
@@ -67,12 +75,26 @@ namespace FMITerminalBlock
 			/** @brief The key of the integrator step-size property */
 			static const std::string PROP_INTEGRATOR_STEP_SIZE;
 
-			/** @brief The key of the output channel property */
-			static const std::string PROP_OUT;
+			/** @brief The key of the channel configuration property tree */
+			static const std::string PROP_CHANNEL;
 
-			/** @brief The key of the input channel property */
-			static const std::string PROP_IN;
+			/** @brief The prefix of output variables */
+			static const std::string PROP_OUT_VAR;
 
+			/** @brief The prefix of input variables */
+			static const std::string PROP_IN_VAR;
+
+			/** @brief The key of the connection subtree */
+			static const std::string PROP_CONNECTION;
+
+			/**
+			 * @brief Defines a map which hosts connection configuration objects
+			 * @details Each configuration object must be referenced by its unique 
+			 * ID. Furthermore, each pointer to the ConnectionConfig object must be 
+			 * valid.
+			 */
+			typedef std::map<std::string, std::shared_ptr<ConnectionConfig>> 
+				ConnectionConfigMap;
 
 			/**
 			 * @brief Default C'tor initializing an empty application context object
@@ -106,115 +128,6 @@ namespace FMITerminalBlock
 			void addSensitiveDefaultProperties(const ModelDescription * description);
 
 			/**
-			 * @brief Returns the property's value
-			 * @details The function queries the global configuration. It will throw
-			 * std::invalid_argument, if the property was not found or if it couldn't
-			 * be converted properly.
-			 * @param path The property's path
-			 * @return The property's value
-			 */
-			template<typename Type>
-			Type getProperty(const std::string &path) const
-			{
-				try
-				{
-					return config_.get<Type>(path);
-				}catch(std::exception &ex){
-					boost::format err("The property \"%1%\" was not found: %2%");
-					err % path % ex.what();
-					throw std::invalid_argument(err.str());
-				}
-			}
-
-			/**
-			 * @brief Returns the property's value or its given default value
-			 * @details The function queries the global configuration. It will throw
-			 * std::invalid_argument if the value couldn't be converted properly.
-			 * @param path The property's path
-			 * @param def The property's default value
-			 * @return The property's value or its default.
-			 */
-			template<typename Type>
-			Type getProperty(const std::string &path, Type def) const
-			{
-				if(!hasProperty(path))
-				{
-					return def;
-				}else{
-					return getProperty<Type>(path);
-				}
-			}
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property contains an invalid value,
-			 * Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @param def The property's default value
-			 * @return A positive double value r, r >= 0
-			 */
-			double getPositiveDoubleProperty(const std::string &path, double def)
-				const;
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property doesn't exist or if the property contains an
-			 * invalid value, Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @return A positive double value r, r >= 0
-			 */
-			double getPositiveDoubleProperty(const std::string &path) const;
-
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property contains an invalid value,
-			 * Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @param def The property's default value
-			 * @return A real positive double value r, r > 0
-			 */
-			double getRealPositiveDoubleProperty(const std::string &path, double def)
-				const;
-
-			/**
-			 * @brief Queries the property and checks its value
-			 * @details If the property contains an invalid value or if it doesn't
-			 * exist, Base::SystemConfigurationException will be thrown.
-			 * @param path The key to query
-			 * @return A real positive double value r, r > 0
-			 */
-			double getRealPositiveDoubleProperty(const std::string &path) const;
-
-			/**
-			 * @brief Returns the subtree given by the path string.
-			 * @details If the path is not present in the global configuration
-			 * Base::SystemConfigurationException will be thrown.
-			 * @param path The property's path identifier
-			 * @return The subtree given by the path string
-			 */
-			const boost::property_tree::ptree & getPropertyTree(
-				const std::string &path)
-				const;
-
-			/**
-			 * @brief Returns whether the properties already contain the given key
-			 * @param key The checked path which is given as a valid zero terminated
-			 * cstring
-			 * @return <code>true</code> if the properties already contain the given
-			 * key
-			 */
-			bool hasProperty(const char * key) const;
-
-			/**
-			 * @brief Returns whether the properties already contain the given key
-			 * @param key The path to check
-			 * @return <code>true</code> if the properties already contain the given
-			 * key
-			 */
-			bool hasProperty(const std::string &key) const;
-
-			/**
 			 * @brief Returns a pointer to the global output Base::ChannelMapping object
 			 * @details The first invocation of the function will create the object. 
 			 * Subsequent configuration changes may not be reflected by the output 
@@ -235,12 +148,34 @@ namespace FMITerminalBlock
 			const ChannelMapping * getInputChannelMapping(void);
 
 			/**
+			 * @brief Returns a shared pointer to all connection configurations
+			 * @details The first query will create the config object and settle the 
+			 * configuration. Hence, all subsequent queries return the same pointer. 
+			 * It is assumed that the function is called as after the configuration 
+			 * is stable and no more configuration parameters are added to the 
+			 * corresponding subtrees. A call to the function will also settle the 
+			 * channel mappings of input- and output channels. In case the connection
+			 * configuration cannot be generated, a SystemConfigurationException or 
+			 * a similar failure is raised.
+			 * @return A pointer to a map which contains all connection 
+			 * configuration objects.
+			 */
+			const std::shared_ptr<ConnectionConfigMap> getConnectionConfig();
+
+			/**
 			 * @brief Returns a human readable string representation
 			 * @details The function will not construct a channel mapping. In case 
 			 * the channel mapping was not constructed beforehand, it will not be 
 			 * included in the output.
 			 */
 			std::string toString() const;
+
+		protected:
+			/** @copydoc AbstractConfigProvider::getConfig() */
+			virtual const boost::property_tree::ptree& getConfig() const 
+			{ 
+				return config_;
+			}
 
 		private:
 
@@ -277,6 +212,13 @@ namespace FMITerminalBlock
 			 */
 			ChannelMapping * inputChannelMap_;
 
+			/** 
+			 * @brief Pointer to the map of connection configuration objects
+			 * @details The map will be created by the first query on using 
+			 * getConnectionConfig()
+			 */
+			std::shared_ptr<ApplicationContext::ConnectionConfigMap> connections_;
+
 			/**
 			 * @brief Extracts the key-value pair and adds it to the global
 			 * configuration
@@ -293,12 +235,48 @@ namespace FMITerminalBlock
 			 * @details The object must be deleted outside the function. If 
 			 * the ChannelMapping cannot be created, a 
 			 * Base::SystemConfigurationException will be thrown.
-			 * @param propertyPrefix The prefix of the channels inside the property 
-			 * tree. The sting is not stored and may be freed after the function 
-			 * returns.
+			 * @param variablePrefix The variable list prefix which is passed on to
+			 * the newly created ChannelMapping object.
 			 */
-			ChannelMapping * newChannelMapping(const std::string &propertyPrefix);
+			ChannelMapping * newChannelMapping(const std::string &variablePrefix);
 
+			/**
+			 * @brief Parses the given ChannelMapping and adds the implicit 
+			 * connection configurations to the destination map
+			 * @details It is assumed that all pointers are valid. The global 
+			 * configuration may be accessed to query the connection parameters. In 
+			 * case of an error, a SystemConfigurationException may be thrown. No 
+			 * connection configuration will be added in case the map already 
+			 * contains a connection with the same ID.
+			 * @param dest The map to add all new connections
+			 * @param src The channel mapping which references all connections.
+			 */
+			void addImplicitConnectionConfigs(
+				std::shared_ptr<ConnectionConfigMap> dest, 
+				const ChannelMapping* src) const;
+
+			/** 
+			 * @brief Parses the global configuration and adds all explicitly 
+			 * configured connections.
+			 * It is not validated whether the connections are used by any publisher
+			 * or subscriber. It is assumed that the connections were not added 
+			 * before.
+			 * @param dest The map which will be used to store all config objects
+			 */
+			void addExplicitConnectionConfigs(
+				std::shared_ptr<ConnectionConfigMap> dest) const;
+
+			/** 
+			 * @brief Checks the name of the referenced connections
+			 * @details The function assumes that the given map pointer is valid. It
+			 * will throw an exception if one channel in the channel mapping returns 
+			 * an invalid connection ID.
+			 * @param connectionMap The list of all connections
+			 * @param channelMap The channels to validate
+			 */
+			void checkReferencedConnections(
+				const std::shared_ptr<ConnectionConfigMap> connectionMap, 
+				const ChannelMapping* channelMap) const;
 		};
 
 		/**

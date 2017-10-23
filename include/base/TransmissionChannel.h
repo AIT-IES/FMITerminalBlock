@@ -32,12 +32,20 @@ namespace FMITerminalBlock
 		class TransmissionChannel
 		{
 		public:
+
+			/** @brief The key of the connection reference property */
+			static const std::string PROP_CONNECTION;
+
 			/** 
 			 * @brief Initializes an empty transmission channel 
 			 * @param channelConfig A reference to the configuration sub-tree of the 
 			 * channel. The reference must remain valid until the object is destroyed.
+			 * @brief channelID The lexical identifier of the channel. It may be used
+			 * to generate an implicit connection.
 			 */
-			TransmissionChannel(const boost::property_tree::ptree &channelConfig);
+			TransmissionChannel(const boost::property_tree::ptree &channelConfig, 
+				const std::string &channelID);
+
 			/** @brief Frees allocated resources*/
 			~TransmissionChannel() {};
 
@@ -65,6 +73,31 @@ namespace FMITerminalBlock
 			const std::vector<PortID> &getPortIDs() const;
 
 			/**
+			 * @brief Returns the unique identifier of the channel. 
+			 * @details The reference remains valid until the object is destroyed. 
+			 * The channel identifier corresponds to the bidirectional channel and 
+			 * may be used for the input and output direction.
+			 */
+			const std::string& getChannelID() const { return channelID_;  }
+
+			/**
+			 * @brief Returns the unique identifier of the connection object
+			 * @details In case the connection object is not referenced explicitly,
+			 * the implicit connection id starting with a dot will be returned. In 
+			 * case an invalid configuration is found, an exception will be thrown.
+			 */
+			const std::string getConnectionID() const;
+
+			/**
+			 * @brief Returns whether the connection is implicitly configured
+			 * @details In case it is implicitly configured, no reference to an 
+			 * external connection configuration is present. In that case, 
+			 * configuration parameters need to be taken from the main configuration
+			 * of the transmission channel.
+			 */
+			const bool isImplicitConnection() const;
+
+			/**
 			 * @brief Appends a port entry at the end of the channel.
 			 * @details The given ptree reference must remain valid until the object is deleted.
 			 * @param id The PortID of the particular port
@@ -73,6 +106,9 @@ namespace FMITerminalBlock
 			void pushBackPort(PortID id, const boost::property_tree::ptree &portConfig);
 
 		private:
+
+			/** @brief The unique identifier of the transmission channel */
+			std::string channelID_;
 
 			/**
 			 * @brief A reference to the root property of the particular channel.

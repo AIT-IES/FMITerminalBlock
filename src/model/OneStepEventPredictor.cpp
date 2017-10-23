@@ -25,7 +25,7 @@ using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Model;
 
 const std::string OneStepEventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
-const std::string OneStepEventPredictor::PROP_DEFAULT_INPUT = Base::ApplicationContext::PROP_IN + ".default";
+const std::string OneStepEventPredictor::PROP_DEFAULT_INPUT = "in-var.default";
 const std::string OneStepEventPredictor::PROP_VARIABLE_STEP_SIZE = "app.variableStepSize";
 
 OneStepEventPredictor::OneStepEventPredictor(

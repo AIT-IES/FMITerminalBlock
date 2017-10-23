@@ -39,8 +39,8 @@ void addModelBaseProperties(Base::ApplicationContext *appContext,
 	nameProp += name;
 
 	const char *argv[] = {"testOneStepEventPredictor", pathProp.c_str(), 
-		nameProp.c_str()};
-	appContext->addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		nameProp.c_str(), NULL};
+	appContext->addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 }
 
 /** @brief Test the instantiation of various models */
@@ -50,8 +50,8 @@ BOOST_DATA_TEST_CASE(testInstantiation, data::make(ZIGZAG_FMU_NAMES), name)
 	addModelBaseProperties(&appContext, name);
 
 	const char * argv[] = {"testOneStepEventPredictor", 
-		"out.0.0=x", "out.0.0.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 }
@@ -65,8 +65,8 @@ BOOST_DATA_TEST_CASE(testInstantiationAndInitialization0,
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 	pred.init();
@@ -80,9 +80,9 @@ BOOST_AUTO_TEST_CASE(testInstantiationAndInitialization1)
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.0.0=u", "in.0.0.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"channel.0.in-var.0=u", "channel.0.in-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	try
 	{
@@ -103,8 +103,8 @@ BOOST_AUTO_TEST_CASE(testInstantiationAndInitialization2)
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"fmu.path=" FMU_URI_PRE "dxiskx", // No name
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.0.0=u", "in.0.0.type=0"};
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"channel.0.in-var.0=u", "channel.0.in-var.0.type=0", NULL};
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 		
 	try
@@ -126,9 +126,9 @@ BOOST_AUTO_TEST_CASE(test_configureDefaultApplicationContext)
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.0.0=u", "in.0.0.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"channel.0.in-var.0=u", "channel.0.in-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 	pred.configureDefaultApplicationContext(&appContext);
@@ -145,8 +145,9 @@ BOOST_DATA_TEST_CASE(testMultipleEventsPerPredictionStep,
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=3.5", "app.variableStepSize=false",
-		"out.0.0=x", "out.0.0.type=0", "out.0.1=der(x)", "out.0.1.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
+		"channel.0.out-var.1=der(x)", "channel.0.out-var.1.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 	pred.init();
@@ -181,8 +182,9 @@ BOOST_DATA_TEST_CASE(testEventDetection,
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.5", "app.variableStepSize=true",
-		"out.0.0=x", "out.0.0.type=0", "out.0.1=der(x)", "out.0.1.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
+		"channel.0.out-var.1=der(x)", "channel.0.out-var.1.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 	pred.init();
@@ -238,10 +240,11 @@ BOOST_DATA_TEST_CASE(testDefaultInitialization,
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=2.5", "app.variableStepSize=1",
-		"out.0.0=x", "out.0.0.type=0", "out.0.1=der(x)", "out.0.1.type=0",
-		"in.default.k=0.5"
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
+		"channel.0.out-var.1=der(x)", "channel.0.out-var.1.type=0",
+		"in-var.default.k=0.5", NULL
 	};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 	pred.init();
@@ -268,11 +271,12 @@ BOOST_AUTO_TEST_CASE(testMultipleInputEvents)
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.0", "app.variableStepSize=0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.0.0=u", "in.0.0.type=0",
-		"in.default.u=0.0", "in.default.k=1.0", "in.default.x0=0.0"
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"channel.0.in-var.0=u", "channel.0.in-var.0.type=0",
+		"in-var.default.u=0.0", "in-var.default.k=1.0", "in-var.default.x0=0.0", 
+		NULL
 	};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	OneStepEventPredictor pred(appContext);
 	pred.init();
@@ -344,9 +348,9 @@ BOOST_DATA_TEST_CASE(testInvalidModelName, data::make(ZIGZAG_FMU_NAMES), name)
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"fmu.name=nemo", pathProp.c_str(),
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.0.0=u", "in.0.0.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"channel.0.in-var.0=u", "channel.0.in-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	BOOST_CHECK_THROW(OneStepEventPredictor pred(appContext), 
 		std::invalid_argument);
@@ -360,9 +364,9 @@ BOOST_AUTO_TEST_CASE(testInvalidModelPath)
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"fmu.name=no-model", "fmu.path=file:/no-path-today",
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.0.0=u", "in.0.0.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"channel.0.in-var.0=u", "channel.0.in-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	BOOST_CHECK_THROW(OneStepEventPredictor pred(appContext), 
 		std::invalid_argument);
@@ -377,9 +381,9 @@ BOOST_DATA_TEST_CASE(testInvalidDefaultKey,
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.default.superman=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"in-var.default.superman=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 	BOOST_CHECK_THROW(pred.init(), Base::SystemConfigurationException);
@@ -394,9 +398,9 @@ BOOST_DATA_TEST_CASE(testInvalidDefaultValue,
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.0",
-		"out.0.0=x", "out.0.0.type=0",
-		"in.default.x=not-a-real-real-value"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
+		"in-var.default.x=not-a-real-real-value", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	OneStepEventPredictor pred(appContext);
 	BOOST_CHECK_THROW(pred.init(), std::invalid_argument);
@@ -410,11 +414,13 @@ BOOST_AUTO_TEST_CASE(testInvalidOutputVariableName)
 
 	const char * argv[] = {"testOneStepEventPredictor", 
 		"app.startTime=0.0", "app.lookAheadTime=1.0", "app.variableStepSize=0",
-		"out.0.0=x", "out.0.0.type=0", "out.0.1=invalid", "out.0.1.type=0",
-		"in.0.0=u", "in.0.0.type=0",
-		"in.default.u=0.0", "in.default.k=1.0", "in.default.x0=0.0"
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
+		"channel.0.out-var.1=invalid", "channel.0.out-var.1.type=0",
+		"channel.0.in-var.0=u", "channel.0.in-var.0.type=0",
+		"in-var.default.u=0.0", "in-var.default.k=1.0", "in-var.default.x0=0.0", 
+		NULL
 	};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	OneStepEventPredictor pred(appContext);
 	BOOST_CHECK_THROW(pred.init(), Base::SystemConfigurationException);

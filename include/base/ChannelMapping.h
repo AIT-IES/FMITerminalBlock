@@ -36,14 +36,17 @@ namespace FMITerminalBlock
 		 * exposed by FMI++ which handles the FMI communication. Every PortID is 
 		 * uniquely assigned along all input and output ports but may not have a
 		 * consecutive number.</p>
-		 * <p> Ports are grouped into output channels. An output channel
-		 * holds every variable identifier (port) which is transmit or received in 
-		 * one protocol entity. For instance, a single ASN.1-based channel may 
-		 * encapsulate several model variables into one network packet. Each channel 
-		 * is identified by a unique integer ID. All ports of a channel are 
-		 * encapsulated into a common TransmissionChannel object. The ChannelMapping
-		 * object does not specify the direction of the data-flow. Hence, it may be
-		 * used for input and output channels alike.</p>
+		 * <p> Ports are grouped into one directional channels. A channel holds 
+		 * every variable identifier (port) which is transmit or received in one 
+		 * protocol entity. For instance, a single ASN.1-based channel may 
+		 * encapsulate several model variables into one network packet. Each 
+		 * channel is identified by a unique integer ID. All ports of a channel 
+		 * are encapsulated into a common TransmissionChannel object. Although 
+		 * channel configurations may encapsulate both directions, a ChannelMapping
+		 * object only maintains one directional channels. Hence, a prefix is used
+		 * to separate direction specific configuration. The ChannelMapping object
+		 * does not specify the direction of the data-flow. Hence, it may be used 
+		 * for input and output channels alike. </p>
 		 */
 		class ChannelMapping
 		{
@@ -73,10 +76,17 @@ namespace FMITerminalBlock
 			 * @param portIDSource A reference to the global PortIDDrawer
 			 * object. The reference must be valid until the object is
 			 * destroyed.
-			 * @throws Base::SystemConfigurationException if an invalid configuration is found
+			 * @param variablePrefix The path prefix of each variable. The prefix 
+			 * encodes the property sub-tree which encapsulates all channels. An 
+			 * empty string corresponds to subtree of depth one which has an empty 
+			 * key element. Elements in the paths are separated by dot characters. 
+			 * (As usual)
+			 * @throws Base::SystemConfigurationException if an invalid configuration
+			 * is found
 			 */
 			ChannelMapping(PortIDDrawer &portIDSource, 
-				const boost::property_tree::ptree &prop);
+				const boost::property_tree::ptree &prop, 
+				std::string variablePrefix);
 			
 			/**
 			 * @brief Returns a vector which contains every variable name
@@ -193,8 +203,10 @@ namespace FMITerminalBlock
 			 * On detecting an invalid configuration, a
 			 * Base::SystemConfigurationException will be thrown.
 			 * @param prop The properties containing the channel configuration
+			 * @param variablePrefix The prefix used in each variable name
 			 */
-			void addChannels(const boost::property_tree::ptree &prop);
+			void addChannels(const boost::property_tree::ptree &prop, 
+				const std::string& variablePrefix);
 
 			/**
 			 * @brief Adds the port configuration to the list of variables and channels
@@ -202,10 +214,11 @@ namespace FMITerminalBlock
 			 * names and every configured port will be added to the list of (a
 			 * channel's) variable identifier. On detecting an invalid configuration,
 			 * a Base::SystemConfigurationException will be thrown.
-			 * @param channelProp The properties which contain the port configuration
+			 * @param varListProp The properties which contain the list of variables
+			 * which should be added to the channel.
 			 * @param variablelList The list of previously added ports of the channel
 			 */			
-			void addVariables(const boost::property_tree::ptree &channelProp,
+			void addVariables(const boost::property_tree::ptree &varListProp,
 				TransmissionChannel &variableList);
 
 			/**

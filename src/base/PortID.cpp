@@ -43,3 +43,11 @@ std::string FMITerminalBlock::Base::getVariableTypeString(FMIVariableType type)
 			return "";
 	}
 }
+
+std::ostream& FMITerminalBlock::Base::operator<<(std::ostream& stream,
+	const PortID& portID)
+{
+	// TODO: Human readable FMI type representation
+	stream << "(" << (int) portID.first << "," << portID.second << ")";
+	return stream;
+}

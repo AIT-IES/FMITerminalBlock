@@ -8,7 +8,7 @@
  * @brief Tests the event prediction mechanism.
  * @details The test collection uses a small fixture which contains an 
  * artificial application context
- * @author Michael Spiegel, michael.spiegel.fl@ait.ac.at
+ * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
 #define BOOST_TEST_MODULE testEventPredictor
@@ -45,11 +45,10 @@ struct EventPredictorZigzagFixture
 	{
 		const char * argv[] = {"testEventPredictor",
 			"fmu.path=" FMU_URI_PRE "zigzag",
-			"fmu.instanceName=zigzag", "fmu.name=zigzag", "out.0.0=x", 
-			"out.0.0.type=0", NULL};
-		appContext.addCommandlineProperties(6, argv);
+			"fmu.instanceName=zigzag", "fmu.name=zigzag", 
+			"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+		appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	}
-
 };
 
 /**
@@ -70,9 +69,10 @@ struct EventPredictorDxIsKxFixture
 	{
 		const char * argv[] = { "testEventPredictor",
 			"fmu.path=" FMU_URI_PRE "dxiskx",
-			"fmu.instanceName=dxiskx", "fmu.name=dxiskx", "out.0.0=x",
-			"out.0.0.type=0", "in.0.0=u", "in.0.0.type=0", NULL };
-		appContext.addCommandlineProperties((sizeof(argv)/sizeof(argv[0])) - 1, argv);
+			"fmu.instanceName=dxiskx", "fmu.name=dxiskx", 
+			"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
+			"channel.0.in-var.0=u", "channel.0.in-var.0.type=0", NULL };
+		appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	}
 
 };
@@ -87,7 +87,7 @@ BOOST_FIXTURE_TEST_CASE(test_init_missing_lookahead_time, EventPredictorZigzagFi
 	const char * argv[] = { "testEventPredictor", 
 		"app.lookAheadStepSize=0.11", "app.integratorStepSize=0.11", 
 		"app.startTime=0.0", NULL };
-	appContext.addCommandlineProperties(4, argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	EventPredictor pred(appContext);
 	BOOST_CHECK_THROW(pred.init(), std::invalid_argument);
@@ -108,10 +108,11 @@ BOOST_AUTO_TEST_CASE(test_init_missing_path)
 {
 	Base::ApplicationContext appContext;
 	const char * argv[] = {"testEventPredictor", 
-		"fmu.name=zigzag", "out.0.0=x", "out.0.0.type=0",
+		"fmu.name=zigzag", 
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
 		"app.lookAheadTime=1.1", "app.startTime=0.0", 
 		"app.lookAheadStepSize=0.11", "app.integratorStepSize=0.11", NULL };
-	appContext.addCommandlineProperties(8, argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	BOOST_CHECK_THROW(EventPredictor pred(appContext), std::invalid_argument);
 }
@@ -122,10 +123,10 @@ BOOST_AUTO_TEST_CASE(test_init_invalid_name)
 	Base::ApplicationContext appContext;
 	const char * argv[] = {"testEventPredictor", 
 		"fmu.path=" FMU_URI_PRE "zigzag", "fmu.name=line", // Wrong name
-		"out.0.0=x", "out.0.0.type=0",
+		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0",
 		"app.lookAheadTime=1.1", "app.startTime=0.0", 
 		"app.lookAheadStepSize=0.11", "app.integratorStepSize=0.11", NULL };
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0])-1, argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	BOOST_CHECK_THROW(EventPredictor pred(appContext), std::invalid_argument);
 }
@@ -169,8 +170,8 @@ BOOST_AUTO_TEST_CASE(test_init_defaults_0)
 	const char * argv[] = {"testEventPredictor",
 			"fmu.path=" FMU_URI_PRE "zigzag", "fmu.name=zigzag", 
 			"app.startTime=0.0", "app.lookAheadTime=1.1",
-			"out.0.0=x", "out.0.0.type=0", NULL};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0])-1, argv);
+			"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	EventPredictor pred(appContext);
 	pred.init();
@@ -183,8 +184,8 @@ BOOST_AUTO_TEST_CASE(test_init_defaults_1)
 	const char * argv[] = {"testEventPredictor",
 			"fmu.path=" FMU_URI_PRE "zigzag", // No fmu.name parameter
 			"app.startTime=0.0", "app.lookAheadTime=1.1",
-			"out.0.0=x", "out.0.0.type=0", NULL};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0])-1, argv);
+			"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 	
 	EventPredictor pred(appContext);
 	pred.init();
@@ -197,8 +198,8 @@ BOOST_AUTO_TEST_CASE(test_init_defaults_2_0)
 	const char * argv[] = {"testEventPredictor",
 			"fmu.path=" FMU_URI_PRE "zigzag2", "fmu.name=zigzag2", 
 			"app.startTime=0.0", "app.lookAheadTime=1.1",
-			"out.0.0=x", "out.0.0.type=0", NULL};
-	appContext.addCommandlineProperties(7, argv);
+			"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	EventPredictor pred(appContext);
 	pred.init();
@@ -210,8 +211,9 @@ BOOST_AUTO_TEST_CASE(test_configureDefaultApplicationContext)
 	Base::ApplicationContext appContext;
 	const char * argv[] = {"testEventPredictor",
 			"fmu.path=" FMU_URI_PRE "zerocrossing", "fmu.name=zerocrossing", 
-			"app.lookAheadTime=1.1", "out.0.0=x", "out.0.0.type=0"};
-	appContext.addCommandlineProperties(sizeof(argv)/sizeof(argv[0]), argv);
+			"app.lookAheadTime=1.1", 
+			"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	EventPredictor pred(appContext);
 	pred.configureDefaultApplicationContext(&appContext);
@@ -226,7 +228,7 @@ BOOST_FIXTURE_TEST_CASE(test_fmireal_events, EventPredictorZigzagFixture)
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1.1", 
 		"app.lookAheadStepSize=0.11", "app.integratorStepSize=0.11", 
 		"app.startTime=0.0", NULL };
-	appContext.addCommandlineProperties(5, argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -286,8 +288,8 @@ BOOST_FIXTURE_TEST_CASE(test_pure_output_events, EventPredictorDxIsKxFixture)
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.1", "app.integratorStepSize=0.1",
-		"app.startTime=0.0", "in.default.u=1", NULL };
-	appContext.addCommandlineProperties((sizeof(argv) / sizeof(argv[0])) - 1, argv);
+		"app.startTime=0.0", "in-var.default.u=1", NULL };
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -327,8 +329,8 @@ BOOST_FIXTURE_TEST_CASE(test_multiple_input_events, EventPredictorDxIsKxFixture)
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
-		"app.startTime=0.0", "in.default.u=1", NULL };
-	appContext.addCommandlineProperties((sizeof(argv) / sizeof(argv[0])) - 1, argv);
+		"app.startTime=0.0", "in-var.default.u=1", NULL };
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -382,7 +384,7 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
 		"app.startTime=0.0", NULL };
-	appContext.addCommandlineProperties((sizeof(argv) / sizeof(argv[0])) - 1, argv);
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -445,8 +447,8 @@ BOOST_FIXTURE_TEST_CASE(test_causality_violation, EventPredictorDxIsKxFixture)
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
-		"app.startTime=0.0", "in.default.u=1", NULL };
-	appContext.addCommandlineProperties((sizeof(argv) / sizeof(argv[0])) - 1, argv);
+		"app.startTime=0.0", "in-var.default.u=1", NULL };
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -490,8 +492,8 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event, EventPredictorDxIsKxFixtur
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
-		"app.startTime=0.0", "in.default.u=1", NULL };
-	appContext.addCommandlineProperties((sizeof(argv) / sizeof(argv[0])) - 1, argv);
+		"app.startTime=0.0", "in-var.default.u=1", NULL };
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -532,8 +534,8 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event_taken,
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
-		"app.startTime=0.0", "in.default.u=1", NULL };
-	appContext.addCommandlineProperties((sizeof(argv) / sizeof(argv[0])) - 1, argv);
+		"app.startTime=0.0", "in-var.default.u=1", NULL };
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);

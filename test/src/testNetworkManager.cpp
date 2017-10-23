@@ -61,9 +61,9 @@ public:
   BasicNetworkManagerFixture()
   {
 		const char * argv[] = {"testNetworkManager", 
-			"in.0.0=x", "in.0.0.type=0", 
-			"out.0.0=x", "out.0.0.type=0", NULL};
-		appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+			"channel.0.in-var.0=x", "channel.0.in-var.0.type=0", 
+			"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", NULL};
+		appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
     dispatcher_ = std::make_shared<Timing::EventDispatcher>(appContext_, 
       predictor_);
@@ -75,9 +75,8 @@ BOOST_FIXTURE_TEST_CASE(testInstantiation, BasicNetworkManagerFixture)
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+		"channel.0.protocol=Mockup", NULL};
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	try {
 		NetworkManager(appContext_, *(dispatcher_.get()));
@@ -99,8 +98,7 @@ BOOST_FIXTURE_TEST_CASE(testStandardExecution, BasicNetworkManagerFixture)
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber", NULL};
+		"channel.0.protocol=Mockup", NULL};
   appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
 
 	ConcurrentMockupSubscriber::resetCounter();
@@ -135,51 +133,21 @@ BOOST_FIXTURE_TEST_CASE(testStandardExecution, BasicNetworkManagerFixture)
 
 }
 
-/** @brief Applies a config with a missing subscriber protocol field */
-BOOST_FIXTURE_TEST_CASE(testMissingSubscriber, BasicNetworkManagerFixture)
+/** @brief Applies a config with a missing protocol field */
+BOOST_FIXTURE_TEST_CASE(testMissingProtocol, BasicNetworkManagerFixture)
 {
   // Set parameters
-  const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
-
 	BOOST_CHECK_THROW(NetworkManager(appContext_, *(dispatcher_.get())), 
 		SystemConfigurationException);
 }
 
-/** @brief Applies a config with a missing publisher protocol field */
-BOOST_FIXTURE_TEST_CASE(testMissingPublisher, BasicNetworkManagerFixture)
-{
-  // Set parameters
-  const char * argv[] = {"testNetworkManager", 
-		"in.0.protocol=ConcurrentMockupSubscriber", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
-
-	BOOST_CHECK_THROW(NetworkManager(appContext_, *(dispatcher_.get())), 
-		SystemConfigurationException);
-}
-
-/** @brief Applies a config with an invalid subscriber protocol field */
+/** @brief Applies a config with an invalid protocol field */
 BOOST_FIXTURE_TEST_CASE(testInvalidSubscriber, BasicNetworkManagerFixture)
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=InvalidSubscriber", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
-
-	BOOST_CHECK_THROW(NetworkManager(appContext_, *(dispatcher_.get())), 
-		SystemConfigurationException);
-}
-
-/** @brief Applies a config with an invalid publisher protocol field */
-BOOST_FIXTURE_TEST_CASE(testInvalidPublisher, BasicNetworkManagerFixture)
-{
-  // Set parameters
-  const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=InvalidPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+		"channel.0.protocol=Be-Nice-And-Polite", NULL};
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	BOOST_CHECK_THROW(NetworkManager(appContext_, *(dispatcher_.get())), 
 		SystemConfigurationException);
@@ -190,9 +158,8 @@ BOOST_FIXTURE_TEST_CASE(testPublisherInitException, BasicNetworkManagerFixture)
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher", "out.0.throwOnInit=true",
-		"in.0.protocol=ConcurrentMockupSubscriber", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+		"channel.0.protocol=Mockup", "channel.0.pub_throwOnInit=true", NULL};
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	BOOST_CHECK_THROW(NetworkManager(appContext_, *(dispatcher_.get())), 
 		SystemConfigurationException);
@@ -204,10 +171,9 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberInitException1,
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber", 
-		"in.0.throwOnInitAndStart=true", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+		"channel.0.protocol=Mockup",
+		"channel.0.subs_throwOnInitAndStart=true", NULL};
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	BOOST_CHECK_THROW(NetworkManager(appContext_, *(dispatcher_.get())), 
 		SystemConfigurationException);
@@ -219,10 +185,9 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberInitException2,
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber", 
-		"in.0.throwOnInit=true", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+		"channel.0.protocol=Mockup",
+		"channel.0.subs_throwOnInit=true", NULL};
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	BOOST_CHECK_THROW(NetworkManager(appContext_, *(dispatcher_.get())), 
 		SystemConfigurationException);
@@ -238,10 +203,9 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber", 
-		"in.0.throwOnRun=true", NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+		"channel.0.protocol=Mockup",
+		"channel.0.subs_throwOnRun=true", NULL};
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	ConcurrentMockupSubscriber::resetCounter();
 	MockupPublisher::resetCounter();
@@ -275,13 +239,14 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber",  
-		"in.1.0=y", "in.1.0.type=1", "in.1.protocol=ConcurrentMockupSubscriber",
-		"in.2.0=z", "in.2.0.type=1", "in.2.protocol=ConcurrentMockupSubscriber",
-		"in.1.throwOnTerminate=true",
+		"channel.0.protocol=Mockup",
+		"channel.1.in-var.0=y", "channel.1.in-var.0.type=1", 
+		"channel.1.protocol=Mockup",
+		"channel.2.in-var.0=z", "channel.2.in-var.0.type=1", 
+		"channel.2.protocol=Mockup",
+		"channel.1.subs_throwOnTerminate=true",
 		NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	ConcurrentMockupSubscriber::resetCounter();
 	MockupPublisher::resetCounter();
@@ -293,6 +258,9 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 	} catch (std::runtime_error &) {
 		// Everything is ok
 	}
+
+	BOOST_LOG_TRIVIAL(debug) << "Mockup subscriber state: " 
+		<< ConcurrentMockupSubscriber::toString();
 
 	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getTerminateSequenceID(), 13);
 	BOOST_CHECK_EQUAL(
@@ -311,13 +279,14 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 {
   // Set parameters
   const char * argv[] = {"testNetworkManager", 
-		"out.0.protocol=MockupPublisher",
-		"in.0.protocol=ConcurrentMockupSubscriber",  
-		"in.1.0=y", "in.1.0.type=1", "in.1.protocol=ConcurrentMockupSubscriber",
-		"in.2.0=z", "in.2.0.type=1", "in.2.protocol=ConcurrentMockupSubscriber",
-		"in.1.throwOnTerminationRequest=true",
+		"channel.0.protocol=Mockup",
+		"channel.1.in-var.0=y", "channel.1.in-var.0.type=1", 
+		"channel.1.protocol=Mockup",
+		"channel.2.in-var.0=z", "channel.2.in-var.0.type=1", 
+		"channel.2.protocol=Mockup",
+		"channel.1.subs_throwOnTerminationRequest=true",
 		NULL};
-  appContext_.addCommandlineProperties((sizeof(argv)/sizeof(argv[0]))-1, argv);
+  appContext_.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
 
 	ConcurrentMockupSubscriber::resetCounter();
 	MockupPublisher::resetCounter();
@@ -330,9 +299,15 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 		// Everything is ok
 	}
 
-	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getTerminateSequenceID(), 13);
-	BOOST_CHECK_EQUAL(
-		ConcurrentMockupSubscriber::getTerminationRequestSequenceID(), 14);
+	BOOST_LOG_TRIVIAL(debug) << "Mockup subscriber state: " 
+		<< ConcurrentMockupSubscriber::toString();
+
+	// run() may be scheduled individually
+	BOOST_CHECK_GE(ConcurrentMockupSubscriber::getTerminateSequenceID(), 11);
+	BOOST_CHECK_GE(ConcurrentMockupSubscriber::getTerminationRequestSequenceID(),
+		12);
+	BOOST_CHECK_LT(ConcurrentMockupSubscriber::getTerminateSequenceID(), 
+		ConcurrentMockupSubscriber::getTerminationRequestSequenceID());
 
 	BOOST_CHECK_EQUAL(MockupPublisher::getInitSequenceID(), 0);
 	BOOST_CHECK_EQUAL(MockupPublisher::getEventTriggeredSequenceID(), -1);

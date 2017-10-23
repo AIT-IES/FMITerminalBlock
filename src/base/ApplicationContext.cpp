@@ -29,8 +29,10 @@ const std::string ApplicationContext::PROP_START_TIME = "app.startTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_TIME = "app.lookAheadTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAheadStepSize";
 const std::string ApplicationContext::PROP_INTEGRATOR_STEP_SIZE = "app.integratorStepSize";
-const std::string ApplicationContext::PROP_OUT = "out";
-const std::string ApplicationContext::PROP_IN = "in";
+const std::string ApplicationContext::PROP_CHANNEL = "channel";
+const std::string ApplicationContext::PROP_OUT_VAR = "out-var";
+const std::string ApplicationContext::PROP_IN_VAR = "in-var";
+const std::string ApplicationContext::PROP_CONNECTION = "connection";
 
 ApplicationContext::ApplicationContext(void):
 	config_(), outputChannelMap_(NULL), inputChannelMap_(NULL), portIDSource_()
@@ -126,98 +128,11 @@ ApplicationContext::addSensitiveDefaultProperties(const ModelDescription * descr
 
 }
 
-double 
-ApplicationContext::getPositiveDoubleProperty(const std::string &path, double def) const
-{
-	assert(def >= 0.0);
-
-	double ret = 0.0;
-
-	try
-	{
-		ret = getProperty<double>(path, def);
-	}catch(std::invalid_argument&){
-		throw Base::SystemConfigurationException("The Property is not a floating point number",
-			path,	getProperty<std::string>(path));
-	}
-
-	if(!(ret >= 0.0))
-	{ // Also checks NaN
-		throw Base::SystemConfigurationException("Non-negative value expected",
-			path,	getProperty<std::string>(path));
-	}
-
-	return ret;
-}
-
-double 
-ApplicationContext::getPositiveDoubleProperty(const std::string &path) const
-{
-	if(!hasProperty(path))
-	{
-		throw Base::SystemConfigurationException("Missing property",
-			path, "");
-	}
-	return getPositiveDoubleProperty(path, 0.0);
-}
-
-double 
-ApplicationContext::getRealPositiveDoubleProperty(const std::string &path, double def) const
-{
-	assert(def > 0.0);
-
-	double ret = getPositiveDoubleProperty(path, def);
-	
-	if(!(ret > 0.0))
-	{ // Also checks NaN
-		throw Base::SystemConfigurationException("Real positive value expected",
-			path,	getProperty<std::string>(path));
-	}
-
-	return ret;
-}
-
-double 
-ApplicationContext::getRealPositiveDoubleProperty(const std::string &path) const
-{
-	if(!hasProperty(path))
-	{
-		throw Base::SystemConfigurationException("Missing property",
-			path, "");
-	}
-	return getRealPositiveDoubleProperty(path, 1.0);
-}
-
-const boost::property_tree::ptree & 
-ApplicationContext::getPropertyTree(const std::string &path) const
-{
-	if(!hasProperty(path))
-	{
-		throw Base::SystemConfigurationException("Missing configuration tree",
-			path, "");
-	}
-	return config_.get_child(path);
-}
-
-bool
-ApplicationContext::hasProperty(const std::string &key) const
-{
-	boost::optional<const boost::property_tree::ptree&> node = config_.get_child_optional(key);
-	return (bool) node;
-}
-
-bool
-ApplicationContext::hasProperty(const char * key) const
-{
-	std::string kStr(key);
-	return hasProperty(kStr);
-}
-
 const ChannelMapping * ApplicationContext::getOutputChannelMapping()
 {
 	if(outputChannelMap_ == NULL)
 	{
-		outputChannelMap_ = newChannelMapping(PROP_OUT);
+		outputChannelMap_ = newChannelMapping(PROP_OUT_VAR);
 		BOOST_LOG_TRIVIAL(debug) << "Settled output variable to channel mapping: "
 				<< outputChannelMap_->toString();
 	}
@@ -228,11 +143,31 @@ const ChannelMapping * ApplicationContext::getInputChannelMapping()
 {
 	if (inputChannelMap_ == NULL)
 	{
-		inputChannelMap_ = newChannelMapping(PROP_IN);
+		inputChannelMap_ = newChannelMapping(PROP_IN_VAR);
 		BOOST_LOG_TRIVIAL(debug) << "Settled input variable to channel mapping: "
 				<< inputChannelMap_->toString();
 	}
 	return inputChannelMap_;
+}
+
+const std::shared_ptr<ApplicationContext::ConnectionConfigMap> 
+ApplicationContext::getConnectionConfig()
+{
+	if (!connections_)
+	{ // Parse the configuration and instantiate the map
+		std::shared_ptr<ConnectionConfigMap> connections;
+		connections = std::make_shared<ConnectionConfigMap>();
+		
+		addExplicitConnectionConfigs(connections);
+		addImplicitConnectionConfigs(connections, getInputChannelMapping());
+		addImplicitConnectionConfigs(connections, getOutputChannelMapping());
+
+		checkReferencedConnections(connections, getInputChannelMapping());
+		checkReferencedConnections(connections, getOutputChannelMapping());
+
+		connections_ = connections; // Install map, only if fully populated
+	}
+	return connections_;
 }
 
 std::string ApplicationContext::toString() const
@@ -256,12 +191,14 @@ std::string ApplicationContext::toString() const
 	return ret;
 }
 
-ChannelMapping * ApplicationContext::newChannelMapping(const std::string &propertyPrefix)
+ChannelMapping * 
+ApplicationContext::newChannelMapping(const std::string &variablePrefix)
 {
 	ChannelMapping *channelMap;
 
-	if (hasProperty(propertyPrefix)) {
-		channelMap = new ChannelMapping(portIDSource_, getPropertyTree(propertyPrefix));
+	if (hasProperty(PROP_CHANNEL)) {
+		channelMap = new ChannelMapping(portIDSource_, 
+			getPropertyTree(PROP_CHANNEL), variablePrefix);
 	}
 	else
 	{
@@ -269,6 +206,70 @@ ChannelMapping * ApplicationContext::newChannelMapping(const std::string &proper
 	}
 
 	return channelMap;
+}
+
+void ApplicationContext::addImplicitConnectionConfigs(
+	std::shared_ptr<ApplicationContext::ConnectionConfigMap> dest,
+	const ChannelMapping* src) const
+{
+	assert(src);
+	assert(dest);
+
+	for (int i = 0; i < src->getNumberOfChannels(); i++)
+	{
+		const TransmissionChannel& channel = src->getTransmissionChannel(i);
+		
+		if (dest->count(channel.getConnectionID()) > 0) continue;
+
+		if (channel.isImplicitConnection())
+		{
+			std::shared_ptr<ConnectionConfig> config;
+			config = std::make_shared<ConnectionConfig>(
+				channel.getChannelConfig(), channel.getConnectionID());
+			dest->insert(std::make_pair(channel.getConnectionID(), config));
+		}
+	}
+}
+
+void ApplicationContext::addExplicitConnectionConfigs(
+	std::shared_ptr<ApplicationContext::ConnectionConfigMap> dest) const
+{
+	assert(dest);
+	boost::optional<const boost::property_tree::ptree&> connectionList;
+	connectionList = config_.get_child_optional(PROP_CONNECTION);
+	if (connectionList)
+	{
+		for (auto it = connectionList->begin(); it != connectionList->end(); ++it)
+		{
+			std::string connectionID = it->first;
+			assert(dest->count(connectionID) <= 0);
+
+			auto conf = std::make_shared<ConnectionConfig>(it->second, connectionID);
+			dest->insert(std::make_pair(connectionID, conf));
+		}
+	}
+}
+
+void ApplicationContext::checkReferencedConnections(
+	const std::shared_ptr<ApplicationContext::ConnectionConfigMap> connectionMap,
+	const ChannelMapping* channelMap) const
+{
+	assert(channelMap);
+	assert(connectionMap);
+
+	for (int i = 0; i < channelMap->getNumberOfChannels(); i++)
+	{
+		const TransmissionChannel& channel = channelMap->getTransmissionChannel(i);
+
+		if (channel.isImplicitConnection()) continue;
+		if (connectionMap->count(channel.getConnectionID()) <= 0)
+		{
+			boost::format err("Channel '%1%' references an unknown connection"
+				" ('%2%').");
+			err % channel.getChannelID() % channel.getConnectionID();
+			throw SystemConfigurationException(err.str());
+		}
+	}
 }
 
 std::ostream& FMITerminalBlock::Base::operator<<(std::ostream& stream, 

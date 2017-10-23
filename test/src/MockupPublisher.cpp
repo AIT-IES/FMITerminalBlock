@@ -19,7 +19,7 @@ using namespace FMITerminalBlockTest::Network;
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Network;
 
-const std::string MockupPublisher::PUBLISHER_ID = "MockupPublisher";
+const std::string MockupPublisher::PUBLISHER_ID = "Mockup";
 
 int MockupPublisher::nextSequenceID_ = 0;
 
@@ -32,7 +32,7 @@ void MockupPublisher::init(
 {
 	config_ = &channel;
 	incrementSequenceID(&initSequenceID_);
-	if (getFlag("throwOnInit"))
+	if (getFlag("pub_throwOnInit"))
 	{
 		throw Base::SystemConfigurationException("Triggered Exception");
 	}
@@ -41,7 +41,7 @@ void MockupPublisher::init(
 void MockupPublisher::eventTriggered(FMITerminalBlock::Timing::Event * ev)
 {
 	incrementSequenceID(&eventTriggeredSequenceID_);
-	if (getFlag("throwOnEventTriggered"))
+	if (getFlag("pub_throwOnEventTriggered"))
 	{
 		throw std::runtime_error("Triggered Exception");
 	}
