@@ -302,9 +302,12 @@ BOOST_FIXTURE_TEST_CASE(testSubscriberRunException, BasicNetworkManagerFixture)
 	BOOST_LOG_TRIVIAL(debug) << "Mockup subscriber state: " 
 		<< ConcurrentMockupSubscriber::toString();
 
-	BOOST_CHECK_EQUAL(ConcurrentMockupSubscriber::getTerminateSequenceID(), 13);
-	BOOST_CHECK_EQUAL(
-		ConcurrentMockupSubscriber::getTerminationRequestSequenceID(), 14);
+	// run() may be scheduled individually
+	BOOST_CHECK_GE(ConcurrentMockupSubscriber::getTerminateSequenceID(), 11);
+	BOOST_CHECK_GE(ConcurrentMockupSubscriber::getTerminationRequestSequenceID(),
+		12);
+	BOOST_CHECK_LT(ConcurrentMockupSubscriber::getTerminateSequenceID(), 
+		ConcurrentMockupSubscriber::getTerminationRequestSequenceID());
 
 	BOOST_CHECK_EQUAL(MockupPublisher::getInitSequenceID(), 0);
 	BOOST_CHECK_EQUAL(MockupPublisher::getEventTriggeredSequenceID(), -1);
