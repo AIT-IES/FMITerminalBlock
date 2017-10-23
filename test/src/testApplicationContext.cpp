@@ -12,17 +12,24 @@
 #define BOOST_TEST_MODULE testApplicationContext
 #include <boost/test/unit_test.hpp>
 
-#include "base/ApplicationContext.h"
-#include "base/BaseExceptions.h"
-#include "base/PortIDDrawer.h"
-
 #include <string>
 #include <stdexcept>
 #include <float.h>
 #include <vector>
+#include <memory>
+
+#include <boost/test/data/test_case.hpp>
+
+#include "base/ApplicationContext.h"
+#include "base/BaseExceptions.h"
+#include "base/PortIDDrawer.h"
+#include "PrintableFactory.h"
+
 
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Base;
+using namespace FMITerminalBlockTest::Network;
+namespace data = boost::unit_test::data;
 
 /** @brief Tests the command line property parsing function */
 BOOST_AUTO_TEST_CASE( test_add_command_line_properties )
@@ -361,3 +368,127 @@ BOOST_AUTO_TEST_CASE(test_Port_id_drawer)
 		BOOST_CHECK_NE(id1.second, id2.second);
 	}
 }
+
+BOOST_TEST_DONT_PRINT_LOG_VALUE(std::vector<const char*>);
+
+/** @brief Vector of valid implicit connection test cases */
+const std::vector<std::vector<const char*>> VALID_IMPLICIT_CONNECTION_ARGS = {
+	{"testProgram",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.addr=localhost"},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.addr=localhost"},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.addr=localhost"},
+ 	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.addr=localhost",
+	 "connection.dummy.addr=ok"}
+};
+
+/** @brief Test valid implicit connection */
+BOOST_DATA_TEST_CASE(testValidImplicitConnections, 
+	data::make(VALID_IMPLICIT_CONNECTION_ARGS), args)
+{
+	ApplicationContext context;
+	std::vector<const char*> localArgs = args;
+	context.addCommandlineProperties(localArgs.size(), localArgs.data());
+
+	auto connections = context.getConnectionConfig();
+	BOOST_REQUIRE(connections);
+	BOOST_REQUIRE_EQUAL(connections->count(".0"), 1);
+	BOOST_REQUIRE(connections->at(".0"));
+	BOOST_REQUIRE(connections->at(".0")->hasProperty("addr"));
+	BOOST_CHECK_EQUAL(connections->at(".0")->getProperty<std::string>("addr"), 
+		"localhost");
+}
+
+/** @brief Vector of valid explicit connection test cases */
+const std::vector<std::vector<const char*>> VALID_EXPLICIT_CONNECTION_ARGS = {
+	{"testProgram",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.addr=not-used", "channel.0.connection=conspec",
+	 "connection.conspec.addr=localhost"},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.addr=not-used", "channel.0.connection=conspec",
+	 "connection.conspec.addr=localhost"},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.addr=not-used", "channel.0.connection=conspec",
+	 "connection.conspec.addr=localhost"},
+ 	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.addr=not-used", "channel.0.connection=conspec",
+	 "channel.1.out-var.0=y",	"channel.1.out-var.0.type=0",
+	 "channel.1.in-var.0=x",	"channel.1.in-var.0.type=0",
+	 "channel.1.addr=not-used", "channel.1.connection=conspec",
+	 "connection.conspec.addr=localhost"}
+};
+
+/** @brief Test valid explicit connection */
+BOOST_DATA_TEST_CASE(testValidExplicitConnections, 
+	data::make(VALID_EXPLICIT_CONNECTION_ARGS), args)
+{
+	ApplicationContext context;
+	std::vector<const char*> localArgs = args;
+	context.addCommandlineProperties(localArgs.size(), localArgs.data());
+
+	auto connections = context.getConnectionConfig();
+	BOOST_REQUIRE(connections);
+	BOOST_REQUIRE_EQUAL(connections->count("conspec"), 1);
+	BOOST_REQUIRE(connections->at("conspec"));
+	BOOST_REQUIRE(connections->at("conspec")->hasProperty("addr"));
+	BOOST_CHECK_EQUAL(
+		connections->at("conspec")->getProperty<std::string>("addr"), 
+		"localhost");
+}
+
+
+/** @brief Vector of connection arguments which should trigger an exception */
+const std::vector<std::vector<const char*>> INVALID_CONNECTION_ARGS = {
+	{"testProgram",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.connection="},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.connection="},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.connection="},
+
+ 	{"testProgram",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.connection=non-existing"},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.connection=non-existing"},
+	{"testProgram",
+	 "channel.0.out-var.0=y",	"channel.0.out-var.0.type=0",
+	 "channel.0.in-var.0=x",	"channel.0.in-var.0.type=0",
+	 "channel.0.connection=non-existing"}
+};
+
+/** @brief Test invalid connection */
+BOOST_DATA_TEST_CASE(testInvalidConnections, 
+	data::make(INVALID_CONNECTION_ARGS), args)
+{
+	ApplicationContext context;
+	std::vector<const char*> localArgs = args;
+	context.addCommandlineProperties(localArgs.size(), localArgs.data());
+
+	BOOST_CHECK_THROW(context.getConnectionConfig(), 
+		SystemConfigurationException);
+}
+
+/** TODO: Test invalid (empty) connection on an input channel */
+/** TODO: Test invalid (empty) connection on an output channel */
+/** TODO: Test invalid reference on an input channel */
+/** TODO: Test invalid reference on an output channel */
