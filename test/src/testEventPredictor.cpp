@@ -436,6 +436,107 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
 	delete ev;
 }
 
+/** 
+ * @brief Tests the direct feedback mechanism by applying some input events. 
+ * @details Output events are fed back to the event predictor in order to test 
+ * the filtering capabilities.
+ */
+BOOST_FIXTURE_TEST_CASE(test_direct_feedback_events, 
+	EventPredictorDxIsKxFixture)
+{
+	// Set horizon parameter
+	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
+		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
+		"app.startTime=0.0", "app.directOutputDependency=1", 
+		"out.0.1=der(x)", "out.0.1.type=0", NULL };
+	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+
+	// Create EventPredictor
+	EventPredictor pred(appContext);
+	
+	// Auxiliary variables to check the results
+	Timing::Event * ev;
+	std::vector<Timing::Variable> vars;
+
+	pred.init();
+
+	// Predict FMU event (der(x) = k*u, u=0, k=1, x0=1) -> t=1.0
+	// Don't take it, will be overwritten.
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 1.0, 0.001);
+	delete ev;
+
+	// Issue an event at 0.0 (x=1.0) -> Set u = -1
+	std::vector<Timing::Variable> inVar;
+	inVar.push_back(Timing::Variable(
+		appContext.getInputChannelMapping()->getVariableIDs(fmiTypeReal)[0],
+		-1.0));
+	Timing::StaticEvent ev1(0.0, inVar);
+	pred.eventTriggered(&ev1); // State at the beginning doesn't seem to be taken.
+
+	// Get direct feedback event
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 0.0, 0.001);
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal); // x = 1.0
+	BOOST_REQUIRE_EQUAL(vars[1].getID().first, fmiTypeReal); // der(x) = -1.0
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[0].getValue()) - 1.0, 0.001);
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[1].getValue()) + 1.0, 0.001);
+	pred.eventTriggered(ev);
+	delete ev;
+
+	// Predict and take next FMU event, t=1.0, der(x) = -1.0, x=0.0
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 1.0, 0.001);
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal); // x = 0.0
+	BOOST_REQUIRE_EQUAL(vars[1].getID().first, fmiTypeReal); // der(x) = -1.0
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[0].getValue()) - 0.0, 0.001);
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[1].getValue()) + 1.0, 0.001);
+	delete ev;
+
+	// Predict FMU event, don't take it
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 2.0, 0.001);
+	delete ev;
+
+	// Issue an event at t=1.5 (x=-0.5) -> Set u=1.0
+	inVar[0].setValue(1.0); // u
+	Timing::StaticEvent ev2(1.5, inVar);
+	pred.eventTriggered(&ev2);
+
+	// Get direct feedback event
+	ev = pred.predictNext();
+	BOOST_REQUIRE(ev);
+	BOOST_CHECK_SMALL(ev->getTime() - 1.5, 0.001);
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal); // x = -0.5
+	BOOST_REQUIRE_EQUAL(vars[1].getID().first, fmiTypeReal); // der(x) = 1.0
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[0].getValue()) + 0.5, 0.001);
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[1].getValue()) - 1.0, 0.001);
+	pred.eventTriggered(ev);
+	delete ev;
+
+	// Predict FMU event at t=2.5, x=0.5
+	ev = pred.predictNext();
+	BOOST_CHECK_CLOSE(ev->getTime(), 2.5, 0.001);
+	vars = ev->getVariables();
+	BOOST_REQUIRE_EQUAL(vars.size(), 2);
+	BOOST_REQUIRE_EQUAL(vars[0].getID().first, fmiTypeReal); // x = 0.5
+	BOOST_REQUIRE_EQUAL(vars[1].getID().first, fmiTypeReal); // der(x) = 1.0
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[0].getValue()) - 0.5, 0.001);
+	BOOST_CHECK_SMALL(boost::any_cast<fmiReal>(vars[1].getValue()) - 1.0, 0.001);
+	pred.eventTriggered(ev);
+	delete ev;
+}
+
 /**
  * @brief Triggers an event which is timed before a predicted one which was 
  * previously taken
