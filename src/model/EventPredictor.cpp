@@ -23,6 +23,7 @@
 #include "base/BaseExceptions.h"
 #include "base/ApplicationContext.h"
 #include "model/LazyEvent.h"
+#include "timing/StaticEvent.h"
 
 using namespace FMITerminalBlock::Model;
 using namespace FMITerminalBlock;
@@ -425,7 +426,7 @@ void EventPredictor::defineInputs()
 	}
 }
 
-LazyEvent* EventPredictor::predictNextFMIEvent()
+Timing::Event* EventPredictor::predictNextFMIEvent()
 {
 	assert(solver_);
 	
@@ -446,7 +447,7 @@ LazyEvent* EventPredictor::predictNextFMIEvent()
 	return ret;
 }
 
-Timing::StaticEvent* EventPredictor::predictNextDirectDependency()
+Timing::Event* EventPredictor::predictNextDirectDependency()
 {
 	assert(solver_);
 	

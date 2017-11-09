@@ -17,7 +17,6 @@
 #include "base/ChannelMapping.h"
 #include "timing/Event.h"
 #include "timing/EventListener.h"
-#include "timing/StaticEvent.h"
 
 // Fixes an include dependency flaw/feature(?) of ModelDescription.h
 #include <common/fmi_v1.0/fmiModelTypes.h>
@@ -348,7 +347,7 @@ namespace FMITerminalBlock
 			 * time. The function will also set the last predicted event time for 
 			 * consistency checks.
 			 */
-			LazyEvent* predictNextFMIEvent();
+			Timing::Event* predictNextFMIEvent();
 
 			/**
 			 * @brief Stores the current outputs of the solver into a new 
@@ -356,7 +355,7 @@ namespace FMITerminalBlock
 			 * @details The flags which indicate that a direct dependency is pending
 			 * will not be checked nor maintained.
 			 */
-			Timing::StaticEvent* predictNextDirectDependency();
+			Timing::Event* predictNextDirectDependency();
 
 			/**
 			 * @brief Updates the input image of a particular type.
