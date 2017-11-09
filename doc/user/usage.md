@@ -76,6 +76,8 @@ The simulation is controlled by the following parameters:
 
 **app.lookAheadStepSize**: An internal, optional parameter which specifies the time until a predicted state is saved. The smaller the look ahead step size is chosen, the more accurate a state can be interpolated. Per default, a value of app.lookAheadTime/10 is chosen.
 
+**app.directOutputDependency**: Flag (```0``` or ```1```) which controls the output event generation in case an input event was triggered. Per default, the direct output event generation is disabled (```0```). In case the flag is enabled, an output event will be generates as soon as an input event is triggered. Direct output events may be useful in case in case the output is directly changed by the input event. Nevertheless, direct output events may decrease real-time performance and may case cyclic dependency issues. Since the output event will be time-stamped with the same time as the input event, it will always be late. 
+
 ### Singlestep Delayed Operation
 
 In singlestep delayed operation, FMITerminalBlock performs a series of micro prediction steps. After each prediction step was finished, results are synchronized and external events may be applied. Notably, the state of the FMU will not be reset to any previous value. Instead, external inputs are delayed to the end of the current prediction step. The operation introduces an artificial delay which slightly biases the result but allows to include FMUs which could not be included otherwise. It is important to carefully choose the maximum time of each simulation step such that the bias is kept to a reasonable limit and that the model can still be solved in real-time.
