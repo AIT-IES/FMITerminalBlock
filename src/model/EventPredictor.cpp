@@ -23,18 +23,20 @@
 #include "base/BaseExceptions.h"
 #include "base/ApplicationContext.h"
 #include "model/LazyEvent.h"
+#include "timing/StaticEvent.h"
 
 using namespace FMITerminalBlock::Model;
 using namespace FMITerminalBlock;
 
 const std::string EventPredictor::PROP_FMU_INSTANCE_NAME = "fmu.instanceName";
 const std::string EventPredictor::PROP_DEFAULT_INPUT = "in-var.default.%1%";
+const std::string EventPredictor::PROP_DIRECT_DEPENDENCY = "app.directOutputDependency";
 
 EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	context_(context), solver_(NULL), 
 	outputIDs_(5,std::vector<Base::PortID>()), 
-	lastPredictedEventTime_(0.0), currentTime_(0.0), outputEventVariables_(), 
-	outputEventVariablesPopulated_(false),
+	lastPredictedEventTime_(0.0), directOutputPending_(false), currentTime_(0.0),
+	outputEventVariables_(), outputEventVariablesPopulated_(false),
 	inputIDs_(5,std::vector<Base::PortID>()), realInputImage_(), 
 	integerInputImage_(), booleanInputImage_(), stringInputImage_()
 {
@@ -76,6 +78,8 @@ EventPredictor::init()
 		Base::ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE, lookAheadHorizon/10);
 	fmiTime integratorStepSize = context_.getRealPositiveDoubleProperty(
 		Base::ApplicationContext::PROP_INTEGRATOR_STEP_SIZE, lookAheadStepSize/10);
+	assumeDirectDependency_ = context_.getProperty(PROP_DIRECT_DEPENDENCY, 
+		false);
 
 	// Check values
 	if(lookAheadHorizon < lookAheadStepSize)
@@ -121,19 +125,23 @@ EventPredictor::init()
 Timing::Event *
 EventPredictor::predictNext()
 {
-	fmiTime nextEventTime = solver_->predictState(currentTime_);
-	if(nextEventTime == INVALID_FMI_TIME)
-	{
-		throw Base::SolverException("Can't predict the next event.", currentTime_);
+
+	Timing::Event* ret;
+
+	// In case no direct dependency is assumed, the next event is always 
+	// predicted. Otherwise, the directOutputPending_ flag is used as an 
+	// indicator whether an external event has happened and no prediction should 
+	// be performed.
+	if (!(assumeDirectDependency_ && directOutputPending_))
+	{ // Perform the next prediction step
+		ret = predictNextFMIEvent();
+	} 
+	else 
+	{ // Just return the updated outputs
+		ret = predictNextDirectDependency();
 	}
 
-	// Instance will be managed by the calling function
-	LazyEvent * ret = new LazyEvent(nextEventTime,*this);
-
-	// Clear buffered variables.
-	outputEventVariables_.clear();
-	outputEventVariablesPopulated_ = false;
-	lastPredictedEventTime_ = nextEventTime;
+	directOutputPending_ = false;
 	return ret;
 }
 
@@ -179,6 +187,8 @@ EventPredictor::eventTriggered(Timing::Event * ev)
 		outputEventVariables_.clear();
 		outputEventVariablesPopulated_ = false;
 		lastPredictedEventTime_ = eventTime;
+
+		directOutputPending_ = true;
 	}
 }
 
@@ -414,6 +424,36 @@ void EventPredictor::defineInputs()
 	{
 		throw Base::SystemConfigurationException("Model input variable of unknown type registered");
 	}
+}
+
+Timing::Event* EventPredictor::predictNextFMIEvent()
+{
+	assert(solver_);
+	
+	fmiTime nextEventTime = solver_->predictState(currentTime_);
+	if(nextEventTime == INVALID_FMI_TIME)
+	{ // An error was detected
+		throw Base::SolverException("Can't predict the next event.", currentTime_);
+	}
+
+	// Instance will be managed by the calling function
+	LazyEvent * ret = new LazyEvent(nextEventTime,*this);
+
+	// Clear buffered variables.
+	outputEventVariables_.clear();
+	outputEventVariablesPopulated_ = false;
+	lastPredictedEventTime_ = nextEventTime;
+
+	return ret;
+}
+
+Timing::Event* EventPredictor::predictNextDirectDependency()
+{
+	assert(solver_);
+	
+	std::vector<Timing::Variable> outVars;
+	fetchOutputs(outVars, currentTime_);
+	return new Timing::StaticEvent(currentTime_, outVars);
 }
 
 template<typename InputType>

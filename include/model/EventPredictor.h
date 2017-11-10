@@ -50,6 +50,8 @@ namespace FMITerminalBlock
 			static const std::string PROP_FMU_INSTANCE_NAME;
 			/** @brief The format string of the default input property */
 			static const std::string PROP_DEFAULT_INPUT;
+			/** @brief The name of the direct dependency property */
+			static const std::string PROP_DIRECT_DEPENDENCY;
 
 			/**
 			 * @brief C'tor loading a FMU
@@ -161,6 +163,15 @@ namespace FMITerminalBlock
 			std::shared_ptr<IncrementalFMU> solver_;
 
 			/**
+			 * @brief Indicates the presence of direct dependencies between in- and 
+			 * output variables
+			 * @details The flag will be set as soon as the event predictor is 
+			 * initialized. It can be assumed that it will not change during 
+			 * execution.
+			 */
+			bool assumeDirectDependency_;
+
+			/**
 			 * @brief Stores the ID of each registered output.
 			 * @details The first index corresponds to the integer type of the
 			 * type id and the second index corresponds to the index in the 
@@ -183,6 +194,15 @@ namespace FMITerminalBlock
 			 * previously issued events get outdated and the flag will be reset.
 			 */
 			bool outputEventVariablesPopulated_;
+			
+			/** 
+			 * @brief Flag which indicates that the inputs were updated but no output
+			 * event was generated
+			 * @details The flag must be cleared as soon as the time of the solver is
+			 * advanced or an output event is triggered. (i.e. predictNext(...) is 
+			 * called)
+			 */
+			bool directOutputPending_;
 
 			/** @brief The solver's current time */
 			fmiTime currentTime_;
@@ -319,6 +339,23 @@ namespace FMITerminalBlock
 			 * @details The function also populates all corresponding data structures.
 			 */
 			void defineInputs();
+
+			/**
+			 * @brief Predicts the next FMI Event by using the solver and returns it
+			 * @details The function also clears the event cache such that the 
+			 * LazyEvent can query all output variables at the correct instant of 
+			 * time. The function will also set the last predicted event time for 
+			 * consistency checks.
+			 */
+			Timing::Event* predictNextFMIEvent();
+
+			/**
+			 * @brief Stores the current outputs of the solver into a new 
+			 * StaticEvent and returns it.
+			 * @details The flags which indicate that a direct dependency is pending
+			 * will not be checked nor maintained.
+			 */
+			Timing::Event* predictNextDirectDependency();
 
 			/**
 			 * @brief Updates the input image of a particular type.
