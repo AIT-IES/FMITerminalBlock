@@ -74,10 +74,13 @@ find_package_handle_standard_args(SUNDIALS DEFAULT_MSG
 			SUNDIALS_CVODE_LIBRARY SUNDIALS_NVECSERIAL_LIBRARY )
 
 # Check whether the shared libraries could be found
-set(SUNDIALS_SHARED_FOUND 
-	$<BOOL:SUNDIALS_CVODE_SHARED_LIBRARY AND SUNDIALS_NVECSERIAL_SHARED_LIBRARY>
-	)
-
+if( SUNDIALS_CVODE_SHARED_LIBRARY AND SUNDIALS_NVECSERIAL_SHARED_LIBRARY )
+	set( SUNDIALS_SHARED_FOUND 1 )
+	message(STATUS "Sundials shared libraries found")
+else()
+	set( SUNDIALS_SHARED_FOUND 0 )
+	message(STATUS "Sundials shared libraries _not_ found")
+endif()
 			
 mark_as_advanced(SUNDIALS_INCLUDE_DIR 
 			SUNDIALS_CVODE_LIBRARY SUNDIALS_NVECSERIAL_LIBRARY
