@@ -64,11 +64,6 @@ endif()
 find_sundials_library(SUNDIALS_CVODE_SHARED_LIBRARY sundials_cvode)
 find_sundials_library(SUNDIALS_NVECSERIAL_SHARED_LIBRARY sundials_nvecserial)
 
-# Check whether the shared libraries could be found
-set(SUNDIALS_SHARED_FOUND 
-	$<BOOL:SUNDIALS_CVODE_SHARED_LIBRARY AND SUNDIALS_NVECSERIAL_SHARED_LIBRARY>
-	)
-
 # --- Register Results ---
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set PAHO_MQTT_C_FOUND to TRUE
@@ -76,8 +71,13 @@ include(FindPackageHandleStandardArgs)
 
 find_package_handle_standard_args(SUNDIALS DEFAULT_MSG
 			SUNDIALS_INCLUDE_DIR 
-			SUNDIALS_CVODE_LIBRARY SUNDIALS_NVECSERIAL_LIBRARY 
-			SUNDIALS_CVODE_SHARED_LIBRARY SUNDIALS_NVECSERIAL_SHARED_LIBRARY )
+			SUNDIALS_CVODE_LIBRARY SUNDIALS_NVECSERIAL_LIBRARY )
+
+# Check whether the shared libraries could be found
+set(SUNDIALS_SHARED_FOUND 
+	$<BOOL:SUNDIALS_CVODE_SHARED_LIBRARY AND SUNDIALS_NVECSERIAL_SHARED_LIBRARY>
+	)
+
 			
 mark_as_advanced(SUNDIALS_INCLUDE_DIR 
 			SUNDIALS_CVODE_LIBRARY SUNDIALS_NVECSERIAL_LIBRARY
