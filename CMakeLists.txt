@@ -10,8 +10,11 @@ project( FMITerminalBlock )
 # Include custom functions
 include( cmake/CMakeAddSourceFile.txt )
 include( cmake/ConfigureNetworkManager.cmake )
+include( cmake/CopyDynamicLibrary.cmake )
 include( cmake/SetDefaultCompilerSettings.cmake )
 include( cmake/AddTests.cmake )
+
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/" )
 
 # add a target to generate documentation with Doxygen
 # The statements were taken from FMI++
@@ -48,15 +51,23 @@ if ( NOT IS_DIRECTORY ${fmipp_PROJECT_DIR} )
 endif ()
 
 # Fixes the relative sundials library paths in FMI++
-# TODO: Remove as soon as FMI++ uses absolute library paths
 if ( INCLUDE_SUNDIALS )
-   link_directories( ${SUNDIALS_LIBRARYDIR} )
+	find_package(Sundials REQUIRED)
+	if ( NOT SUNDIALS_FOUND )
+		message( FATAL_ERROR "Sundials support was enabled but some Sundials components could not be found" )
+	endif ()
+	include_directories(SUNDIALS_INCLUDE_DIRS)
+	# TODO: Remove as soon as FMI++ uses absolute library paths:
+	link_directories( ${SUNDIALS_LIBRARYDIR} )
 endif ()
 
 # SWIG is not needed by FMITerminalBlock - Set the default value to OFF
 option( BUILD_SWIG "SWIG - Simplified Wrapper and Interface Generator stuff." OFF )
 add_subdirectory(${fmipp_PROJECT_DIR} fmipp)
 
+# To ease execution, dynamic libraries may be copied as needed. Otherwise they
+# need to be included in some path variable
+option( DO_NOT_COPY_DYNAMIC_LIBRARIES "Suppress the automatic provision of DLL/SO files" OFF )
 
 # List of include directories
 include_directories( ${FMITerminalBlock_SOURCE_DIR} )
@@ -113,6 +124,10 @@ add_executable(FMITerminalBlock src/main.cpp
 target_link_libraries( FMITerminalBlock ${Boost_LIBRARIES} fmippim
                                         ${CMAKE_THREAD_LIBS_INIT} )
 set_default_compiler_settings(FMITerminalBlock)
+
+if( INCLUDE_SUNDIALS AND SUNDIALS_SHARED_FOUND )
+	copy_dynamic_library( FMITerminalBlock ${SUNDIALS_SHARED_LIBRARIES} )
+endif()
 
 # Configure test cases
 option(FMITerminalBlock_BUILD_TESTS 
