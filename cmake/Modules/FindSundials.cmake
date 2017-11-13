@@ -13,9 +13,12 @@
 #   - SUNDIALS_BASE: The base directory of the sundials installation.
 # 
 # Once done, the following variables will be defined:
-#   - SUNDIALS_FOUND: All files were successfully located.
+#   - SUNDIALS_FOUND: All necessary files were successfully located.
 #   - SUNDIALS_INCLUDE_DIR
 #   - SUNDIALS_LIBRARIES: The linked libraries which are needed to use Sundials
+#   - SUNDIALS_SHARED_FOUND: All shared libraries were found. In case Sundials 
+#                            was compiled for static linkage and no dll/so files
+#                            are present, the variable is set to false
 #   - SUNDIALS_SHARED_LIBRARIES: All Shared library files which are needed to 
 #                                execute the binaries.
 #
@@ -51,15 +54,20 @@ endif()
 find_sundials_library(SUNDIALS_CVODE_LIBRARY sundials_cvode)
 find_sundials_library(SUNDIALS_NVECSERIAL_LIBRARY sundials_nvecserial)
 
-# --- Find static libraries ---
+# --- Find shared libraries ---
 if(WIN32)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")  
 else()
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a")
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
 endif()
 
 find_sundials_library(SUNDIALS_CVODE_SHARED_LIBRARY sundials_cvode)
 find_sundials_library(SUNDIALS_NVECSERIAL_SHARED_LIBRARY sundials_nvecserial)
+
+# Check whether the shared libraries could be found
+set(SUNDIALS_SHARED_FOUND 
+	$<BOOL:SUNDIALS_CVODE_SHARED_LIBRARY AND SUNDIALS_NVECSERIAL_SHARED_LIBRARY>
+	)
 
 # --- Register Results ---
 include(FindPackageHandleStandardArgs)

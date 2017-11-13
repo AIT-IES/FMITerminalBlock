@@ -35,7 +35,7 @@ macro(add_test_target test_name)
 	                                        ${CMAKE_THREAD_LIBS_INIT} )
 	set_default_compiler_settings( test${test_name} )
 	
-	if( INCLUDE_SUNDIALS )
+	if( INCLUDE_SUNDIALS AND SUNDIALS_SHARED_FOUND )
 		copy_dynamic_library( test${test_name} ${SUNDIALS_SHARED_LIBRARIES} )
 	endif()
 	

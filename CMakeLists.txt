@@ -53,6 +53,9 @@ endif ()
 # Fixes the relative sundials library paths in FMI++
 if ( INCLUDE_SUNDIALS )
 	find_package(Sundials REQUIRED)
+	if ( NOT SUNDIALS_FOUND )
+		message( FATAL_ERROR "Sundials support was enabled but some Sundials components could not be found" )
+	endif ()
 	include_directories(SUNDIALS_INCLUDE_DIRS)
 	# TODO: Remove as soon as FMI++ uses absolute library paths:
 	link_directories( ${SUNDIALS_LIBRARYDIR} )
@@ -122,7 +125,7 @@ target_link_libraries( FMITerminalBlock ${Boost_LIBRARIES} fmippim
                                         ${CMAKE_THREAD_LIBS_INIT} )
 set_default_compiler_settings(FMITerminalBlock)
 
-if( INCLUDE_SUNDIALS )
+if( INCLUDE_SUNDIALS AND SUNDIALS_SHARED_FOUND )
 	copy_dynamic_library( FMITerminalBlock ${SUNDIALS_SHARED_LIBRARIES} )
 endif()
 
