@@ -34,13 +34,13 @@ macro(add_test_target test_name)
     target_link_libraries( test${test_name} ${Boost_LIBRARIES} fmippim fmippex
 	                                        ${CMAKE_THREAD_LIBS_INIT} )
 	set_default_compiler_settings( test${test_name} )
-	add_custom_command( 
-		TARGET test${test_name} POST_BUILD 
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-			$<TARGET_FILE:fmippim> $<TARGET_FILE_DIR:test${test_name}> 
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-			$<TARGET_FILE:fmippex> $<TARGET_FILE_DIR:test${test_name}> 
-		COMMENT "Make FMI++ available" VERBATIM)
+	
+	if( INCLUDE_SUNDIALS )
+		copy_dynamic_library( test${test_name} ${SUNDIALS_SHARED_LIBRARIES} )
+	endif()
+	
+	copy_dynamic_library( test${test_name} $<TARGET_FILE:fmippim> $<TARGET_FILE:fmippex> )
+	
     add_test( NAME ${test_name} COMMAND test${test_name} 
 		${test_args} )
 endmacro()
