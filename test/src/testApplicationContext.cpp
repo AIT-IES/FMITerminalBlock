@@ -40,7 +40,6 @@ BOOST_AUTO_TEST_CASE( test_add_command_line_properties )
 	BOOST_CHECK_EQUAL(context.getProperty<std::string>("1.one.1"), "1");
 	BOOST_CHECK_EQUAL(context.getProperty<std::string>("2.two.2"), "2");
 	BOOST_CHECK_EQUAL(context.getProperty<std::string>("3.thröö.3"), "3");
-
 }
 
 /** @brief Tests the command line property parsing function */
@@ -95,6 +94,36 @@ BOOST_AUTO_TEST_CASE( test_add_command_line_invalid_program_name )
 	ApplicationContext context;
 
 	BOOST_CHECK_THROW(context.addCommandlineProperties(4,argv), std::invalid_argument);
+}
+
+/** @brief Tests the C'tor which takes an initializer_list */
+BOOST_AUTO_TEST_CASE( test_init_list )
+{
+	ApplicationContext context = {
+		"foo=bar", std::string("more=creativity"), "not=available"
+	};
+	BOOST_CHECK(context.hasProperty(ApplicationContext::PROP_PROGRAM_NAME));
+	BOOST_CHECK_EQUAL(context.getProperty<std::string>("foo"), "bar");
+	BOOST_CHECK_EQUAL(context.getProperty<std::string>("more"), "creativity");
+	BOOST_CHECK_EQUAL(context.getProperty<std::string>("not"), "available");
+}
+
+/** @brief Tests the C'tor which takes an initializer_list */
+BOOST_AUTO_TEST_CASE( test_empty_init_list )
+{
+	ApplicationContext context = {};
+	BOOST_CHECK(context.hasProperty(ApplicationContext::PROP_PROGRAM_NAME));
+}
+
+/** @brief Tests the C'tor which takes an initializer_list */
+BOOST_AUTO_TEST_CASE(test_invalid_init_list)
+{
+	try {
+		ApplicationContext context = {"o=k", "invalid"};
+		BOOST_CHECK(false);
+	} catch (Base::SystemConfigurationException&) {
+		BOOST_CHECK(true);
+	}
 }
 
 /** @brief Tests the hasProperty function */

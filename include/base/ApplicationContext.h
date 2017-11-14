@@ -19,6 +19,7 @@
 #include <common/fmi_v1.0/fmiModelTypes.h>
 #include <import/base/include/ModelDescription.h>
 #include <string>
+#include <initializer_list>
 
 /**
  * @brief returns the number of arguments in a valid argument vector array.
@@ -77,12 +78,25 @@ namespace FMITerminalBlock
 			/**
 			 * @brief Default C'tor initializing an empty application context object
 			 */
-			ApplicationContext(void);
+			ApplicationContext();
+
+			/**
+			 * @brief Initializes the application context with the given set of 
+			 * arguments
+			 * @details The C'tor is mainly intended for debugging purpose to 
+			 * quickly create a new ApplicationContext. In case some of the given 
+			 * properties are ill formatted, a Base::SystemConfigurationException 
+			 * will be thrown. A default program name will be set in order to avoid 
+			 * spurious exceptions.
+			 * @param initList A list of strings which are formatted according to 
+			 * the command line property format
+			 */
+			ApplicationContext(std::initializer_list<std::string> initList);
 
 			/**
 			 * @brief Frees allocated resources
 			 */
-			~ApplicationContext(void);
+			~ApplicationContext();
 
 			/**
 			 * @brief Parses the command line argument list and appends the
@@ -286,7 +300,7 @@ namespace FMITerminalBlock
 			 * @param opt A reference to the option string
 			 * @param i The option's index used to generate meaningful error messages
 			 */
-			void addCommandlineOption(std::string &opt, int i);
+			void addCommandlineOption(const std::string &opt, int i);
 
 			/**
 			 * @brief Returns a newly created channel mapping object.
