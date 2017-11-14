@@ -35,6 +35,7 @@ const std::string ApplicationContext::PROP_IN = "in";
 ApplicationContext::ApplicationContext():
 	config_(), outputChannelMap_(NULL), inputChannelMap_(NULL), portIDSource_()
 {
+	config_.put(PROP_PROGRAM_NAME, "not set");
 }
 
 ApplicationContext::ApplicationContext(

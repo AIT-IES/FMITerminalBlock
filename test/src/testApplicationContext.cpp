@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(test_invalid_init_list)
 	try {
 		ApplicationContext context = {"o=k", "invalid"};
 		BOOST_CHECK(false);
-	} catch (Base::SystemConfigurationException&) {
+	} catch (std::invalid_argument&) {
 		BOOST_CHECK(true);
 	}
 }
