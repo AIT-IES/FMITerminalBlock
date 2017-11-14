@@ -104,6 +104,7 @@ add_source_file(MODEL src/model/OneStepEventPredictor.cpp )
 add_source_file(MODEL src/model/LazyEvent.cpp )
 add_source_file(MODEL src/model/EventPredictorFactory.cpp )
 add_source_file(MODEL src/model/ManagedLowLevelFMU.cpp )
+add_source_file(MODEL src/model/SolverConfiguration.cpp )
 
 add_source_file(TIMING src/timing/Variable.cpp )
 add_source_file(TIMING src/timing/Event.cpp )
