@@ -21,6 +21,10 @@ add_definitions( -DFMU_URI_PRE="${FMU_URI_PRE}" )
 add_definitions( -DEPS_TIME=${EPS_TIME} )
 add_definitions( -DEPS_VALUE=${EPS_TIME} )
 
+if( INCLUDE_SUNDIALS )
+	add_definitions( -DUSE_SUNDIALS )
+endif()
+
 # Include common directories
 include_directories( ${FMITerminalBlockTest_SOURCE_DIR}/include )
 include_directories( ${FMITerminalBlock_SOURCE_DIR} )

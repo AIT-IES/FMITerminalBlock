@@ -10,6 +10,7 @@
 
 #include "model/SolverConfiguration.h"
 
+#include <assert.h>
 #include <cmath>
 #include <limits>
 #include <list>
@@ -58,6 +59,12 @@ std::string SolverConfiguration::getDiffString(
 		diffMsg % PROP_INTEGRATOR_TYPE % props_.name;
 		ret += diffMsg.str();
 	}
+	if (props_.name != refProps.name)
+	{
+		boost::format diffMsg("Name \"%1%\" was changed to \"%2%\".");
+		diffMsg % props_.name % refProps.name;
+		ret += diffMsg.str();
+	}
 
 	return ret;
 }
@@ -80,30 +87,41 @@ Integrator::Properties SolverConfiguration::makeIntegratorProperties(
 {
 	Integrator::Properties prop;
 
-	// Set tolerances only if available
-	if (configSource.hasProperty(PROP_ABSOLUTE_TOLERANCE))
+	std::string id;
+	id = configSource.getProperty<std::string>(PROP_INTEGRATOR_TYPE, "dp");
+	prop.type = toIntegratorType(id);
+	prop.name = getDefaultName(prop.type);
+
+	// Default tolerances may be NaN -> Do not use them as default arguments
+	if (configSource.hasProperty(PROP_ABSOLUTE_TOLERANCE)) 
 	{
 		prop.abstol = configSource.getRealPositiveDoubleProperty(
 			PROP_ABSOLUTE_TOLERANCE);
+	} 
+	else 
+	{
+		prop.abstol = getDefaultAbsoluteTolerance(prop.type);
 	}
+
 	if (configSource.hasProperty(PROP_RELATIVE_TOLERANCE))
 	{
 		prop.reltol = configSource.getRealPositiveDoubleProperty(
 			PROP_RELATIVE_TOLERANCE);
+	} 
+	else
+	{
+		prop.reltol = getDefaultRelativeTolerance(prop.type);
 	}
+	
 
-	prop.order = configSource.getProperty(PROP_INTEGRATION_ORDER, 0);
+	prop.order = configSource.getProperty(PROP_INTEGRATION_ORDER, 
+		getDefaultOrder(prop.type));
 	if (prop.order < 0)
 	{
 		throw Base::SystemConfigurationException(
 			"The integration order must be positive", PROP_INTEGRATION_ORDER, 
 			configSource.getProperty<std::string>(PROP_INTEGRATION_ORDER));
 	}
-
-	std::string id;
-	id = configSource.getProperty<std::string>(PROP_INTEGRATOR_TYPE, "dp");
-	prop.type = toIntegratorType(id);
-	prop.name = id;
 
 	return prop;
 }
@@ -127,4 +145,92 @@ IntegratorType SolverConfiguration::toIntegratorType(const std::string &id)
 	boost::format err("Unknown integrator type '%1%'");
 	err % id;
 	throw Base::SystemConfigurationException(err.str());
+}
+
+std::string SolverConfiguration::getDefaultName(IntegratorType type)
+{
+	switch (type) {
+		case IntegratorType::eu:   return "Euler";
+		case IntegratorType::rk:   return "Runge Kutta";
+		case IntegratorType::abm:  return "ABM";
+		case IntegratorType::ck:   return "Cash Karp";
+		case IntegratorType::dp:   return "Dormand Prince";
+		case IntegratorType::fe:   return "Fehlberg";
+		case IntegratorType::bs:   return "Bulirsch Stoer";
+		case IntegratorType::ro:   return "Rosenbrock";
+#ifdef USE_SUNDIALS
+		case IntegratorType::bdf:  return "BDF";
+		case IntegratorType::abm2: return "ABM2";
+#endif
+		default:
+			assert(false);
+			return "";
+	}
+}
+
+int SolverConfiguration::getDefaultOrder(IntegratorType type)
+{
+	switch (type) {
+		case IntegratorType::eu:   return 1;
+		case IntegratorType::rk:   return 4;
+		case IntegratorType::abm:  return 5;
+		case IntegratorType::ck:   return 5;
+		case IntegratorType::dp:   return 5;
+		case IntegratorType::fe:   return 8;
+		case IntegratorType::bs:   return 0; // 1-16
+		case IntegratorType::ro:   return 4;
+#ifdef USE_SUNDIALS
+		case IntegratorType::bdf:  return 0; // 1-5;
+		case IntegratorType::abm2: return 0; // 1-12;
+#endif
+		default:
+			assert(false);
+			return 0;
+	}
+}
+
+double SolverConfiguration::getDefaultAbsoluteTolerance(IntegratorType type)
+{
+	switch (type) {
+		case IntegratorType::eu: // Inf
+		case IntegratorType::rk: // Inf
+		case IntegratorType::abm: // Inf
+			return std::numeric_limits<double>::infinity();
+		case IntegratorType::ck:
+		case IntegratorType::dp: // 1e-6
+		case IntegratorType::fe:
+		case IntegratorType::bs:
+		case IntegratorType::ro: // 1e-6
+#ifdef USE_SUNDIALS
+		case IntegratorType::bdf:
+		case IntegratorType::abm2:
+#endif
+			return 1e-6;
+		default:
+			assert(false);
+			return 0.0;
+	}
+}
+
+double SolverConfiguration::getDefaultRelativeTolerance(IntegratorType type)
+{
+	switch (type) {
+		case IntegratorType::eu: // Inf
+		case IntegratorType::rk: // Inf
+		case IntegratorType::abm: // Inf
+			return std::numeric_limits<double>::infinity();
+		case IntegratorType::ck:
+		case IntegratorType::dp: // 1e-6
+		case IntegratorType::fe:
+		case IntegratorType::bs:
+		case IntegratorType::ro: // 1e-6
+#ifdef USE_SUNDIALS
+		case IntegratorType::bdf:
+		case IntegratorType::abm2:
+#endif
+			return 1e-6;
+		default:
+			assert(false);
+			return 0.0;
+	}
 }

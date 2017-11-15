@@ -59,6 +59,7 @@ if ( INCLUDE_SUNDIALS )
 	include_directories(SUNDIALS_INCLUDE_DIRS)
 	# TODO: Remove as soon as FMI++ uses absolute library paths:
 	link_directories( ${SUNDIALS_LIBRARYDIR} )
+	add_definitions( -DUSE_SUNDIALS )
 endif ()
 
 # SWIG is not needed by FMITerminalBlock - Set the default value to OFF

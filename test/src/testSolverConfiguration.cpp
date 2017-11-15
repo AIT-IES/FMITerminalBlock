@@ -8,8 +8,6 @@
  * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
-//#include "base/environment-helper.h"
-
 #define BOOST_TEST_MODULE testSolverConfiguration
 #include <boost/test/unit_test.hpp>
 
@@ -42,10 +40,10 @@ BOOST_AUTO_TEST_CASE(test_default_configuration)
 	
 	Integrator::Properties props = config.getIntegratorProperties();
 	BOOST_CHECK_EQUAL(props.type, IntegratorType::dp);
-	BOOST_CHECK_EQUAL(props.name, "dp");
-	BOOST_CHECK_EQUAL(props.order, 0);
-	BOOST_CHECK_NE(props.abstol, props.abstol); //NaN
-	BOOST_CHECK_NE(props.reltol, props.reltol); //NaN
+	BOOST_CHECK_EQUAL(props.name, "Dormand Prince");
+	BOOST_CHECK_EQUAL(props.order, 5);
+	BOOST_CHECK_EQUAL(props.abstol, 1e-6);
+	BOOST_CHECK_EQUAL(props.reltol, 1e-6);
 }
 
 /** @brief Test all values populated */
@@ -66,7 +64,7 @@ BOOST_AUTO_TEST_CASE(test_all_init)
 	
 	Integrator::Properties props = config.getIntegratorProperties();
 	BOOST_CHECK_EQUAL(props.type, IntegratorType::eu);
-	BOOST_CHECK_EQUAL(props.name, "eu");
+	BOOST_CHECK_EQUAL(props.name, "Euler");
 	BOOST_CHECK_EQUAL(props.order, 1);
 	BOOST_CHECK_EQUAL(props.abstol, 1e-3);
 	BOOST_CHECK_EQUAL(props.reltol, 5e-3);
@@ -153,7 +151,6 @@ BOOST_DATA_TEST_CASE(test_integrator_names,
 	Base::ApplicationContext context({propIntegratorType});
 	
 	SolverConfiguration config(context);
-	BOOST_CHECK_EQUAL(config.getIntegratorProperties().name, name);
 	BOOST_CHECK_EQUAL(config.getIntegratorProperties().type, type);
 }
 

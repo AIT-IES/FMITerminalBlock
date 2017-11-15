@@ -117,6 +117,14 @@ namespace FMITerminalBlock
 			 */
 			static IntegratorType toIntegratorType(const std::string &id);
 
+			/** @brief Returns the sensitive default integrator name */
+			static std::string getDefaultName(IntegratorType type);
+			/** @brief Returns the sensitive default integrator order */
+			static int getDefaultOrder(IntegratorType type);
+			/** @brief Returns the sensitive absolute default tolerance */
+			static double getDefaultAbsoluteTolerance(IntegratorType type);
+			/** @brief Returns the sensitive relative default tolerance */
+			static double getDefaultRelativeTolerance(IntegratorType type);
 		};
 
 	}
