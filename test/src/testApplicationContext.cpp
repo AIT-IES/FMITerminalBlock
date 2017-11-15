@@ -43,6 +43,23 @@ BOOST_AUTO_TEST_CASE( test_add_command_line_properties )
 }
 
 /** @brief Tests the command line property parsing function */
+BOOST_AUTO_TEST_CASE( test_add_command_line_properties_vector )
+{
+	std::vector<std::string> vec = {"1.one.1=1", "2.two.2=2", "3.thröö.3=3"};
+	ApplicationContext context;
+
+	context.addCommandlineProperties(vec);
+
+	BOOST_CHECK(context.hasProperty("1.one.1"));
+	BOOST_CHECK(context.hasProperty("2.two.2"));
+	BOOST_CHECK(context.hasProperty("3.thröö.3"));
+
+	BOOST_CHECK_EQUAL(context.getProperty<std::string>("1.one.1"), "1");
+	BOOST_CHECK_EQUAL(context.getProperty<std::string>("2.two.2"), "2");
+	BOOST_CHECK_EQUAL(context.getProperty<std::string>("3.thröö.3"), "3");
+}
+
+/** @brief Tests the command line property parsing function */
 BOOST_AUTO_TEST_CASE( test_add_command_line_no_value )
 {
 	const char * argv[] = {"testApplicationContext", "1.one.1=", "3.thröö.3=3", 
@@ -66,7 +83,7 @@ BOOST_AUTO_TEST_CASE( test_add_command_line_double_properties )
 }
 
 /** @brief Tests the command line property parsing function */
-BOOST_AUTO_TEST_CASE( test_add_command_line_no_key )
+BOOST_AUTO_TEST_CASE( test_add_command_line_no_key_1 )
 {
 	const char * argv[] = {"testApplicationContext", "=1", "3.thröö.3=3", NULL};
 	ApplicationContext context;
@@ -75,6 +92,15 @@ BOOST_AUTO_TEST_CASE( test_add_command_line_no_key )
 		std::invalid_argument);
 }
 
+/** @brief Tests the command line property parsing function */
+BOOST_AUTO_TEST_CASE( test_add_command_line_no_key_2 )
+{
+	std::vector<std::string> vec = {"=1", "3.thröö.3=3"};
+	ApplicationContext context;
+
+	BOOST_CHECK_THROW(context.addCommandlineProperties(vec), 
+		std::invalid_argument);
+}
 
 /** @brief Tests the command line property parsing function */
 BOOST_AUTO_TEST_CASE( test_add_command_line_invalid_reference )
