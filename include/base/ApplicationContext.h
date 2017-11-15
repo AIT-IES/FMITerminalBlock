@@ -20,6 +20,7 @@
 #include <import/base/include/ModelDescription.h>
 #include <string>
 #include <initializer_list>
+#include <vector>
 
 /**
  * @brief returns the number of arguments in a valid argument vector array.
@@ -108,6 +109,17 @@ namespace FMITerminalBlock
 			 * @param argv The argument vector
 			 */
 			void addCommandlineProperties(int argc, const char *argv[]);
+
+			/**
+			 * @brief Parses the command line argument list and appends the 
+			 * information
+			 * @details It is assumed that every entry is a valid key=value pair. No
+			 * program name must be given. In case an invalid entry is found, a 
+			 * std::invalid_argument will be thrown. The function is mainly intended 
+			 * to ease debugging.
+			 * @param args The list of arguments to add.
+			 */
+			void addCommandlineProperties(const std::vector<std::string> &args);
 
 			/**
 			 * @brief Generates sensitive default values based on the model 

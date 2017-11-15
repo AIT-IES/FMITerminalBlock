@@ -86,7 +86,16 @@ ApplicationContext::addCommandlineProperties(int argc, const char *argv[])
 
 		addCommandlineOption(opt, i);
 	}
+}
 
+void
+ApplicationContext::addCommandlineProperties(
+	const std::vector<std::string> &args)
+{
+	for (int i = 0; i < args.size(); i++)
+	{
+		addCommandlineOption(args[i], i);
+	}
 }
 
 void 
