@@ -115,12 +115,22 @@ add_source_file(TIMING src/timing/TimedEventQueue.cpp )
 add_source_file(TIMING src/timing/EventLogger.cpp )
 add_source_file(TIMING src/timing/CSVDataLogger.cpp )
 
+# Add object libraries to speed up compilation
+add_library(FMITerminalBlock_NETWORK_OBJ OBJECT 
+	${FMITerminalBlock_NETWORK_SOURCE})
+add_library(FMITerminalBlock_BASE_OBJ OBJECT 
+	${FMITerminalBlock_BASE_SOURCE})
+add_library(FMITerminalBlock_MODEL_OBJ OBJECT 
+	${FMITerminalBlock_MODEL_SOURCE})
+add_library(FMITerminalBlock_TIMING_OBJ OBJECT 
+	${FMITerminalBlock_TIMING_SOURCE})
+
 # State the main executable file
 add_executable(FMITerminalBlock src/main.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE}
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_NETWORK_OBJ>
 	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
 
 target_link_libraries( FMITerminalBlock ${Boost_LIBRARIES} fmippim

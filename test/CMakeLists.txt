@@ -34,16 +34,16 @@ include_directories( ${fmipp_INCLUDE_DIRS} )
 
 # Generate test programs
 add_test_target( ASN1Publisher src/testASN1Publisher.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_NETWORK_OBJ> )
 
 add_test_target( ASN1Subscriber src/testASN1Subscriber.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE} 
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_NETWORK_OBJ> 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTCPServerTestDataSource.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTestData.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RawTestDataCollection.cpp )
@@ -61,47 +61,47 @@ add_test_target( NetworkManager src/testNetworkManager.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ConcurrentMockupSubscriber.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/MockupPublisher.cpp
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_NETWORK_OBJ> )
 
 add_test_target( EventPredictor src/testEventPredictor.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> )
 	
 add_test_target( OneStepEventPredictor src/testOneStepEventPredictor.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> )
 
 add_test_target( SolverConfiguration src/testSolverConfiguration.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> )
 	
 add_test_target( EventPredictorFactory src/testEventPredictorFactory.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> )
 
 add_test_target( ManagedLowLevelFMU src/testManagedLowLevelFMU.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> )
 	
 add_test_target( EventHandling src/testEventHandling.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> )
 	
 add_test_target( ApplicationContext src/testApplicationContext.cpp 
-	${FMITerminalBlock_BASE_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> )
 
 add_test_target( ChannelMapping src/testChannelMapping.cpp 
-	${FMITerminalBlock_BASE_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> )
 
 add_test_target( CSVDataLogger src/testCSVDataLogger.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} )
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ> )
