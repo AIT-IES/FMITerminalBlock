@@ -118,12 +118,16 @@ add_source_file(TIMING src/timing/CSVDataLogger.cpp )
 # Add object libraries to speed up compilation
 add_library(FMITerminalBlock_NETWORK_OBJ OBJECT 
 	${FMITerminalBlock_NETWORK_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_NETWORK_OBJ)
 add_library(FMITerminalBlock_BASE_OBJ OBJECT 
 	${FMITerminalBlock_BASE_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_BASE_OBJ)
 add_library(FMITerminalBlock_MODEL_OBJ OBJECT 
 	${FMITerminalBlock_MODEL_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_MODEL_OBJ)
 add_library(FMITerminalBlock_TIMING_OBJ OBJECT 
 	${FMITerminalBlock_TIMING_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_TIMING_OBJ)
 
 # State the main executable file
 add_executable(FMITerminalBlock src/main.cpp 
