@@ -55,7 +55,7 @@ namespace FMITerminalBlock
 		public:
 
 			/** @brief The key of the program-name property */
-			static const std::string PROP_PROGRAM_NAME;
+			static const char* const PROP_PROGRAM_NAME;
 
 			/** @brief The key of the start time property */
 			static const std::string PROP_START_TIME;

@@ -24,7 +24,7 @@
 using namespace FMITerminalBlock::Base;
 
 /* Constant Initializations */
-const std::string ApplicationContext::PROP_PROGRAM_NAME = "app.name";
+const char* const ApplicationContext::PROP_PROGRAM_NAME = "app.name";
 const std::string ApplicationContext::PROP_START_TIME = "app.startTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_TIME = "app.lookAheadTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAheadStepSize";
