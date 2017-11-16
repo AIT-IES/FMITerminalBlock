@@ -8,6 +8,8 @@
  * @author Michael Spiegel, michael.spiegel@ait.ac.at
  */
 
+#include "model/EventPredictor.h"
+
 #include <assert.h>
 #include <algorithm>
 #include <stdexcept>
@@ -19,10 +21,10 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "model/EventPredictor.h"
-#include "base/BaseExceptions.h"
 #include "base/ApplicationContext.h"
+#include "base/BaseExceptions.h"
 #include "model/LazyEvent.h"
+#include "model/SolverConfiguration.h"
 #include "timing/StaticEvent.h"
 
 using namespace FMITerminalBlock::Model;
@@ -44,12 +46,25 @@ EventPredictor::EventPredictor(Base::ApplicationContext &context):
 	lowLevelFMU_ = std::unique_ptr<ManagedLowLevelFMU>(
 		new ManagedLowLevelFMU(context));
 
-	solver_ = std::make_shared<IncrementalFMU>(lowLevelFMU_->getModelIdentifier());
+	SolverConfiguration solverConfig(context);
+	solver_ = std::make_shared<IncrementalFMU>(
+		lowLevelFMU_->getModelIdentifier(), solverConfig.getFMUDebuggingMode(), 
+		solverConfig.getEventSearchPrecision());
 	if (solver_->getLastStatus() != fmiOK) {
 		boost::format err("Can't load the incremental FMU \"%1%\" in URL \"%2%\""
 			" Got FMI status code %3%");
 		err % lowLevelFMU_->getModelIdentifier() % lowLevelFMU_->getPath();
 		err % solver_->getLastStatus();
+		throw std::invalid_argument(err.str());
+	}
+
+	// Try to set the integrator properties
+	Integrator::Properties intProp = solverConfig.getIntegratorProperties();
+	solver_->setIntegratorProperties(intProp);
+	if (intProp != solverConfig.getIntegratorProperties())
+	{
+		boost::format err("The integration configuration was rejected: %1%");
+		err % solverConfig.getDiffString(intProp);
 		throw std::invalid_argument(err.str());
 	}
 }

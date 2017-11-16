@@ -59,6 +59,7 @@ if ( INCLUDE_SUNDIALS )
 	include_directories(SUNDIALS_INCLUDE_DIRS)
 	# TODO: Remove as soon as FMI++ uses absolute library paths:
 	link_directories( ${SUNDIALS_LIBRARYDIR} )
+	add_definitions( -DUSE_SUNDIALS )
 endif ()
 
 # SWIG is not needed by FMITerminalBlock - Set the default value to OFF
@@ -104,6 +105,7 @@ add_source_file(MODEL src/model/OneStepEventPredictor.cpp )
 add_source_file(MODEL src/model/LazyEvent.cpp )
 add_source_file(MODEL src/model/EventPredictorFactory.cpp )
 add_source_file(MODEL src/model/ManagedLowLevelFMU.cpp )
+add_source_file(MODEL src/model/SolverConfiguration.cpp )
 
 add_source_file(TIMING src/timing/Variable.cpp )
 add_source_file(TIMING src/timing/Event.cpp )
@@ -113,12 +115,26 @@ add_source_file(TIMING src/timing/TimedEventQueue.cpp )
 add_source_file(TIMING src/timing/EventLogger.cpp )
 add_source_file(TIMING src/timing/CSVDataLogger.cpp )
 
+# Add object libraries to speed up compilation
+add_library(FMITerminalBlock_NETWORK_OBJ OBJECT 
+	${FMITerminalBlock_NETWORK_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_NETWORK_OBJ)
+add_library(FMITerminalBlock_BASE_OBJ OBJECT 
+	${FMITerminalBlock_BASE_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_BASE_OBJ)
+add_library(FMITerminalBlock_MODEL_OBJ OBJECT 
+	${FMITerminalBlock_MODEL_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_MODEL_OBJ)
+add_library(FMITerminalBlock_TIMING_OBJ OBJECT 
+	${FMITerminalBlock_TIMING_SOURCE})
+set_default_compiler_settings(FMITerminalBlock_TIMING_OBJ)
+
 # State the main executable file
 add_executable(FMITerminalBlock src/main.cpp 
-	${FMITerminalBlock_BASE_SOURCE} 
-	${FMITerminalBlock_MODEL_SOURCE} 
-	${FMITerminalBlock_TIMING_SOURCE} 
-	${FMITerminalBlock_NETWORK_SOURCE}
+	$<TARGET_OBJECTS:FMITerminalBlock_BASE_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_MODEL_OBJ> 
+	$<TARGET_OBJECTS:FMITerminalBlock_TIMING_OBJ>
+	$<TARGET_OBJECTS:FMITerminalBlock_NETWORK_OBJ>
 	${CMAKE_CURRENT_BINARY_DIR}/src/network/NetworkManager.cpp )
 
 target_link_libraries( FMITerminalBlock ${Boost_LIBRARIES} fmippim

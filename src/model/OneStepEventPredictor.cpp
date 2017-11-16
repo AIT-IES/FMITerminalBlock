@@ -19,7 +19,8 @@
 #include <import/base/include/FMUModelExchange_v1.h>
 #include <import/base/include/FMUModelExchange_v2.h>
 
-#include <base/BaseExceptions.h>
+#include "base/BaseExceptions.h"
+#include "model/SolverConfiguration.h"
 
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Model;
@@ -223,15 +224,18 @@ OneStepEventPredictor::loadModel(
 	FMUType fmuType = lowLevelFMU->getType();
 	std::unique_ptr<FMUModelExchangeBase> ret;
 
+	SolverConfiguration solverConfig(appContext);
 	if (fmuType == fmi_1_0_me)
 	{
 		ret = std::unique_ptr<FMUModelExchangeBase>(new fmi_1_0::FMUModelExchange(
-			lowLevelFMU->getModelIdentifier()));
+			lowLevelFMU->getModelIdentifier(), solverConfig.getFMUDebuggingMode(), 
+			fmiFalse, solverConfig.getEventSearchPrecision()));
 	}
 	else if (fmuType == fmi_2_0_me || fmuType == fmi_2_0_me)
 	{
 		ret = std::unique_ptr<FMUModelExchangeBase>(new fmi_2_0::FMUModelExchange(
-			lowLevelFMU->getModelIdentifier()));
+			lowLevelFMU->getModelIdentifier(), solverConfig.getFMUDebuggingMode(), 
+			fmiFalse, solverConfig.getEventSearchPrecision()));
 	}
 	else
 	{
@@ -242,6 +246,16 @@ OneStepEventPredictor::loadModel(
 	if (ret->getLastStatus() != fmiOK)
 	{
 		throw Base::SystemConfigurationException("Could not create the model");
+	}
+
+	// Set integrator properties
+	Integrator::Properties intProp = solverConfig.getIntegratorProperties();
+	ret->setIntegratorProperties(intProp);
+	if (intProp != solverConfig.getIntegratorProperties())
+	{
+		boost::format err("The integration configuration was rejected: %1%");
+		err % solverConfig.getDiffString(intProp);
+		throw Base::SystemConfigurationException(err.str());
 	}
 
 	return ret;

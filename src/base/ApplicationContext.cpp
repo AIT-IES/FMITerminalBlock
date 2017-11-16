@@ -24,7 +24,7 @@
 using namespace FMITerminalBlock::Base;
 
 /* Constant Initializations */
-const std::string ApplicationContext::PROP_PROGRAM_NAME = "app.name";
+const char* const ApplicationContext::PROP_PROGRAM_NAME = "app.name";
 const std::string ApplicationContext::PROP_START_TIME = "app.startTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_TIME = "app.lookAheadTime";
 const std::string ApplicationContext::PROP_LOOK_AHEAD_STEP_SIZE = "app.lookAheadStepSize";
@@ -32,13 +32,26 @@ const std::string ApplicationContext::PROP_INTEGRATOR_STEP_SIZE = "app.integrato
 const std::string ApplicationContext::PROP_OUT = "out";
 const std::string ApplicationContext::PROP_IN = "in";
 
-ApplicationContext::ApplicationContext(void):
+ApplicationContext::ApplicationContext():
 	config_(), outputChannelMap_(NULL), inputChannelMap_(NULL), portIDSource_()
 {
+	config_.put(PROP_PROGRAM_NAME, "not set");
 }
 
+ApplicationContext::ApplicationContext(
+	std::initializer_list<std::string> initList):
+	config_(), outputChannelMap_(NULL), inputChannelMap_(NULL), portIDSource_()
+{
+	config_.put(PROP_PROGRAM_NAME, "not set");
+	int i = 0;
+	for (auto it = initList.begin(); it != initList.end(); ++it)
+	{
+		addCommandlineOption(*it, i);
+		i++;
+	}
+}
 
-ApplicationContext::~ApplicationContext(void)
+ApplicationContext::~ApplicationContext()
 {
 	if(outputChannelMap_ != NULL)
 	{
@@ -73,11 +86,20 @@ ApplicationContext::addCommandlineProperties(int argc, const char *argv[])
 
 		addCommandlineOption(opt, i);
 	}
+}
 
+void
+ApplicationContext::addCommandlineProperties(
+	const std::vector<std::string> &args)
+{
+	for (int i = 0; i < args.size(); i++)
+	{
+		addCommandlineOption(args[i], i);
+	}
 }
 
 void 
-ApplicationContext::addCommandlineOption(std::string &opt, int i)
+ApplicationContext::addCommandlineOption(const std::string &opt, int i)
 {
 	size_t pos = opt.find_first_of('=');
 	if(pos == std::string::npos)
