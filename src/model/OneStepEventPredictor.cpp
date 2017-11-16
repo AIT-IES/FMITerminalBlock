@@ -229,13 +229,13 @@ OneStepEventPredictor::loadModel(
 	{
 		ret = std::unique_ptr<FMUModelExchangeBase>(new fmi_1_0::FMUModelExchange(
 			lowLevelFMU->getModelIdentifier(), solverConfig.getFMUDebuggingMode(), 
-			solverConfig.getEventSearchPrecision()));
+			fmiFalse, solverConfig.getEventSearchPrecision()));
 	}
 	else if (fmuType == fmi_2_0_me || fmuType == fmi_2_0_me)
 	{
 		ret = std::unique_ptr<FMUModelExchangeBase>(new fmi_2_0::FMUModelExchange(
 			lowLevelFMU->getModelIdentifier(), solverConfig.getFMUDebuggingMode(), 
-			solverConfig.getEventSearchPrecision()));
+			fmiFalse, solverConfig.getEventSearchPrecision()));
 	}
 	else
 	{
