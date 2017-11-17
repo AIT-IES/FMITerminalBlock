@@ -93,7 +93,32 @@ The operation of the solver and the prediction logic may be adjusted by the foll
 
 **fmu.name**: The actual model identifier of the FMU as defined in the model description. Usually, the identifier is specified during the export procedure and can be automatically deduced from the files in the FMU directory. In case the FMU simultaneously provides co-simulation and a model exchange (FMI 2.0 only) and in case both variants use different identifiers, the name property should be set to ensure the proper variant is taken. A debug message can be displayed (log level *debug*) which prints the actually taken model identifier. One may use *fmu.name* to change the default behavior, if necessary.
 
-**app.integratorStepSize**: The time interval of a single integrator step. The default value is app.lookAheadStepSize/10.
+**app.integratorStepSize**: The time interval of a single integrator step. The default value is app.lookAheadStepSize/10. In case the integrator uses dynamic step sizes, the parameter is taken as an initial guess and will be adapted dynamically.
+
+**app.eventSearchPrecision**: Some types of FMI-events (state events) need to be approximatively located. Thereby an indication function is evaluated and the zero crossing is numerically detected. The event search precision specifies the time tolerance for detecting events. Bigger values will result in faster computations but will reduce the accuracy of the result.
+
+**app.integration.method**: FMITerminalBlock may use various numerical integration methods to solve the included model. Each method may only solve a specific set of models properly. Hence, it is advised to chose the method which best suits the current problem. For further information on the integration methods refer to the documentation of [FMI++](https://sourceforge.net/projects/fmipp/). The following table of supported integrators is taken from that documentation:
+
+| Method ID | Name                              | Order | Adaptive | Recommended Usecases           |
+|-----------|-----------------------------------|-------|----------|--------------------------------|
+| eu        | Euler                             | 1     | No       | Testing                        |
+| rk        | Runge-Kutta                       | 4     | No       | Testing                        |
+| abm       | Adams-Bashforth-Moulton           | 8     | No       | Testing                        |
+| ck        | Cash-Karp                         | 5     | Yes      | Nonstiff Models                |
+| dp        | Dormand-Prince                    | 5     | Yes      | Nonstiff Models                |
+| fe        | Fehlberg                          | 8     | Yes      | Nonstiff, smooth Models        |
+| bs        | Bulirsch-Stoer                    | 1-16  | Yes      | High precision required        |
+| ro        | Rosenbrock                        | 4     | Yes      | Stiff Models                   |
+| bdf       | Backwards-Differentiation Formula | 1-5   | Yes      | Stiff Models                   |
+| abm2      | Adams-Bashforth-Moulton 2         | 1-12  | Yes      | Nonstiff Models, expensive rhs |
+
+To change the default integrator *dp*, just set the *app.integration.method* property to the appropriate ID. In order to use *bdf* and *abm2*, FMITerminalBlock must be compiled with Sundials support. Further parameters of the numerical integrator can be adjusted via the following *app.integration.* properties. Please note that some integration methods restrict the set of applicable parameters. For instance, non-adaptive algorithms may not use absolute and relative tolerances. Setting these tolerances will result in an error. Similarly, setting the integration order to an unsupported value will abort the operation.
+
+**app.integration.order**: In case integration method supports variable order, the parameter may be use to adjust the integration order.
+
+**app.integration.absoluteTolerance**: In case error control is supported by the integration method, the parameter adjusts the absolute tolerance of the result. Smaller values may lead to smaller integration steps and increased prediction effort.
+
+**app.integration.relativeTolerance**: In case error control is supported by the integration method, the parameter adjusts the relative tolerance of the result. Smaller values may lead to smaller integration steps and increased prediction effort.
 
 **app.startTime**: The initial time of the simulation. In real-time mode (currently the only model of operation), the program starts processing events which are associated with the given start time, immediately. The default value which is set in the FMU description may be used. In case the FMU does not contain any default start time property, a value must be given.
 

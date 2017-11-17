@@ -15,17 +15,26 @@
 #include <boost/test/unit_test.hpp>
 
 #include "model/EventPredictor.h"
+
+#include <assert.h>
+#include <stdexcept>
+#include <vector>
+#include <list>
+
+#include <boost/any.hpp>
+#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/data/test_case.hpp>
+
 #include "base/ApplicationContext.h"
 #include "base/BaseExceptions.h"
 #include "timing/StaticEvent.h"
-
-#include <assert.h>
-#include <boost/any.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include <stdexcept>
+#include "SolverConfigurationSets.h"
 
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Model;
+using namespace FMITerminalBlockTest::Model;
+
+namespace data = boost::unit_test::data;
 
 /**
  * @brief Defines the environment used during most of the EventPredictor test 
@@ -222,13 +231,15 @@ BOOST_AUTO_TEST_CASE(test_configureDefaultApplicationContext)
 }
 
 /** @brief Tests the event detection and fmiReal-typed outputs*/
-BOOST_FIXTURE_TEST_CASE(test_fmireal_events, EventPredictorZigzagFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorZigzagFixture, test_fmireal_events, 
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1.1", 
 		"app.lookAheadStepSize=0.11", "app.integratorStepSize=0.11", 
 		"app.startTime=0.0", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -283,13 +294,15 @@ BOOST_FIXTURE_TEST_CASE(test_fmireal_events, EventPredictorZigzagFixture)
  * @brief Tests multiple output events without an input event occurrence. 
  * @details Just the default values are used to initially define the inputs.
  */
-BOOST_FIXTURE_TEST_CASE(test_pure_output_events, EventPredictorDxIsKxFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorDxIsKxFixture, test_pure_output_events,
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.1", "app.integratorStepSize=0.1",
 		"app.startTime=0.0", "in-var.default.u=1", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -324,13 +337,15 @@ BOOST_FIXTURE_TEST_CASE(test_pure_output_events, EventPredictorDxIsKxFixture)
 /** 
  * @brief Triggers multiple input events before an output event is generated
  */
-BOOST_FIXTURE_TEST_CASE(test_multiple_input_events, EventPredictorDxIsKxFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorDxIsKxFixture, test_multiple_input_events,
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
 		"app.startTime=0.0", "in-var.default.u=1", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -378,13 +393,16 @@ BOOST_FIXTURE_TEST_CASE(test_multiple_input_events, EventPredictorDxIsKxFixture)
  * @details Output events are fed back to the event predictor in order to test 
  * the filtering capabilities.
  */
-BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorDxIsKxFixture, 
+	test_alternating_input_events,
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
 		"app.startTime=0.0", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -443,8 +461,9 @@ BOOST_FIXTURE_TEST_CASE(test_alternating_input_events, EventPredictorDxIsKxFixtu
  * @details Output events are fed back to the event predictor in order to test 
  * the filtering capabilities.
  */
-BOOST_FIXTURE_TEST_CASE(test_direct_feedback_events, 
-	EventPredictorDxIsKxFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorDxIsKxFixture, 
+	test_direct_feedback_events,
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
@@ -452,6 +471,7 @@ BOOST_FIXTURE_TEST_CASE(test_direct_feedback_events,
 		"app.startTime=0.0", "app.directOutputDependency=1", 
 		"channel.0.out-var.1=der(x)", "channel.0.out-var.1.type=0", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -543,13 +563,15 @@ BOOST_FIXTURE_TEST_CASE(test_direct_feedback_events,
  * @brief Triggers an event which is timed before a predicted one which was 
  * previously taken
  */
-BOOST_FIXTURE_TEST_CASE(test_causality_violation, EventPredictorDxIsKxFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorDxIsKxFixture, test_causality_violation,
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
 		"app.startTime=0.0", "in-var.default.u=1", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -588,13 +610,15 @@ BOOST_FIXTURE_TEST_CASE(test_causality_violation, EventPredictorDxIsKxFixture)
 /**
  * @brief Triggers an event which has the same timing as a predicted one
  */
-BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event, EventPredictorDxIsKxFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorDxIsKxFixture, test_concurrent_in_out_event,
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
 		"app.startTime=0.0", "in-var.default.u=1", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);
@@ -629,14 +653,16 @@ BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event, EventPredictorDxIsKxFixtur
  * @brief Triggers an event which has the same timing as a predicted one which 
  * was previously taken.
  */
-BOOST_FIXTURE_TEST_CASE(test_concurrent_in_out_event_taken, 
-	EventPredictorDxIsKxFixture)
+BOOST_DATA_TEST_CASE_F(EventPredictorDxIsKxFixture, 
+	test_concurrent_in_out_event_taken,
+	data::make(createValidSolverParameterSet()), solverParams)
 {
 	// Set horizon parameter
 	const char * argv[] = { "testEventPredictor", "app.lookAheadTime=1",
 		"app.lookAheadStepSize=0.01", "app.integratorStepSize=0.01",
 		"app.startTime=0.0", "in-var.default.u=1", NULL };
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	// Create EventPredictor
 	EventPredictor pred(appContext);

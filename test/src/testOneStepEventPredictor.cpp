@@ -17,9 +17,11 @@
 #include "model/OneStepEventPredictor.h"
 #include "base/ApplicationContext.h"
 #include "base/BaseExceptions.h"
+#include "SolverConfigurationSets.h"
 
 using namespace FMITerminalBlock;
 using namespace FMITerminalBlock::Model;
+using namespace FMITerminalBlockTest::Model;
 
 namespace data = boost::unit_test::data;
 
@@ -138,7 +140,8 @@ BOOST_AUTO_TEST_CASE(test_configureDefaultApplicationContext)
 
 /** @brief Test multiple events in one prediction step (fixed step size mode)*/
 BOOST_DATA_TEST_CASE(testMultipleEventsPerPredictionStep, 
-	data::make(ZIGZAG_FMU_NAMES), name)
+	data::make(ZIGZAG_FMU_NAMES)*data::make(createValidSolverParameterSet()), 
+	name, solverParams)
 {
 	Base::ApplicationContext appContext;
 	addModelBaseProperties(&appContext, name);
@@ -148,6 +151,7 @@ BOOST_DATA_TEST_CASE(testMultipleEventsPerPredictionStep,
 		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
 		"channel.0.out-var.1=der(x)", "channel.0.out-var.1.type=0", NULL};
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	OneStepEventPredictor pred(appContext);
 	pred.init();
@@ -175,7 +179,8 @@ BOOST_DATA_TEST_CASE(testMultipleEventsPerPredictionStep,
  * management
  */
 BOOST_DATA_TEST_CASE(testEventDetection, 
-	data::make(ZIGZAG_FMU_NAMES), name)
+	data::make(ZIGZAG_FMU_NAMES)*data::make(createValidSolverParameterSet()), 
+	name, solverParams)
 {
 	Base::ApplicationContext appContext;
 	addModelBaseProperties(&appContext, name);
@@ -185,6 +190,7 @@ BOOST_DATA_TEST_CASE(testEventDetection,
 		"channel.0.out-var.0=x", "channel.0.out-var.0.type=0", 
 		"channel.0.out-var.1=der(x)", "channel.0.out-var.1.type=0", NULL};
 	appContext.addCommandlineProperties(ARG_NUM_OF_ARGV(argv), argv);
+	appContext.addCommandlineProperties(solverParams);
 
 	OneStepEventPredictor pred(appContext);
 	pred.init();
@@ -196,8 +202,8 @@ BOOST_DATA_TEST_CASE(testEventDetection,
 	auto vars = ev->getVariables();
 	BOOST_REQUIRE_EQUAL(vars.size(), 2);
 
-	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 1.0);
-	BOOST_CHECK_CLOSE(vars[1].getRealValue(), -1.0, 1.0);
+	BOOST_CHECK_CLOSE(vars[0].getRealValue(), 1.0, 1.0); // x
+	BOOST_CHECK_CLOSE(vars[1].getRealValue(), -1.0, 1.0); // der(x)
 
 	pred.eventTriggered(ev);
 	delete ev;
