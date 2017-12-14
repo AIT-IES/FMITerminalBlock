@@ -392,7 +392,7 @@ OneStepEventPredictor::predictOneStep()
 			throw Base::SolverException(fmt.str(), fmu_->getTime());
 		}
 	} while (!simulationProperties_.variableStepSizeOnModelEvent && 
-			fabs(fmu_->getTime() - nextCompleteStep) > 
+			fmu_->getTime() < nextCompleteStep - 
 				simulationProperties_.timingPrecision);
 }
 
