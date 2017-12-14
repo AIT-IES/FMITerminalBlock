@@ -103,6 +103,13 @@ OneStepEventPredictor::eventTriggered(Timing::Event * ev)
 	bool updated = updateInputVariables(ev);
 	if (updated)
 	{
+		// The event handling function is now called for every input event. Hence,
+		// it may be called multiple times until the next continuous time step is
+		// made. If this is an issue, consider calling the event handling function
+		// just before the next step is calculated. (Probably requires the storage 
+		// of an update flag)
+		fmu_->handleEvents();
+
 		BOOST_LOG_TRIVIAL(debug) << "Event " << ev->toString() 
 			<< " was applied to the model at time " << fmu_->getTime();
 	} else {
