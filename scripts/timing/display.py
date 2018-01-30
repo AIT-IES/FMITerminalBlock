@@ -39,10 +39,10 @@ def _to_table_row(axis, name):
     ret = "<tr> "
     ret += "<td> {} </td> ".format(name)
     ret += "<td> {} </td> ".format(axis.get_length())
-    ret += "<td> {:.4} </td> ".format(axis.get_mean_delay())
-    ret += "<td> {:.4f} </td> ".format(axis.get_variance_of_delay())
-    ret += "<td> {:.4f} </td> ".format(axis.get_min_delay())
-    ret += "<td> {:.4f} </td> ".format(axis.get_max_delay())
+    ret += "<td> {:.3g} </td> ".format(axis.get_mean_delay())
+    ret += "<td> {:.4g} </td> ".format(axis.get_variance_of_delay())
+    ret += "<td> {:.3g} </td> ".format(axis.get_min_delay())
+    ret += "<td> {:.3g} </td> ".format(axis.get_max_delay())
     ret += "</tr> "
     return ret
     
