@@ -1,4 +1,6 @@
-![FMITerminalBlock Banner](doc/img/banner.png)
+<p align="center">
+  <img src="https://github.com/AIT-IES/FMITerminalBlock/blob/master/doc/img/banner.png?raw=true" alt="FMITerminalBlock Banner" />
+</p>
 
 FMITerminalBlock: FMI - Fieldbus Interface
 ==========================================
