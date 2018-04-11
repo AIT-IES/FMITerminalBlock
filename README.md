@@ -1,3 +1,5 @@
+![FMITerminalBlock Banner](doc/img/banner.png)
+
 FMITerminalBlock: FMI - Fieldbus Interface
 ==========================================
 
